@@ -7,15 +7,24 @@ import os
 import re
 import json
 import time
+import tempfile
+import subprocess
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
+from pathlib import Path
 
 try:
     import yt_dlp
     YTDLP_AVAILABLE = True
 except ImportError:
     YTDLP_AVAILABLE = False
+
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
 
 from url_detector import URLInfo, URLType
 from content_processor import ContentProcessor, ProcessedContent
@@ -39,8 +48,10 @@ class VideoInfo:
     original_url: str
     platform: str
     subtitles: List[str]  # subtitle URLs
+    subtitle_text: str  # extracted subtitle content
     extractor: str  # which yt-dlp extractor was used
     formatted_duration: str  # human readable duration
+    screenshots: List[str]  # base64 encoded screenshots
 
 
 class VideoInfoProcessor(ContentProcessor):
@@ -67,6 +78,48 @@ class VideoInfoProcessor(ContentProcessor):
         # 'cookiesfrombrowser': ('chrome',),  # Uncomment to use browser cookies
     }
 
+    # Expanded subtitle language support
+    SUBTITLE_LANGUAGES = [
+        # Primary languages (most likely to have subtitles)
+        'en',           # English
+        'zh-Hans',      # Chinese Simplified
+        'zh-Hant',      # Chinese Traditional
+        'zh',           # Chinese (any)
+        'ja',           # Japanese
+        'ko',           # Korean
+        'es',           # Spanish
+        'fr',           # French
+        'de',           # German
+        'pt',           # Portuguese
+        'ru',           # Russian
+        'it',           # Italian
+        'ar',           # Arabic
+        'hi',           # Hindi
+        'th',           # Thai
+        'vi',           # Vietnamese
+        'id',           # Indonesian
+        'ms',           # Malay
+        'tr',           # Turkish
+        'pl',           # Polish
+        'nl',           # Dutch
+        'sv',           # Swedish
+        'no',           # Norwegian
+        'da',           # Danish
+        'fi',           # Finnish
+        'cs',           # Czech
+        'el',           # Greek
+        'he',           # Hebrew
+        'uk',           # Ukrainian
+        # B站弹幕
+        'danmaku',      # Bilibili danmaku
+        # Fallback to auto-generated
+        'en-US',        # English US
+        'en-GB',        # English UK
+        'zh-CN',        # Chinese China
+        'zh-TW',        # Chinese Taiwan
+        'zh-HK',        # Chinese Hong Kong
+    ]
+
     def __init__(self):
         super().__init__()
         if not YTDLP_AVAILABLE:
@@ -78,13 +131,14 @@ class VideoInfoProcessor(ContentProcessor):
         """Can process video URLs"""
         return url_info.url_type == URLType.VIDEO
 
-    def extract(self, url_info: URLInfo, fetch_subtitles: bool = False) -> ProcessedContent:
+    def extract(self, url_info: URLInfo, fetch_subtitles: bool = True, capture_screenshots: bool = True) -> ProcessedContent:
         """
         Extract video information using yt-dlp
 
         Args:
             url_info: URL information from URLDetector
-            fetch_subtitles: Whether to fetch subtitles/captions if available
+            fetch_subtitles: Whether to fetch subtitles/captions if available (default: True)
+            capture_screenshots: Whether to capture key frame screenshots (default: True)
 
         Returns:
             ProcessedContent with video metadata
@@ -94,7 +148,7 @@ class VideoInfoProcessor(ContentProcessor):
 
         try:
             # Extract video info
-            video_info = self._extract_video_info(url_info.url, fetch_subtitles)
+            video_info = self._extract_video_info(url_info.url, fetch_subtitles, capture_screenshots)
 
             # Build content structure
             result.content = {
@@ -114,17 +168,21 @@ class VideoInfoProcessor(ContentProcessor):
                     "categories": video_info.categories,
                     "video_id": video_info.id,
                     "thumbnail": video_info.thumbnail,
-                    "extractor": video_info.extractor
+                    "extractor": video_info.extractor,
+                    "has_subtitles": bool(video_info.subtitle_text),
+                    "subtitle_length": len(video_info.subtitle_text) if video_info.subtitle_text else 0,
+                    "screenshot_count": len(video_info.screenshots)
                 }
             }
 
-            # Extract subtitle text if available
-            subtitle_text = ""
-            if fetch_subtitles and video_info.subtitles:
-                subtitle_text = self._fetch_subtitles(video_info.subtitles[:1])  # Only first subtitle
-                if subtitle_text:
-                    result.content["subtitle_text"] = subtitle_text
-                    result.content["main_content"] += f"\n\n## Subtitles/Transcript\n\n{subtitle_text}"
+            # Include subtitle text if available
+            if video_info.subtitle_text:
+                result.content["subtitle_text"] = video_info.subtitle_text
+                # Add subtitle summary to main content
+                subtitle_summary = video_info.subtitle_text[:500]
+                if len(video_info.subtitle_text) > 500:
+                    subtitle_summary += "..."
+                result.content["main_content"] += f"\n\n## Transcript Preview\n\n{subtitle_summary}"
 
             # Media info
             result.media = {
@@ -136,14 +194,16 @@ class VideoInfoProcessor(ContentProcessor):
                     "id": video_info.id,
                     "duration": video_info.formatted_duration
                 }],
-                "screenshots": []
+                "screenshots": video_info.screenshots
             }
 
             result.processing_info.update({
                 "processing_time": self._end_timer(),
                 "success": True,
                 "errors": [],
-                "extractor_used": video_info.extractor
+                "extractor_used": video_info.extractor,
+                "subtitles_fetched": bool(video_info.subtitle_text),
+                "screenshots_captured": len(video_info.screenshots) > 0
             })
 
         except Exception as e:
@@ -156,13 +216,15 @@ class VideoInfoProcessor(ContentProcessor):
 
         return result
 
-    def _extract_video_info(self, url: str, fetch_subtitles: bool) -> VideoInfo:
+    def _extract_video_info(self, url: str, fetch_subtitles: bool = True, capture_screenshots: bool = True) -> VideoInfo:
         """Extract video information using yt-dlp"""
         opts = self.YTDLP_OPTS.copy()
+
+        # Configure subtitle extraction with expanded language support
         if fetch_subtitles:
             opts['writesubtitles'] = True
             opts['writeautomaticsub'] = True
-            opts['subtitleslangs'] = ['en', 'zh-Hans', 'zh-Hant', 'zh']
+            opts['subtitleslangs'] = self.SUBTITLE_LANGUAGES
 
         with yt_dlp.YoutubeDL(opts) as ydl:
             try:
@@ -171,16 +233,52 @@ class VideoInfoProcessor(ContentProcessor):
                 if not info:
                     raise ValueError(f"Failed to extract info from {url}")
 
-                # Extract subtitle URLs
+                # Extract subtitle URLs and fetch subtitle text
                 subtitles = []
-                if info.get('subtitles'):
-                    for lang, sub_list in info['subtitles'].items():
-                        if isinstance(sub_list, list) and len(sub_list) > 0:
-                            subtitles.append(sub_list[0].get('url', ''))
-                if info.get('automatic_captions'):
-                    for lang, sub_list in info['automatic_captions'].items():
-                        if isinstance(sub_list, list) and len(sub_list) > 0:
-                            subtitles.append(sub_list[0].get('url', ''))
+                subtitle_text = ""
+
+                if fetch_subtitles:
+                    # Get manual subtitles (prioritized)
+                    manual_subs = info.get('subtitles', {})
+                    for lang in self.SUBTITLE_LANGUAGES:
+                        if lang in manual_subs:
+                            sub_list = manual_subs[lang]
+                            if isinstance(sub_list, list) and len(sub_list) > 0:
+                                sub_url = sub_list[0].get('url', '')
+                                if sub_url:
+                                    subtitles.append(sub_url)
+
+                    # Get automatic captions (fallback)
+                    if not subtitles:
+                        auto_caps = info.get('automatic_captions', {})
+                        for lang in self.SUBTITLE_LANGUAGES:
+                            if lang in auto_caps:
+                                sub_list = auto_caps[lang]
+                                if isinstance(sub_list, list) and len(sub_list) > 0:
+                                    sub_url = sub_list[0].get('url', '')
+                                    if sub_url:
+                                        subtitles.append(sub_url)
+
+                    # Fetch subtitle text with improved parsing
+                    if subtitles:
+                        # Try multiple subtitle sources, combine results
+                        all_subtitle_texts = []
+                        for sub_url in subtitles[:5]:  # Try up to 5 subtitle sources
+                            try:
+                                text = self._fetch_subtitles([sub_url])
+                                if text and len(text) > 50:  # Only use if meaningful
+                                    all_subtitle_texts.append(text)
+                            except Exception:
+                                continue
+
+                        # Combine multiple subtitle sources
+                        if all_subtitle_texts:
+                            subtitle_text = self._combine_subtitle_texts(all_subtitle_texts)
+
+                # Capture screenshots if requested
+                screenshots = []
+                if capture_screenshots:
+                    screenshots = self._capture_screenshots_from_info(info, num_screenshots=5)
 
                 # Build video info
                 return VideoInfo(
@@ -199,8 +297,10 @@ class VideoInfoProcessor(ContentProcessor):
                     original_url=url,
                     platform=self._detect_platform(info),
                     subtitles=subtitles,
+                    subtitle_text=subtitle_text,
                     extractor=info.get('extractor', 'generic'),
-                    formatted_duration=self._format_duration(info.get('duration', 0))
+                    formatted_duration=self._format_duration(info.get('duration', 0)),
+                    screenshots=screenshots
                 )
 
             except Exception as e:
@@ -297,10 +397,21 @@ class VideoInfoProcessor(ContentProcessor):
 
         for url in subtitle_urls:
             try:
-                response = requests.get(url, timeout=10)
+                headers = {
+                    'User-Agent': 'Mozilla/5.0',
+                    'Referer': 'https://www.bilibili.com/' if 'bilibili' in url else None
+                }
+                # Filter out None headers
+                headers = {k: v for k, v in headers.items() if v is not None}
+
+                response = requests.get(url, headers=headers, timeout=10)
                 response.raise_for_status()
 
-                # Parse subtitle format (usually VTT or SRT)
+                # Try to detect encoding
+                if 'bilibili' in url:
+                    response.encoding = 'utf-8'
+
+                # Parse subtitle format (usually VTT, SRT, or TTML/danmaku)
                 content = response.text
                 return self._parse_subtitle_content(content)
             except Exception as e:
@@ -309,30 +420,397 @@ class VideoInfoProcessor(ContentProcessor):
         return ""
 
     def _parse_subtitle_content(self, content: str) -> str:
-        """Parse subtitle content and extract text"""
+        """
+        Parse subtitle content and extract text with improved precision
+
+        Handles:
+        - WebVTT format (.vtt)
+        - SubRip format (.srt)
+        - TTML format (.ttml)
+        - Bilibili Danmaku XML format
+        - Various JSON subtitle formats
+        """
         lines = content.split('\n')
         text_lines = []
 
-        for line in lines:
-            line = line.strip()
-            # Skip VTT/SRT metadata lines
-            if (not line or
-                line.startswith('WEBVTT') or
-                line.startswith('Kind:') or
-                re.match(r'\d{2}:', line) or
-                re.match(r'\d+ -->', line) or
-                re.match(r'^\d+$', line)):
+        # Detect format
+        is_vtt = content.strip().startswith('WEBVTT')
+        is_srt = bool(re.search(r'^\d+\s*\n\d{2}:\d{2}:\d{2}', content, re.MULTILINE))
+        is_ttml = '<tt' in content.lower()
+        is_danmaku = '<d p=' in content or '<chatid>' in content
+
+        if is_ttml:
+            # TTML format - XML based
+            return self._parse_ttml_content(content)
+
+        if is_danmaku:
+            # Bilibili danmaku format
+            return self._parse_danmaku_content(content)
+
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+
+            # Skip VTT/SRT metadata and empty lines
+            if not line:
+                i += 1
                 continue
 
-            # Remove timestamp and formatting
-            line = re.sub(r'<[^>]+>', '', line)  # Remove HTML tags
-            line = re.sub(r'\{[^}]+\}', '', line)  # Remove {} tags
-            line = re.sub(r'\[[^\]]+\]', '', line)  # Remove [] tags
+            # Skip VTT header
+            if line == 'WEBVTT':
+                i += 1
+                continue
 
-            if line and len(line) > 1:
-                text_lines.append(line)
+            # Skip style/meta blocks
+            if line.startswith(('STYLE', 'NOTE', 'Kind:')):
+                i += 1
+                continue
 
-        return ' '.join(text_lines)
+            # Skip line numbers (SRT)
+            if re.match(r'^\d+$', line):
+                i += 1
+                continue
+
+            # Skip timestamp lines
+            if self._is_timestamp_line(line):
+                i += 1
+                continue
+
+            # Skip timestamp tags in VTT
+            if line.startswith('<') and line.endswith('>'):
+                i += 1
+                continue
+
+            # Clean and process text line
+            cleaned_line = self._clean_subtitle_line(line)
+            if cleaned_line and len(cleaned_line) > 1:
+                # Avoid duplicate consecutive lines
+                if not text_lines or text_lines[-1] != cleaned_line:
+                    text_lines.append(cleaned_line)
+
+            i += 1
+
+        # Join with proper spacing
+        result = ' '.join(text_lines)
+
+        # Clean up common issues
+        result = self._post_process_subtitle_text(result)
+
+        return result
+
+    def _is_timestamp_line(self, line: str) -> bool:
+        """Check if line is a timestamp"""
+        # VTT/SRT timestamp patterns
+        timestamp_patterns = [
+            r'^\d{2}:\d{2}:\d{2}',  # 00:00:00
+            r'^\d{2}:\d{2}:\d{2}\.\d{3}',  # 00:00:00.000
+            r'^\d{2}:\d{2}:\d{2},\d{3}',  # 00:00:00,000
+            r'^\d{2}:\d{2}',  # 00:00
+            r'\d{2}:\d{2}:\d{2}.*-->',  # Timestamp with arrow
+            r'-->.*\d{2}:\d{2}:\d{2}',  # Arrow with timestamp
+        ]
+        return any(re.search(pattern, line) for pattern in timestamp_patterns)
+
+    def _clean_subtitle_line(self, line: str) -> str:
+        """Clean a subtitle line by removing formatting and tags"""
+        # Remove HTML/XML tags
+        line = re.sub(r'<[^>]+>', '', line)
+        # Remove curly brace tags (common in subtitles)
+        line = re.sub(r'\{[^}]+\}', '', line)
+        # Remove square bracket tags
+        line = re.sub(r'\[[^\]]+\]', '', line)
+        # Remove timestamps at start/end
+        line = re.sub(r'^\d{2}:\d{2}:\d{2}[.,]\d+\s*', '', line)
+        line = re.sub(r'\s*\d{2}:\d{2}:\d{2}[.,]\d+\s*$', '', line)
+        # Remove position tags like {\an8}
+        line = re.sub(r'\\[aAnN]\d+', '', line)
+        # Remove music symbols
+        line = line.replace('♫', '').replace('♪', '')
+        # Remove duplicate spaces
+        line = re.sub(r'\s+', ' ', line)
+        return line.strip()
+
+    def _post_process_subtitle_text(self, text: str) -> str:
+        """Post-process subtitle text to fix common issues"""
+        # Fix common OCR/spacing issues
+        text = re.sub(r'\s+([.!?,:;])', r'\1', text)  # Fix "word ." -> "word."
+        text = re.sub(r'([.!?])\s+([a-z])', r'\1 \2', text)  # Ensure proper sentence spacing
+        # Remove ellipsis overuse
+        text = re.sub(r'\.{4,}', '...', text)
+        # Fix broken words at line breaks
+        text = re.sub(r'([a-z])-\s+([a-z])', r'\1\2', text)
+        # Remove extra whitespace
+        text = re.sub(r'\s+', ' ', text)
+        return text.strip()
+
+    def _parse_ttml_content(self, content: str) -> str:
+        """Parse TTML (XML-based) subtitle format"""
+        try:
+            import xml.etree.ElementTree as ET
+            # Remove namespace if present
+            content = re.sub(r'<\?xml[^>]+\?>', '', content)
+            content = re.sub(r'xmlns[^=]*="[^"]*"', '', content)
+
+            root = ET.fromstring(content)
+            text_lines = []
+
+            # Find all text elements
+            for elem in root.iter():
+                if elem.text and elem.text.strip():
+                    text = elem.text.strip()
+                    # Remove tags from within TTML
+                    text = re.sub(r'<[^>]+>', '', text)
+                    if text and len(text) > 1:
+                        text_lines.append(text)
+
+            return ' '.join(text_lines)
+        except Exception:
+            # Fallback to regex extraction
+            text_matches = re.findall(r'>([^<]{10,})<', content)
+            return ' '.join(text_matches)
+
+    def _parse_danmaku_content(self, content: str) -> str:
+        """
+        Parse Bilibili danmaku XML format
+
+        Danmaku format: <d p="time,type,size,color,send_time,hash,id,pool">content</d>
+        """
+        try:
+            import xml.etree.ElementTree as ET
+
+            root = ET.fromstring(content)
+            danmaku_texts = []
+
+            # Find all <d> tags (danmaku entries)
+            for d_tag in root.findall('d'):
+                if d_tag.text and d_tag.text.strip():
+                    text = d_tag.text.strip()
+                    # Filter out very short or spam-like danmaku
+                    if len(text) >= 2:
+                        # Skip pure punctuation or numbers
+                        if not text.replace('，', '').replace('。', '').replace('！', '').replace('？', '').replace('/', '').isdigit():
+                            danmaku_texts.append(text)
+
+            # Join danmaku with spacing
+            result = ' '.join(danmaku_texts)
+
+            # Post-process to clean up
+            result = self._post_process_subtitle_text(result)
+
+            return result
+        except Exception as e:
+            # Fallback to regex extraction
+            # Match content inside <d> tags
+            danmaku_matches = re.findall(r'<d[^>]*>([^<]+)</d>', content)
+            filtered = [d.strip() for d in danmaku_matches if len(d.strip()) >= 2]
+            return ' '.join(filtered)
+
+    def _combine_subtitle_texts(self, texts: list) -> str:
+        """
+        Combine multiple subtitle texts intelligently
+
+        Removes duplicates while preserving unique content
+        """
+        if not texts:
+            return ""
+
+        # Clean and deduplicate
+        seen = set()
+        unique_texts = []
+
+        for text in texts:
+            # Normalize for comparison
+            normalized = ' '.join(text.split()).lower()
+            # Create a hash for comparison (use first 100 chars as key)
+            text_key = normalized[:100]
+
+            if text_key not in seen:
+                seen.add(text_key)
+                unique_texts.append(text)
+
+        # Combine all unique texts
+        combined = ' '.join(unique_texts)
+
+        # Clean up combined text
+        combined = self._post_process_subtitle_text(combined)
+
+        return combined
+
+    def _capture_screenshots_from_info(self, info: Dict, num_screenshots: int = 5) -> List[str]:
+        """
+        Capture key frame screenshots from video info
+
+        Args:
+            info: Video info dict from yt-dlp
+            num_screenshots: Number of screenshots to capture (default: 5)
+
+        Returns:
+            List of base64 encoded screenshot data URIs
+        """
+        screenshots = []
+
+        # Try to get thumbnail URLs first (most reliable)
+        thumbnail = info.get('thumbnail', '')
+        if thumbnail:
+            try:
+                thumb_data = self._download_and_encode_image(thumbnail, high_quality=True)
+                if thumb_data:
+                    screenshots.append(thumb_data)
+            except Exception:
+                pass
+
+        # Try to get additional thumbnails if available
+        thumbnails = info.get('thumbnails', [])
+        for thumb in thumbnails[:num_screenshots - 1]:
+            try:
+                thumb_url = thumb.get('url', '')
+                if thumb_url and thumb_url != thumbnail:
+                    thumb_data = self._download_and_encode_image(thumb_url, high_quality=True)
+                    if thumb_data:
+                        screenshots.append(thumb_data)
+                        if len(screenshots) >= num_screenshots:
+                            break
+            except Exception:
+                continue
+
+        # If we still need more screenshots and ffmpeg is available, capture from video
+        if len(screenshots) < num_screenshots and self._check_ffmpeg_available():
+            try:
+                video_url = info.get('url', '')
+                if video_url:
+                    additional_count = num_screenshots - len(screenshots)
+                    additional_screenshots = self._capture_ffmpeg_screenshots(
+                        video_url,
+                        additional_count,
+                        high_quality=True
+                    )
+                    screenshots.extend(additional_screenshots)
+            except Exception:
+                pass
+
+        return screenshots[:num_screenshots]
+
+    def _download_and_encode_image(self, url: str, high_quality: bool = False) -> str:
+        """
+        Download image and convert to base64 data URI
+
+        Args:
+            url: Image URL
+            high_quality: Whether to request high quality version
+
+        Returns:
+            Base64 encoded data URI
+        """
+        if not REQUESTS_AVAILABLE:
+            return ""
+
+        try:
+            headers = {}
+            if high_quality:
+                # Request high quality images
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+
+            response = requests.get(url, headers=headers, timeout=15, stream=True)
+            response.raise_for_status()
+
+            import base64
+
+            # Detect image format
+            content_type = response.headers.get('Content-Type', 'image/jpeg')
+
+            # Encode to base64
+            image_data = response.content
+            base64_data = base64.b64encode(image_data).decode('utf-8')
+
+            return f"data:{content_type};base64,{base64_data}"
+
+        except Exception:
+            return ""
+
+    def _check_ffmpeg_available(self) -> bool:
+        """Check if ffmpeg is available in the system"""
+        try:
+            result = subprocess.run(['ffmpeg', '-version'],
+                                    capture_output=True,
+                                    timeout=5)
+            return result.returncode == 0
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return False
+
+    def _capture_ffmpeg_screenshots(self, video_url: str, num_screenshots: int, high_quality: bool = True) -> List[str]:
+        """
+        Capture screenshots using ffmpeg at different time points
+
+        Args:
+            video_url: URL of the video
+            num_screenshots: Number of screenshots to capture
+            high_quality: Whether to capture high quality screenshots
+
+        Returns:
+            List of base64 encoded screenshots
+        """
+        screenshots = []
+
+        if not self._check_ffmpeg_available():
+            return screenshots
+
+        try:
+            import base64
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_path = Path(temp_dir)
+
+                # Get video duration first
+                probe_cmd = [
+                    'ffprobe', '-v', 'error',
+                    '-show_entries', 'format=duration',
+                    '-of', 'default=noprint_wrappers=1:nokey=1',
+                    video_url
+                ]
+
+                result = subprocess.run(probe_cmd, capture_output=True, text=True, timeout=30)
+                duration = float(result.stdout.strip()) if result.stdout.strip() else 60
+
+                # Calculate screenshot time points (evenly distributed)
+                # More time points for better coverage
+                time_points = []
+                for i in range(1, num_screenshots + 1):
+                    pct = i / (num_screenshots + 1)
+                    time_points.append(duration * pct)
+
+                for i, time_point in enumerate(time_points):
+                    output_file = temp_path / f"screenshot_{i}.jpg"
+
+                    # Quality settings
+                    quality = '1' if high_quality else '2'  # Lower = better quality (1-31 scale)
+                    vframes = '1'  # Single frame
+
+                    # Capture screenshot with improved quality
+                    ffmpeg_cmd = [
+                        'ffmpeg', '-ss', str(time_point),
+                        '-i', video_url,
+                        '-vframes', vframes,
+                        '-q:v', quality,
+                        '-vf', 'scale=1280:-2',  # Scale to 1280px width, maintain aspect ratio
+                        '-y',  # Overwrite output file
+                        str(output_file)
+                    ]
+
+                    subprocess.run(ffmpeg_cmd, capture_output=True, timeout=30)
+
+                    if output_file.exists():
+                        # Read and encode
+                        with open(output_file, 'rb') as f:
+                            image_data = f.read()
+                        base64_data = base64.b64encode(image_data).decode('utf-8')
+                        screenshots.append(f"data:image/jpeg;base64,{base64_data}")
+
+        except Exception:
+            pass
+
+        return screenshots
 
     def batch_extract(self, urls: List[str], fetch_subtitles: bool = False) -> List[ProcessedContent]:
         """

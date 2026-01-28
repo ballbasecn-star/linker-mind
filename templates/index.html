@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linker Mind - 内容库</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-box button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .stats {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .stats span {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 0 5px;
+        }
+
+        .content-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .content-item {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .content-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .platform-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .platform-web { background: #e3f2fd; color: #1976d2; }
+        .platform-bilibili { background: #fce4ec; color: #c2185b; }
+        .platform-youtube { background: #ffebee; color: #c62828; }
+        .platform-twitter { background: #e8f5e9; color: #2e7d32; }
+        .platform-douyin { background: #f3e5f5; color: #7b1fa2; }
+        .platform-wechat { background: #fff3e0; color: #e65100; }
+        .platform-video { background: #e0f2f1; color: #00695c; }
+        .platform-memo { background: #f5f5f5; color: #616161; }
+
+        .content-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .content-meta {
+            font-size: 0.9em;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .content-summary {
+            color: #444;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        /* Markdown styles */
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            margin: 15px 0 10px 0;
+            font-weight: 600;
+        }
+        .markdown-content h1 { font-size: 1.3em; }
+        .markdown-content h2 { font-size: 1.2em; }
+        .markdown-content h3 { font-size: 1.1em; }
+        .markdown-content p { margin: 8px 0; }
+        .markdown-content ul, .markdown-content ol { margin: 8px 0; padding-left: 20px; }
+        .markdown-content li { margin: 4px 0; }
+        .markdown-content code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .markdown-content pre {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+        }
+        .markdown-content blockquote {
+            border-left: 3px solid #ddd;
+            margin: 10px 0;
+            padding-left: 15px;
+            color: #666;
+        }
+        .markdown-content a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+
+        .content-tags {
+            display: flex;
+            gap: 10px;
+            font-size: 0.9em;
+        }
+
+        .content-tag {
+            padding: 5px 12px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Linker Mind</h1>
+            <p>多模态内容提取与智能存储系统</p>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="urlInput" placeholder="输入 URL (网页、视频、Twitter、微信公众号...)">
+            <button onclick="processUrl()">🚀 提取内容</button>
+            <button onclick="toggleAI()" id="aiBtn">🤖 AI: 开</button>
+        </div>
+
+        <div class="stats">
+            <span>📊 总计: {{ stats.total }} 条</span>
+            <span>🖼️ 有图片: {{ stats.with_images }} 条</span>
+            <span>📸 有截图: {{ stats.with_screenshots }} 条</span>
+        </div>
+
+        {% if items and stats.total > 0 %}
+        <div class="content-list">
+            {% for item in items %}
+            {% set is_new_format = item.get('content') is mapping %}
+            {% set content = item.get('content') if is_new_format else {'title': item.get('title', '无标题'), 'summary': item.get('content', ''), 'metadata': {}} %}
+            {% set media = item.get('media', {}) %}
+            {% set ai = item.get('ai_analysis', {}) %}
+            {% set proc_info = item.get('processing_info', {}) %}
+            {% set platform = item.get('platform', item.get('source_type', 'web')) %}
+            <a href="/content/{{ item.get('id', '') }}" class="content-item">
+                <div class="content-header">
+                    <span class="platform-badge platform-{{ platform }}">
+                        {% if platform == 'web' or platform == 'webpage' %}网页
+                        {% elif platform == 'bilibili' %}B站
+                        {% elif platform == 'youtube' %}YouTube
+                        {% elif platform == 'twitter' or platform == 'x' %}Twitter/X
+                        {% elif platform == 'douyin' %}抖音
+                        {% elif platform == 'wechat' %}微信
+                        {% elif platform == 'direct_video' or platform == 'video' %}视频
+                        {% else %}{{ platform }}
+                        {% endif %}
+                    </span>
+                    <span style="color: #999; font-size: 0.9em;">
+                        {{ item.get('timestamp', 'N/A')[:19].replace('T', ' ') }}
+                    </span>
+                </div>
+
+                <div class="content-title">
+                    {{ content.get('title', '无标题') }}
+                </div>
+
+                <div class="content-meta">
+                    {% set metadata = content.get('metadata', {}) %}
+                    {% if metadata.get('author') %}
+                    作者: {{ metadata.get('author') }} •
+                    {% endif %}
+                    {% if metadata.get('duration') %}
+                    时长: {{ metadata.get('duration') }} •
+                    {% endif %}
+                    {% if proc_info.get('processing_time') %}
+                    处理时间: {{ (proc_info.get('processing_time', 0) | round(2)) }}秒
+                    {% endif %}
+                </div>
+
+                <div class="content-summary markdown-content">
+                    {% set summary = content.get('summary', '') or content.get('main_content', '') %}
+                    {% if summary %}
+                        {{ (summary[:200] + '...') if summary|length > 200 else summary }}
+                    {% else %}
+                        无内容
+                    {% endif %}
+                </div>
+
+                <div class="content-tags">
+                    {% if media.get('images') %}
+                    <span class="content-tag">🖼️ {{ media.images|length }} 张图片</span>
+                    {% endif %}
+                    {% if media.get('screenshots') %}
+                    <span class="content-tag">📸 {{ media.screenshots|length }} 张截图</span>
+                    {% endif %}
+                    {% if ai.get('key_points') %}
+                    <span class="content-tag">🤖 已分析</span>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>暂无内容</h2>
+            <p>在上方输入 URL 开始提取内容</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>正在提取内容，请稍候...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        let aiEnabled = true;
+
+        // Render markdown content
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.markdown-content').forEach(el => {
+                const markdown = el.textContent;
+                el.innerHTML = marked.parse(markdown);
+            });
+        });
+
+        function toggleAI() {
+            aiEnabled = !aiEnabled;
+            document.getElementById('aiBtn').textContent = aiEnabled ? '🤖 AI: 开' : '🤖 AI: 关';
+        }
+
+        async function processUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                alert('请输入 URL');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, enable_ai: aiEnabled })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('处理失败: ' + (data.error || '未知错误'));
+                }
+            } catch (error) {
+                alert('请求失败: ' + error);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processUrl();
+            }
+        });
+    </script>
+</body>
+</html>

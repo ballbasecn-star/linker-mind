@@ -13,8 +13,10 @@ load_dotenv()
 
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
+# Allow module to load without API key (AI features will be disabled)
 if not DEEPSEEK_API_KEY:
-    raise ValueError("DEEPSEEK_API_KEY not found in environment variables")
+    import warnings
+    warnings.warn("DEEPSEEK_API_KEY not found in environment variables. AI analysis will be disabled.")
 
 
 class AIAnalyzer:
@@ -23,10 +25,14 @@ class AIAnalyzer:
     """
 
     def __init__(self):
-        self.client = OpenAI(
-            api_key=DEEPSEEK_API_KEY,
-            base_url="https://api.deepseek.com"
-        )
+        self.enabled = bool(DEEPSEEK_API_KEY)
+        if self.enabled:
+            self.client = OpenAI(
+                api_key=DEEPSEEK_API_KEY,
+                base_url="https://api.deepseek.com"
+            )
+        else:
+            self.client = None
 
     def analyze(self, content: ProcessedContent) -> ProcessedContent:
         """
@@ -38,6 +44,19 @@ class AIAnalyzer:
         Returns:
             ProcessedContent with AI analysis added
         """
+        # Skip analysis if disabled
+        if not self.enabled:
+            content.ai_analysis = {
+                "key_points": [],
+                "sentiment": "unknown",
+                "topics": [],
+                "actionable_items": [],
+                "summary": "",
+                "disabled": True,
+                "reason": "DEEPSEEK_API_KEY not configured"
+            }
+            return content
+
         try:
             # Prepare analysis prompt based on content type
             prompt = self._build_analysis_prompt(content)
@@ -98,71 +117,113 @@ class AIAnalyzer:
 
     def _get_system_prompt(self) -> str:
         """Get the system prompt for the AI"""
-        return """You are an expert information analyst specializing in content extraction and knowledge synthesis.
+        return """你是一位专业的信息分析师，擅长内容提取和知识合成。
 
-Your task is to analyze the provided content and output a structured JSON response with the following fields:
+你的任务是分析提供的内容，并以 JSON 格式输出结构化分析结果，包含以下字段：
 
-1. "summary": A concise 2-3 sentence summary of the main content
-2. "key_points": An array of 3-5 key points extracted from the content (bullet-style, max 20 words each)
-3. "sentiment": The overall sentiment of the content (positive/neutral/negative)
-4. "topics": An array of 3-5 relevant topics/tags that describe the content
-5. "actionable_items": An array of any actionable insights or recommendations derived from the content
-6. "rating": A quality/relevance score from 1-10 (optional, based on content value)
+1. "summary": 内容的核心摘要，用中文撰写，2-3句话，简明扼要地概括主要内容
+2. "key_points": 从内容中提取的 3-5 个关键要点，用中文表达，每点不超过 30 字
+3. "sentiment": 内容的整体情感倾向（positive/neutral/negative）
+4. "topics": 描述内容的 3-5 个相关主题标签，用中文表达
+5. "actionable_items": 从内容中提取的可操作见解或建议
+6. "rating": 内容质量/相关性评分，1-10 分（可选）
 
-Guidelines:
-- Be concise and specific
-- Focus on valuable, actionable information
-- Extract unique insights, not just surface-level points
-- Topics should be descriptive but concise (2-4 words each)
-- For social media, capture the essence of the post
-- For videos, focus on key themes and takeaways
-- Output MUST be valid JSON
+摘要撰写要求：
+- 必须使用中文撰写，语言流畅自然
+- 摘要应包含内容的核心观点和价值
+- 优先提取具体信息和数据，而非泛泛而谈
+- 对于技术内容，突出技术要点和实践价值
+- 对于观点内容，提炼核心论点和立场
+- 对于新闻内容，概括关键事实和影响
+- 摘要长度控制在 100-200 字之间
+- 避免使用"本文介绍了"、"文章讨论了"等套话，直接呈现核心内容
 
-Example output format:
+关键要点要求：
+- 提取最具价值的信息点
+- 每个要点独立完整，避免重复
+- 使用精炼的语言表达
+- 突出独特见解，而非表面观点
+
+主题标签要求：
+- 使用中文关键词
+- 准确描述内容主题
+- 2-4 个字为宜
+- 便于检索和分类
+
+输出格式示例（JSON）：
 {
-  "summary": "The article discusses the benefits of modular architecture in software development...",
+  "summary": "本文介绍了模块化架构在软件开发中的优势，包括提高代码可维护性、便于测试和扩展。通过实际案例展示了如何设计和实现插件系统，为开发者提供了可参考的架构模式。",
   "key_points": [
-    "Modular design improves code maintainability",
-    "Separation of concerns enables better testing",
-    "Plugin architecture allows easy feature extension"
+    "模块化设计显著提升代码可维护性",
+    "关注点分离使单元测试更加高效",
+    "插件架构支持功能的灵活扩展",
+    "实际项目中的模块化实践案例"
   ],
   "sentiment": "positive",
-  "topics": ["software architecture", "modularity", "design patterns", "code quality"],
+  "topics": ["软件架构", "模块化设计", "插件系统", "代码质量"],
   "actionable_items": [
-    "Consider implementing a plugin system for your next project",
-    "Evaluate current codebase for modularization opportunities"
+    "在下一个项目中考虑实现插件系统",
+    "评估现有代码库的模块化改造机会"
   ],
   "rating": 8
-}"""
+}
+
+重要提醒：
+- 所有文本输出必须使用中文
+- 输出必须是合法的 JSON 格式
+- 对于英文内容，先用中文理解并总结，再输出中文摘要"""
 
     def _build_analysis_prompt(self, content: ProcessedContent) -> str:
         """Build analysis prompt based on content type"""
         prompt_parts = []
 
-        # Add context about source type
-        prompt_parts.append(f"Source Type: {content.source_type}")
-        prompt_parts.append(f"Platform: {content.platform}")
+        # 添加内容类型和平台信息
+        platform_names = {
+            'web': '网页',
+            'webpage': '网页',
+            'bilibili': 'B站',
+            'youtube': 'YouTube',
+            'twitter': 'Twitter/X',
+            'x': 'Twitter/X',
+            'douyin': '抖音',
+            'wechat': '微信公众号',
+            'direct_video': '视频文件',
+            'video': '视频'
+        }
 
-        # Add title if available
+        platform_name = platform_names.get(content.platform, content.platform)
+        prompt_parts.append(f"内容来源：{platform_name}")
+        prompt_parts.append(f"内容类型：{content.source_type}")
+
+        # 添加标题
         if content.content.get("title"):
-            prompt_parts.append(f"Title: {content.content['title']}")
+            prompt_parts.append(f"标题：{content.content['title']}")
 
-        # Add main content
+        # 添加主内容
         main_content = content.content.get("main_content", "")
 
-        # Truncate content if too long (DeepSeek has context limits)
-        max_length = 8000
+        # 截断过长内容
+        max_length = 10000
         if len(main_content) > max_length:
-            main_content = main_content[:max_length] + "\n\n[Content truncated...]"
+            main_content = main_content[:max_length] + "\n\n[内容因过长已截断...]"
 
-        prompt_parts.append(f"\nContent to analyze:\n{main_content}")
+        prompt_parts.append(f"\n请分析以下内容：\n\n{main_content}")
 
-        # Add metadata hints
+        # 添加元数据提示
         metadata = content.content.get("metadata", {})
         if metadata.get("author"):
-            prompt_parts.append(f"\nAuthor: {metadata['author']}")
+            prompt_parts.append(f"\n作者：{metadata['author']}")
         if metadata.get("publish_date"):
-            prompt_parts.append(f"Published: {metadata['publish_date']}")
+            prompt_parts.append(f"发布时间：{metadata['publish_date']}")
+        if metadata.get("duration"):
+            prompt_parts.append(f"时长：{metadata['duration']}")
+
+        # 添加字幕文本（如果有）
+        if content.content.get("subtitle_text"):
+            subtitle = content.content["subtitle_text"]
+            if len(subtitle) > 3000:
+                subtitle = subtitle[:3000] + "\n\n[字幕内容已截断...]"
+            prompt_parts.append(f"\n视频字幕：\n{subtitle}")
 
         return "\n".join(prompt_parts)
 

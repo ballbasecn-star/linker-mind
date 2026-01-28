@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ item.get('content', {}).get('title') or item.get('title', '内容详情') }} - Linker Mind</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            padding: 30px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .platform-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .platform-web { background: #e3f2fd; color: #1976d2; }
+        .platform-webpage { background: #e3f2fd; color: #1976d2; }
+        .platform-bilibili { background: #fce4ec; color: #c2185b; }
+        .platform-youtube { background: #ffebee; color: #c62828; }
+        .platform-twitter { background: #e8f5e9; color: #2e7d32; }
+        .platform-x { background: #e8f5e9; color: #2e7d32; }
+        .platform-douyin { background: #f3e5f5; color: #7b1fa2; }
+        .platform-wechat { background: #fff3e0; color: #e65100; }
+        .platform-video { background: #e0f2f1; color: #00695c; }
+        .platform-direct_video { background: #e0f2f1; color: #00695c; }
+
+        .card-title {
+            font-size: 2em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-text {
+            color: #444;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        /* Markdown styles */
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            margin: 20px 0 15px 0;
+            font-weight: 600;
+            color: #333;
+        }
+        .markdown-content h1 { font-size: 1.8em; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .markdown-content h2 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .markdown-content h3 { font-size: 1.3em; }
+        .markdown-content p { margin: 12px 0; line-height: 1.8; }
+        .markdown-content ul, .markdown-content ol { margin: 12px 0; padding-left: 25px; }
+        .markdown-content li { margin: 6px 0; line-height: 1.6; }
+        .markdown-content code {
+            background: #f5f5f5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #e83e8c;
+        }
+        .markdown-content pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            color: #abb2bf;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            color: #555;
+            border-radius: 0 8px 8px 0;
+        }
+        .markdown-content a {
+            color: #667eea;
+            text-decoration: none;
+            border-bottom: 1px dotted #667eea;
+        }
+        .markdown-content a:hover {
+            color: #764ba2;
+            border-bottom-style: solid;
+        }
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        .markdown-content th, .markdown-content td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+        }
+        .markdown-content th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .markdown-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .markdown-content hr {
+            border: none;
+            border-top: 2px solid #eee;
+            margin: 20px 0;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .metadata-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .metadata-label {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .metadata-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .media-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .media-item {
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .media-item.placeholder {
+            width: 100%;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .ai-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .key-points {
+            list-style: none;
+        }
+
+        .key-points li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .key-points li:before {
+            content: '';
+            position: absolute;
+            left: 0;
+        }
+
+        .topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .topic-tag {
+            padding: 5px 15px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .sentiment {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .sentiment-positive { background: #e8f5e9; color: #2e7d32; }
+        .sentiment-negative { background: #ffebee; color: #c62828; }
+        .sentiment-neutral { background: #fff3e0; color: #e65100; }
+        .sentiment-unknown { background: #f5f5f5; color: #666; }
+
+        .processing-info {
+            padding: 20px;
+            background: #fafafa;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .subtitle-box {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .subtitle-text {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .old-format-notice {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← 返回列表</a>
+
+        {% set is_new_format = item.get('content') is mapping %}
+        {% set content = item.get('content') if is_new_format else {'title': item.get('title', '无标题'), 'summary': item.get('content', ''), 'main_content': item.get('content', ''), 'metadata': {}, 'subtitle_text': ''} %}
+        {% set media = item.get('media', {}) %}
+        {% set ai = item.get('ai_analysis', {}) %}
+        {% set proc_info = item.get('processing_info', {}) %}
+        {% set platform = item.get('platform', item.get('source_type', 'web')) %}
+
+        <div class="card">
+            <div class="card-header">
+                <span class="platform-badge platform-{{ platform }}">
+                    {% if platform == 'web' or platform == 'webpage' %}网页
+                    {% elif platform == 'bilibili' %}B站
+                    {% elif platform == 'youtube' %}YouTube
+                    {% elif platform == 'twitter' or platform == 'x' %}Twitter/X
+                    {% elif platform == 'douyin' %}抖音
+                    {% elif platform == 'wechat' %}微信公众号
+                    {% elif platform == 'direct_video' or platform == 'video' %}视频
+                    {% else %}{{ platform }}
+                    {% endif %}
+                </span>
+                <h1 class="card-title">{{ content.get('title', '无标题') }}</h1>
+                <div class="card-meta">
+                    <div class="meta-item">🆔 {{ item.get('id', 'N/A') }}</div>
+                    <div class="meta-item">📅 {{ item.get('timestamp', 'N/A')[:19].replace('T', ' ') }}</div>
+                    {% if proc_info.get('processing_time') %}
+                    <div class="meta-item">⏱️ {{ (proc_info.get('processing_time', 0) | round(2)) }}秒</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body">
+                {% if not is_new_format %}
+                <div class="old-format-notice">
+                    ℹ️ 此内容使用旧格式存储，部分信息可能不完整。
+                </div>
+                {% endif %}
+
+                <!-- 内容摘要 -->
+                <div class="section">
+                    <div class="section-title">📝 内容摘要</div>
+                    <div class="content-text markdown-content">
+                        {{ content.get('summary') or content.get('main_content') or '无摘要' }}
+                    </div>
+                </div>
+
+                <!-- 元数据 -->
+                {% set metadata = content.get('metadata', {}) %}
+                {% if metadata %}
+                <div class="section">
+                    <div class="section-title">📊 元数据</div>
+                    <div class="metadata-grid">
+                        {% if metadata.get('author') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">作者</div>
+                            <div class="metadata-value">{{ metadata.get('author') }}</div>
+                        </div>
+                        {% endif %}
+                        {% if metadata.get('duration') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">时长</div>
+                            <div class="metadata-value">{{ metadata.get('duration') }}</div>
+                        </div>
+                        {% endif %}
+                        {% if metadata.get('view_count') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">观看数</div>
+                            <div class="metadata-value">{{ "{:,}".format(metadata.get('view_count', 0)) }}</div>
+                        </div>
+                        {% endif %}
+                        {% if metadata.get('publish_date') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">发布时间</div>
+                            <div class="metadata-value">{{ metadata.get('publish_date') }}</div>
+                        </div>
+                        {% endif %}
+                        {% if metadata.get('video_id') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">视频ID</div>
+                            <div class="metadata-value">{{ metadata.get('video_id') }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 字幕 -->
+                {% if content.get('subtitle_text') %}
+                <div class="section">
+                    <div class="section-title">📜 字幕文本</div>
+                    <div class="subtitle-box">
+                        <div class="subtitle-text">
+                            {% set sub = content.get('subtitle_text', '') %}
+                            {{ sub[:1000] }}{% if sub|length > 1000 %}...
+                            <br><br>
+                            <em>(共 {{ sub|length }} 个字符)</em>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 媒体 -->
+                {% if media.get('images') or media.get('screenshots') %}
+                <div class="section">
+                    <div class="section-title">
+                        🖼️ 媒体
+                        {% if media.get('images') %}({{ media.images|length }} 图片){% endif %}
+                        {% if media.get('screenshots') %}({{ media.screenshots|length }} 截图){% endif %}
+                    </div>
+                    <div class="media-gallery">
+                        {% for img in media.get('images', [])[:8] %}
+                        <div class="media-item">
+                            {% if img.startswith('data:') %}
+                            <img src="{{ img }}" alt="Media">
+                            {% else %}
+                            <img src="{{ img }}" alt="Media" onerror="this.parentElement.style.display='none'">
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% for shot in media.get('screenshots', [])[:5] %}
+                        <div class="media-item">
+                            <img src="{{ shot }}" alt="Screenshot">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- AI 分析 -->
+                {% if ai and not ai.get('disabled') %}
+                <div class="ai-section">
+                    <div class="section-title">🤖 AI 分析</div>
+
+                    {% if ai.get('key_points') %}
+                    <div style="margin-bottom: 20px;">
+                        <strong>💡 关键点：</strong>
+                        <ul class="key-points">
+                            {% for point in ai.key_points[:5] %}
+                            <li>{{ point }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        {% if ai.get('sentiment') and ai.get('sentiment') != 'unknown' %}
+                        <div class="sentiment sentiment-{{ ai.get('sentiment') }}">
+                            😊 情感:
+                            {% if ai.get('sentiment') == 'positive' %}正面
+                            {% elif ai.get('sentiment') == 'negative' %}负面
+                            {% else %}中性
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if ai.get('topics') %}
+                        <div class="topics">
+                            🏷️
+                            {% for topic in ai.topics[:8] %}
+                            <span class="topic-tag">{{ topic }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 处理信息 -->
+            {% if proc_info %}
+            <div class="processing-info">
+                <div class="info-grid">
+                    {% if proc_info.get('processing_time') %}
+                    <div class="info-item">
+                        <div class="info-label">处理时间</div>
+                        <div class="info-value">{{ (proc_info.processing_time | round(2)) }}秒</div>
+                    </div>
+                    {% endif %}
+                    {% if proc_info.get('method') %}
+                    <div class="info-item">
+                        <div class="info-label">处理方法</div>
+                        <div class="info-value">{{ proc_info.method }}</div>
+                    </div>
+                    {% endif %}
+                    {% if proc_info.get('subtitles_fetched') %}
+                    <div class="info-item">
+                        <div class="info-label">字幕</div>
+                        <div class="info-value">✅ 已提取</div>
+                    </div>
+                    {% endif %}
+                    {% if proc_info.get('screenshots_captured') %}
+                    <div class="info-item">
+                        <div class="info-label">截图</div>
+                        <div class="info-value">✅ 已捕获</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Render markdown content
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.markdown-content').forEach(el => {
+                const markdown = el.textContent;
+                el.innerHTML = marked.parse(markdown);
+            });
+        });
+    </script>
+</body>
+</html>

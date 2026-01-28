@@ -127,6 +127,9 @@ class LinkerMind:
             return processor.extract(url_info, web_reader_func=self._web_reader_func)
         elif isinstance(processor, VideoProcessor) and self._video_analyzer_func:
             return processor.extract(url_info, video_analyzer_func=self._video_analyzer_func)
+        elif isinstance(processor, TextMemoProcessor):
+            # TextMemoProcessor expects a string, not URLInfo
+            return processor.extract(url_info.url)
         else:
             return processor.extract(url_info)
 

@@ -106,9 +106,11 @@ class WebPageProcessor(ContentProcessor):
 
     def __init__(self):
         super().__init__()
-        if not FIRECRAWL_API_KEY:
-            raise ValueError("FIRECRAWL_API_KEY not found in environment variables")
-        self.firecrawl = Firecrawl(api_key=FIRECRAWL_API_KEY)
+        self.enabled = bool(FIRECRAWL_API_KEY)
+        if self.enabled:
+            self.firecrawl = Firecrawl(api_key=FIRECRAWL_API_KEY)
+        else:
+            self.firecrawl = None
 
     def can_process(self, url_info: URLInfo) -> bool:
         """Can process any webpage URL"""
@@ -118,6 +120,15 @@ class WebPageProcessor(ContentProcessor):
         """Extract webpage content using Firecrawl"""
         self._start_timer()
         result = self._create_base_content(url_info)
+
+        # Check if Firecrawl is enabled
+        if not self.enabled:
+            result.processing_info.update({
+                "processing_time": self._end_timer(),
+                "success": False,
+                "errors": ["FIRECRAWL_API_KEY not configured"]
+            })
+            raise ValueError("FIRECRAWL_API_KEY not configured. Please set it in .env file or use --no-ai mode.")
 
         try:
             # Perform scrape with Firecrawl API
@@ -498,5 +509,21 @@ class ProcessorFactory:
         except ImportError as e:
             factory.register_processor(VideoProcessor())
             print(f"⚠️  VideoInfoProcessor unavailable: {e}")
+
+        # Try to use DouyinProcessor for Douyin URLs
+        try:
+            from douyin_processor import DouyinProcessor
+            factory.register_processor(DouyinProcessor())
+            print("✅ DouyinProcessor enabled")
+        except ImportError as e:
+            print(f"⚠️  DouyinProcessor unavailable: {e}")
+
+        # Try to use WeixinProcessor for WeChat URLs
+        try:
+            from weixin_processor import WeixinProcessor
+            factory.register_processor(WeixinProcessor())
+            print("✅ WeixinProcessor enabled")
+        except ImportError as e:
+            print(f"⚠️  WeixinProcessor unavailable: {e}")
 
         return factory
