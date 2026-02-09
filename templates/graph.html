@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识图谱 - Linker Mind</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --accent-color: #000000;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .control-input {
+            padding: 10px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--bg-secondary);
+            min-width: 200px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--border-hover);
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        #graph-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            height: 600px;
+            position: relative;
+        }
+
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        .node text {
+            font-size: 10px;
+            pointer-events: none;
+        }
+
+        .link {
+            stroke-opacity: 0.6;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 200px;
+        }
+
+        .search-results {
+            margin-top: 24px;
+        }
+
+        .search-result {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-input {
+                width: 100%;
+            }
+
+            #graph-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>知识图谱</h1>
+            <a href="/" style="color: var(--text-secondary); text-decoration: none;">← 返回首页</a>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchInput" class="control-input" placeholder="搜索图谱节点..." onkeypress="if(event.key==='Enter') searchGraph()">
+            <button class="btn" onclick="loadGraph()">🔄 刷新</button>
+            <button class="btn" onclick="toggleView()">🔀 切换视图</button>
+            <button class="btn" onclick="showFilters()">🎛️ 筛选</button>
+            <button class="btn" onclick="exportGraph('d3')">📥 导出</button>
+        </div>
+
+        <!-- View Mode Indicator -->
+        <div id="viewMode" style="text-align: center; margin: 12px 0; color: var(--text-secondary); font-size: 0.875rem;">
+            当前视图: <span id="currentViewName">力导向图</span>
+        </div>
+
+        <!-- Filters Panel (hidden by default) -->
+        <div id="filtersPanel" style="display: none; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 1rem; font-weight: 600;">筛选器</h3>
+                <button class="btn" onclick="hideFilters()">✕</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                <div>
+                    <label style="font-size: 0.875rem; margin-bottom: 4px;">节点类型</label>
+                    <select id="filterType" class="control-input" onchange="applyFilters()">
+                        <option value="">全部类型</option>
+                        <option value="content">内容</option>
+                        <option value="topic">主题</option>
+                        <option value="project">项目</option>
+                        <option value="skill">技能</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.875rem; margin-bottom: 4px;">最小连接数</label>
+                    <input type="range" id="filterConnections" class="control-input" min="0" max="10" value="1" onchange="applyFilters()">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">当前: <span id="connectionValue">1</span></div>
+                </div>
+                <div>
+                    <label style="font-size: 0.875rem; margin-bottom: 4px;">显示标签</label>
+                    <select id="filterTag" class="control-input" onchange="applyFilters()">
+                        <option value="">全部标签</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zoom Controls -->
+        <div id="zoomControls" style="position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 100;">
+            <button class="btn" onclick="zoomIn()" style="padding: 8px 12px;">➕</button>
+            <button class="btn" onclick="zoomOut()" style="padding: 8px 12px;">➖</button>
+            <button class="btn" onclick="resetZoom()" style="padding: 8px 12px;">⟲</button>
+        </div>
+
+        <div class="stats-cards" id="statsCards">
+            <div class="stat-card">
+                <div class="stat-value" id="totalNodes">0</div>
+                <div class="stat-label">节点数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalEdges">0</div>
+                <div class="stat-label">关系数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="clusterCount">0</div>
+                <div class="stat-label">主题聚类</div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3498db;"></div>
+                <span>内容</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #9b59b6;"></div>
+                <span>主题</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c;"></div>
+                <span>项目</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2ecc71;"></div>
+                <span>技能</span>
+            </div>
+        </div>
+
+        <div id="graph-container">
+            <div id="graph"></div>
+            <div id="tooltip" class="tooltip" style="display: none;"></div>
+        </div>
+
+        <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        let graphData = null;
+        let simulation = null;
+        let svg = null;
+
+        // Load graph data
+        async function loadGraph() {
+            try {
+                // 使用新的 API 客户端
+                graphData = await api.getGraph(100, 0.5);
+
+                renderGraph(graphData);
+                updateStats(graphData.metadata || { node_count: graphData.nodes?.length || 0, link_count: graphData.links?.length || 0 });
+            } catch (error) {
+                console.error('Failed to load graph:', error);
+                document.getElementById('graph-container').innerHTML =
+                    '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-secondary);">加载失败</div>';
+            }
+        }
+
+        // Render graph using D3.js
+        function renderGraph(data) {
+            const container = document.getElementById('graph-container');
+            container.innerHTML = '<div id="graph"></div>';
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Create SVG
+            svg = d3.select('#graph')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Create simulation
+            simulation = d3.forceSimulation()
+                .force('link', d3.forceLink().id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(30));
+
+            // Create links
+            const link = svg.append('g')
+                .selectAll('line')
+                .data(data.edges)
+                .join('line')
+                .attr('class', 'link')
+                .attr('stroke', '#999')
+                .attr('stroke-opacity', 0.6);
+
+            // Create nodes
+            const node = svg.append('g')
+                .selectAll('g')
+                .data(data.nodes)
+                .join('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+            // Add circles for nodes
+            node.append('circle')
+                .attr('r', d => getNodeSize(d))
+                .attr('fill', d => d.color)
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 2)
+                .on('click', nodeClicked)
+                .on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip);
+
+            // Add labels
+            node.append('text')
+                .text(d => d.label.length > 15 ? d.label.substring(0, 15) + '...' : d.label)
+                .attr('x', d => getNodeSize(d) + 5)
+                .attr('y', 4)
+                .attr('font-size', '10px')
+                .attr('fill', '#333')
+                .style('pointer-events', 'none');
+
+            // Update simulation
+            simulation.nodes(data.nodes).on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d.target.y);
+
+                node
+                    .attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            simulation.on('end', () => {
+                // Adjust to prevent overlap
+                node.attr('transform', d => {
+                    const x = Math.max(30, Math.min(width - 30, d.x));
+                    const y = Math.max(30, Math.min(height - 30, d.y));
+                    return `translate(${x},${y})`;
+                });
+            });
+        }
+
+        function getNodeSize(d) {
+            const baseSize = d.type === 'content' ? 8 :
+                            d.type === 'project' ? 12 :
+                            d.type === 'topic' ? 6 : 10;
+            return baseSize * (d.size || 1);
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function nodeClicked(event, d) {
+            // Find related nodes
+            findRelated(d.id);
+        }
+
+        function showTooltip(event, d) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.innerHTML = `
+                <strong>${d.label}</strong><br>
+                类型: ${getTypeLabel(d.type)}<br>
+                ${d.type === 'content' ? `平台: ${d.data.platform || 'unknown'}` : ''}
+            `;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (event.pageX + 10) + 'px';
+            tooltip.style.top = (event.pageY + 10) + 'px';
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').style.display = 'none';
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'content': '内容',
+                'topic': '主题',
+                'project': '项目',
+                'skill': '技能'
+            };
+            return labels[type] || type;
+        }
+
+        function updateStats(stats) {
+            if (!stats) return;
+            document.getElementById('totalNodes').textContent = stats.total_nodes || 0;
+            document.getElementById('totalEdges').textContent = stats.total_edges || 0;
+            document.getElementById('clusterCount').textContent = stats.clusters || 0;
+        }
+
+        // Search graph
+        async function searchGraph() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            try {
+                const response = await fetch(`/api/knowledge-graph/search?q=${encodeURIComponent(query)}`);
+                const results = await response.json();
+
+                displaySearchResults(results);
+            } catch (error) {
+                console.error('Search failed:', error);
+            }
+        }
+
+        function displaySearchResults(results) {
+            const container = document.getElementById('searchResults');
+
+            if (results.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = '<h4 style="margin-bottom:12px;">搜索结果</h4>' +
+                results.map(result => `
+                    <div class="search-result">
+                        <strong>${result.node.label}</strong> (${getTypeLabel(result.node.type)})
+                        <br>
+                        <small style="color:var(--text-theritary);">${result.related_count} 个相关连接</small>
+                    </div>
+                `).join('');
+        }
+
+        // Find related nodes
+        async function findRelated(nodeId) {
+            try {
+                const response = await fetch(`/api/knowledge-graph/related/${nodeId}?distance=2&limit=10`);
+                const related = await response.json();
+
+                highlightRelated(related.map(r => r.node.id));
+            } catch (error) {
+                console.error('Failed to find related nodes:', error);
+            }
+        }
+
+        function highlightRelated(relatedIds) {
+            // Reset all nodes
+            svg.selectAll('.node circle').attr('opacity', 0.6);
+
+            // Highlight related nodes
+            svg.selectAll('.node')
+                .filter(d => relatedIds.includes(d.id))
+                .select('circle')
+                .attr('opacity', 1)
+                .attr('stroke-width', 3);
+        }
+
+        // Export graph
+        async function exportGraph(format) {
+            try {
+                const response = await fetch(`/api/knowledge-graph/export?format=${format}`);
+                const data = await response.text();
+
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `knowledge_graph_${format}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('导出失败: ' + error);
+            }
+        }
+
+        // View modes
+        let currentView = 'force';
+        let zoom = 1;
+        let transform = d3.zoomIdentity;
+
+        function toggleView() {
+            if (currentView === 'force') {
+                currentView = 'tree';
+                document.getElementById('currentViewName').textContent = '树形图';
+                renderTreeView();
+            } else if (currentView === 'tree') {
+                currentView = 'cluster';
+                document.getElementById('currentViewName').textContent = '聚类图';
+                renderClusterView();
+            } else {
+                currentView = 'force';
+                document.getElementById('currentViewName').textContent = '力导向图';
+                loadGraph(); // Reload force graph
+            }
+        }
+
+        function renderTreeView() {
+            if (!graphData || !graphData.nodes) return;
+
+            const container = document.getElementById('graph-container');
+            container.innerHTML = '<div id="graph"></div>';
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            svg = d3.select('#graph')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Create tree layout
+            const root = d3.hierarchy(buildTree(graphData.nodes, graphData.edges));
+
+            const treeLayout = d3.tree().size([height - 100, width - 200]);
+            treeLayout(root);
+
+            // Add zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 3])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            const g = svg.append('g')
+                .attr('transform', 'translate(100, 50)');
+
+            // Add links
+            g.selectAll('.link')
+                .data(root.links())
+                .join('path')
+                .attr('class', 'link')
+                .attr('fill', 'none')
+                .attr('stroke', '#999')
+                .attr('stroke-opacity', 0.6)
+                .attr('d', d3.linkHorizontal()
+                    .x(d => d.y)
+                    .y(d => d.x)
+                    .link(d => linkWidth(d.target))
+                );
+
+            // Add nodes
+            const node = g.selectAll('.node')
+                .data(root.descendants())
+                .join('g')
+                .attr('class', 'node')
+                .attr('transform', d => `translate(${d.y},${d.x})`)
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+            node.append('circle')
+                .attr('r', d => getNodeSize(d.data))
+                .attr('fill', d => d.data.color)
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 2)
+                .on('click', nodeClicked)
+                .on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip);
+
+            node.append('text')
+                .text(d => d.data.label.length > 15 ? d.data.label.substring(0, 15) + '...' : d.data.label)
+                .attr('x', d => getNodeSize(d.data) + 5)
+                .attr('y', 4)
+                .attr('font-size', '10px')
+                .fill('#333')
+                .style('pointer-events', 'none');
+        }
+
+        function renderClusterView() {
+            if (!graphData || !graphData.nodes) return;
+
+            // For now, show a message
+            const container = document.getElementById('graph-container');
+            container.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-secondary);flex-direction:column;gap:16px;">
+                    <div style="font-size:3rem;">🎯</div>
+                    <div>聚类视图开发中...</div>
+                    <button class="btn btn-primary" onclick="toggleView()">切换到其他视图</button>
+                </div>
+            `;
+        }
+
+        function buildTree(nodes, edges) {
+            // Build a tree structure from nodes and edges
+            const nodeMap = new Map(nodes.map(n => [n.id, n]));
+            const adjacency = new Map();
+
+            edges.forEach(edge => {
+                if (!adjacency.has(edge.source)) {
+                    adjacency.set(edge.source, []);
+                }
+                adjacency.get(edge.source).push(edge.target);
+            });
+
+            // Find root (node with no incoming edges)
+            const allTargets = new Set(edges.map(e => e.target));
+            let rootId = nodes.find(n => !allTargets.has(n.id))?.id;
+            if (!rootId && nodes.length > 0) {
+                rootId = nodes[0].id;
+            }
+
+            function buildNode(id) {
+                const node = nodeMap.get(id);
+                if (!node) return null;
+
+                const children = (adjacency.get(id) || [])
+                    .map(childId => buildNode(childId))
+                    .filter(n => n !== null);
+
+                return {
+                    ...node,
+                    children: children
+                };
+            }
+
+            return rootId ? buildNode(rootId) : null;
+        }
+
+        function linkWidth(target) {
+            return Math.max(1, 3 - target.depth / 3);
+        }
+
+        // Filter controls
+        function showFilters() {
+            document.getElementById('filtersPanel').style.display = 'block';
+
+            // Populate tags filter
+            const tags = new Set();
+            (graphData.nodes || []).forEach(node => {
+                if (node.tags && Array.isArray(node.tags)) {
+                    node.tags.forEach(tag => tags.add(tag));
+                }
+            });
+
+            const filterTag = document.getElementById('filterTag');
+            filterTag.innerHTML = '<option value="">全部标签</option>' +
+                [...tags].sort().map(tag => `<option value="${tag}">${tag}</option>`).join('');
+        }
+
+        function hideFilters() {
+            document.getElementById('filtersPanel').style.display = 'none';
+        }
+
+        function applyFilters() {
+            if (!graphData || !graphData.nodes) return;
+
+            const typeFilter = document.getElementById('filterType').value;
+            const minConnections = parseInt(document.getElementById('filterConnections').value);
+            const tagFilter = document.getElementById('filterTag').value;
+
+            // Update connection value display
+            document.getElementById('connectionValue').textContent = minConnections;
+
+            // Filter nodes
+            const filteredNodes = (graphData.nodes || []).filter(node => {
+                if (typeFilter && node.type !== typeFilter) return false;
+                if (tagFilter && (!node.tags || !node.tags.includes(tagFilter))) return false;
+                return true;
+            });
+
+            // Count connections for each node
+            const connectionCount = new Map();
+            (graphData.edges || []).forEach(edge => {
+                connectionCount.set(edge.source, (connectionCount.get(edge.source) || 0) + 1);
+                connectionCount.set(edge.target, (connectionCount.get(edge.target) || 0) + 1);
+            });
+
+            // Filter by connections
+            const finalNodes = filteredNodes.filter(node => {
+                const count = connectionCount.get(node.id) || 0;
+                return count >= minConnections;
+            });
+
+            // Get filtered edges
+            const nodeIds = new Set(finalNodes.map(n => n.id));
+            const filteredEdges = (graphData.edges || []).filter(edge =>
+                nodeIds.has(edge.source) && nodeIds.has(edge.target)
+            );
+
+            // Update graph with filtered data
+            const filteredData = {
+                nodes: finalNodes,
+                edges: filteredEdges
+            };
+
+            renderGraph(filteredData);
+        }
+
+        // Zoom controls
+        function zoomIn() {
+            zoom *= 1.2;
+            applyZoom();
+        }
+
+        function zoomOut() {
+            zoom /= 1.2;
+            applyZoom();
+        }
+
+        function resetZoom() {
+            zoom = 1;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            if (currentView === 'force' && svg) {
+                svg.selectAll('g')
+                    .transition()
+                    .duration(300)
+                    .attr('transform', `scale(${zoom})`);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGraph();
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            if (graphData) {
+                if (currentView === 'force') {
+                    renderGraph(graphData);
+                } else {
+                    toggleView(); // Reload current view
+                }
+            }
+        });
+    </script>
+</body>
+</html>

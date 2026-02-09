@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARA组织 - Linker Mind</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fafafa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Batch actions bar */
+        .batch-bar {
+            display: none;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .batch-bar.visible {
+            display: flex;
+        }
+
+        .batch-info {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        /* View toggle */
+        .view-toggle {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 16px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .view-btn.active {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .tab.active {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        /* Content area */
+        .content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 300px;
+        }
+
+        /* List view */
+        .node-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .node-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .node-list-item:hover {
+            background: #f0f0f0;
+        }
+
+        .node-list-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .node-list-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .node-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .node-desc {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Grid view */
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .node-card {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .node-card:hover {
+            background: #f0f0f0;
+        }
+
+        .node-card-checkbox {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .node-card-content {
+            padding-right: 30px;
+        }
+
+        .node-card-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-right: 25px;
+        }
+
+        .node-card-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .node-card-meta {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        /* Type badges */
+        .type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .type-badge.PROJECT { background: #fee2e2; color: #991b1b; }
+        .type-badge.AREA { background: #f3e8ff; color: #5b21b6; }
+        .type-badge.RESOURCE { background: #dbeafe; color: #1e40af; }
+        .type-badge.ARCHIVE { background: #f3f4f6; color: #374151; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 PARA组织</h1>
+            <div class="header-actions">
+                <a href="/" class="btn">← 返回首页</a>
+                <button class="btn btn-primary" onclick="showCreateModal()">+ 新建节点</button>
+            </div>
+        </div>
+
+        <!-- Batch actions bar -->
+        <div class="batch-bar" id="batchBar">
+            <span class="batch-info">已选择 <strong id="selectedCount">0</strong> 项</span>
+            <button class="btn" onclick="batchDelete()">🗑️ 删除</button>
+            <button class="btn" onclick="clearSelection()">取消选择</button>
+        </div>
+
+        <!-- View toggle -->
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="list" onclick="switchView('list')">📋 列表</button>
+            <button class="view-btn" data-view="grid" onclick="switchView('grid')">⊞ 网格</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-type="PROJECT" onclick="switchTab('PROJECT')">🎯 项目</div>
+            <div class="tab" data-type="AREA" onclick="switchTab('AREA')">📁 领域</div>
+            <div class="tab" data-type="RESOURCE" onclick="switchTab('RESOURCE')">📚 资源</div>
+            <div class="tab" data-type="ARCHIVE" onclick="switchTab('ARCHIVE')">📦 归档</div>
+        </div>
+
+        <div class="content" id="contentArea">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <!-- Create Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>新建节点</h2>
+                <button class="modal-close" onclick="hideCreateModal()">&times;</button>
+            </div>
+            <div id="createError" class="error" style="display:none;"></div>
+            <form id="createForm">
+                <div class="form-group">
+                    <label>节点类型</label>
+                    <select id="nodeType" required>
+                        <option value="PROJECT">🎯 项目 (Project)</option>
+                        <option value="AREA">📁 领域 (Area)</option>
+                        <option value="RESOURCE">📚 资源 (Resource)</option>
+                        <option value="ARCHIVE">📦 归档 (Archive)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>名称</label>
+                    <input type="text" id="nodeName" required placeholder="例如：Python学习项目">
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea id="nodeDescription" placeholder="描述这个节点的目的..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="hideCreateModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">创建</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentType = 'PROJECT';
+        let currentView = 'list';
+        let nodes = [];
+        let selectedNodes = new Set();
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNodes();
+        });
+
+        // Load nodes
+        async function loadNodes() {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = '<div class="loading">加载中...</div>';
+
+            try {
+                const response = await fetch(`/api/nodes?type=${currentType}&limit=100`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    nodes = result.data;
+                    renderNodes();
+                } else {
+                    contentArea.innerHTML = '<div class="empty-state">加载失败</div>';
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                contentArea.innerHTML = '<div class="empty-state">加载失败: ' + error.message + '</div>';
+            }
+        }
+
+        // Render nodes
+        function renderNodes() {
+            const contentArea = document.getElementById('contentArea');
+
+            if (!nodes || nodes.length === 0) {
+                const typeLabels = { 'PROJECT': '项目', 'AREA': '领域', 'RESOURCE': '资源', 'ARCHIVE': '归档' };
+                contentArea.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size:48px;margin-bottom:15px;">📭</div>
+                        <p>还没有创建任何${typeLabels[currentType]}</p>
+                        <button class="btn btn-primary" onclick="showCreateModal()">创建第一个${typeLabels[currentType]}</button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (currentView === 'list') {
+                renderListView();
+            } else {
+                renderGridView();
+            }
+        }
+
+        // List view
+        function renderListView() {
+            const contentArea = document.getElementById('contentArea');
+            const html = nodes.map(node => `
+                <div class="node-list-item" onclick="handleNodeClick(event, '${node.id}')">
+                    <input type="checkbox" value="${node.id}" onchange="toggleSelect('${node.id}', this.checked)">
+                    <div class="node-list-content">
+                        <div class="node-title">${escapeHtml(node.name)}</div>
+                        ${node.description ? `<div class="node-desc">${escapeHtml(node.description)}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            contentArea.innerHTML = `<div class="node-list">${html}</div>`;
+        }
+
+        // Grid view
+        function renderGridView() {
+            const contentArea = document.getElementById('contentArea');
+            const html = nodes.map(node => `
+                <div class="node-card" onclick="handleNodeClick(event, '${node.id}')">
+                    <input type="checkbox" class="node-card-checkbox" value="${node.id}" onchange="toggleSelect('${node.id}', this.checked)">
+                    <div class="node-card-content">
+                        <div class="node-card-title">${escapeHtml(node.name)}</div>
+                        ${node.description ? `<div class="node-card-desc">${escapeHtml(node.description)}</div>` : ''}
+                        <div class="node-card-meta">
+                            <span class="type-badge ${node.type}">${getTypeLabel(node.type)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            contentArea.innerHTML = `<div class="node-grid">${html}</div>`;
+        }
+
+        // Handle node click (view details or select based on what was clicked)
+        function handleNodeClick(event, nodeId) {
+            // If checkbox was clicked, let it handle itself
+            if (event.target.type === 'checkbox') {
+                return;
+            }
+            // Otherwise, view node details
+            viewNode(nodeId);
+        }
+
+        // Toggle selection
+        function toggleSelect(nodeId, checked) {
+            if (checked) {
+                selectedNodes.add(nodeId);
+            } else {
+                selectedNodes.delete(nodeId);
+            }
+            updateBatchBar();
+        }
+
+        // Update batch bar
+        function updateBatchBar() {
+            const batchBar = document.getElementById('batchBar');
+            const selectedCount = document.getElementById('selectedCount');
+            selectedCount.textContent = selectedNodes.size;
+            batchBar.classList.toggle('visible', selectedNodes.size > 0);
+        }
+
+        // Clear selection
+        function clearSelection() {
+            selectedNodes.clear();
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            updateBatchBar();
+        }
+
+        // Batch delete
+        async function batchDelete() {
+            if (selectedNodes.size === 0) return;
+
+            const confirmed = confirm(`确定要删除选中的 ${selectedNodes.size} 个节点吗？此操作不可恢复。`);
+            if (!confirmed) return;
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const nodeId of selectedNodes) {
+                try {
+                    const response = await fetch(`/api/nodes/${nodeId}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if (result.success) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch (error) {
+                    console.error(`Failed to delete ${nodeId}:`, error);
+                    failCount++;
+                }
+            }
+
+            clearSelection();
+            loadNodes();
+
+            alert(`删除完成: ${successCount} 成功, ${failCount} 失败`);
+        }
+
+        // Switch view
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+            renderNodes();
+        }
+
+        // Get type label
+        function getTypeLabel(type) {
+            const labels = {
+                'PROJECT': '项目',
+                'AREA': '领域',
+                'RESOURCE': '资源',
+                'ARCHIVE': '归档'
+            };
+            return labels[type] || type;
+        }
+
+        // Switch tab
+        function switchTab(type) {
+            currentType = type;
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === type);
+            });
+            clearSelection();
+            loadNodes();
+        }
+
+        // Show create modal
+        function showCreateModal() {
+            document.getElementById('createModal').classList.add('active');
+            document.getElementById('nodeType').value = currentType;
+            document.getElementById('nodeName').focus();
+        }
+
+        // Hide create modal
+        function hideCreateModal() {
+            document.getElementById('createModal').classList.remove('active');
+            document.getElementById('createForm').reset();
+            document.getElementById('createError').style.display = 'none';
+        }
+
+        // Create node
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const type = document.getElementById('nodeType').value;
+            const name = document.getElementById('nodeName').value;
+            const description = document.getElementById('nodeDescription').value;
+
+            try {
+                const response = await fetch('/api/nodes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        node_type: type,
+                        name: name,
+                        description: description
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    hideCreateModal();
+                    loadNodes();
+                } else {
+                    showError(result.error || '创建失败');
+                }
+            } catch (error) {
+                showError('网络错误: ' + error.message);
+            }
+        });
+
+        // View node
+        function viewNode(nodeId) {
+            window.location.href = `/nodes/${nodeId}`;
+        }
+
+        // Show error
+        function showError(message) {
+            const errorDiv = document.getElementById('createError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal on outside click
+        document.getElementById('createModal').addEventListener('click', (e) => {
+            if (e.target.id === 'createModal') {
+                hideCreateModal();
+            }
+        });
+
+        // Close modal on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideCreateModal();
+            }
+        });
+    </script>
+</body>
+</html>

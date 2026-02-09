@@ -3,228 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item.get('content', {}).get('title') or item.get('title', '内容详情') }} - Linker Mind</title>
+    <title>{{ (item.get('content', {}) if item.get('content') is mapping else {}).get('title') or item.get('title', '内容详情') }} - Linker Mind</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --border-hover: #d1d1d1;
+            --accent-color: #000000;
+            --accent-hover: #333333;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
+            padding: 32px 20px;
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 24px;
+        }
+
+        .main-content {
+            min-width: 0;
+        }
+
+        .sidebar {
+            min-width: 0;
         }
 
         .back-link {
-            display: inline-block;
-            color: white;
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-secondary);
             text-decoration: none;
-            padding: 10px 20px;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px;
-            transition: background 0.3s;
+            padding: 8px 0;
+            margin-bottom: 24px;
+            font-size: 0.875rem;
+            transition: color 0.15s ease;
         }
 
         .back-link:hover {
-            background: rgba(255,255,255,0.3);
+            color: var(--text-primary);
+        }
+
+        .back-link::before {
+            content: '←';
+            margin-right: 8px;
         }
 
         .card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
         }
 
         .card-header {
-            padding: 30px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .platform-badge {
             display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
             text-transform: uppercase;
-            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
         }
 
-        .platform-web { background: #e3f2fd; color: #1976d2; }
-        .platform-webpage { background: #e3f2fd; color: #1976d2; }
-        .platform-bilibili { background: #fce4ec; color: #c2185b; }
-        .platform-youtube { background: #ffebee; color: #c62828; }
-        .platform-twitter { background: #e8f5e9; color: #2e7d32; }
-        .platform-x { background: #e8f5e9; color: #2e7d32; }
-        .platform-douyin { background: #f3e5f5; color: #7b1fa2; }
-        .platform-wechat { background: #fff3e0; color: #e65100; }
-        .platform-video { background: #e0f2f1; color: #00695c; }
-        .platform-direct_video { background: #e0f2f1; color: #00695c; }
+        .platform-web, .platform-webpage { background: var(--bg-tertiary); color: var(--text-secondary); }
+        .platform-bilibili { background: #fce7f3; color: #be185d; }
+        .platform-youtube { background: #fee2e2; color: #dc2626; }
+        .platform-twitter, .platform-x { background: #dcfce7; color: #16a34a; }
+        .platform-douyin { background: #f3e8ff; color: #7c3aed; }
+        .platform-wechat { background: #ffedd5; color: #ea580c; }
+        .platform-video, .platform-direct_video { background: #ccfbf1; color: #0d9488; }
 
         .card-title {
-            font-size: 2em;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 15px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
             line-height: 1.3;
         }
 
         .card-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
-            font-size: 0.9em;
-            color: #666;
+            gap: 16px;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
         }
 
         .meta-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
         .card-body {
-            padding: 30px;
+            padding: 24px;
         }
 
         .section {
-            margin-bottom: 30px;
+            margin-bottom: 32px;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
         }
 
         .section-title {
-            font-size: 1.3em;
+            font-size: 0.875rem;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .content-text {
-            color: #444;
-            line-height: 1.8;
-            white-space: pre-wrap;
+            color: var(--text-secondary);
+            line-height: 1.7;
         }
 
-        /* Markdown styles */
-        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-            margin: 20px 0 15px 0;
-            font-weight: 600;
-            color: #333;
+        /* Markdown rendered content */
+        .markdown-content.rendered {
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            max-height: none;
+            overflow-y: visible;
         }
-        .markdown-content h1 { font-size: 1.8em; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .markdown-content h2 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-        .markdown-content h3 { font-size: 1.3em; }
-        .markdown-content p { margin: 12px 0; line-height: 1.8; }
-        .markdown-content ul, .markdown-content ol { margin: 12px 0; padding-left: 25px; }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            margin: 24px 0 12px 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .markdown-content h1 { font-size: 1.75em; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+        .markdown-content h2 { font-size: 1.5em; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        .markdown-content h3 { font-size: 1.25em; }
+        .markdown-content h4 { font-size: 1.125em; }
+        .markdown-content p { margin: 12px 0; line-height: 1.7; }
+        .markdown-content ul, .markdown-content ol { margin: 12px 0; padding-left: 24px; }
         .markdown-content li { margin: 6px 0; line-height: 1.6; }
         .markdown-content code {
-            background: #f5f5f5;
-            padding: 3px 8px;
+            background: var(--bg-tertiary);
+            padding: 3px 6px;
             border-radius: 4px;
-            font-size: 0.9em;
-            color: #e83e8c;
+            font-size: 0.875em;
         }
         .markdown-content pre {
-            background: #282c34;
-            color: #abb2bf;
+            background: var(--bg-tertiary);
             padding: 16px;
             border-radius: 8px;
             overflow-x: auto;
-            margin: 15px 0;
+            margin: 16px 0;
         }
         .markdown-content pre code {
             background: none;
             padding: 0;
-            color: #abb2bf;
         }
         .markdown-content blockquote {
-            border-left: 4px solid #667eea;
-            margin: 15px 0;
-            padding: 10px 20px;
-            background: #f8f9fa;
-            color: #555;
+            border-left: 2px solid var(--border-color);
+            margin: 16px 0;
+            padding: 12px 0 12px 16px;
+            background: var(--bg-tertiary);
             border-radius: 0 8px 8px 0;
         }
         .markdown-content a {
-            color: #667eea;
+            color: var(--accent-color);
             text-decoration: none;
-            border-bottom: 1px dotted #667eea;
         }
         .markdown-content a:hover {
-            color: #764ba2;
-            border-bottom-style: solid;
-        }
-        .markdown-content table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 15px 0;
-        }
-        .markdown-content th, .markdown-content td {
-            border: 1px solid #ddd;
-            padding: 10px 12px;
-            text-align: left;
-        }
-        .markdown-content th {
-            background: #f8f9fa;
-            font-weight: 600;
+            text-decoration: underline;
         }
         .markdown-content img {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
-            margin: 10px 0;
-        }
-        .markdown-content hr {
-            border: none;
-            border-top: 2px solid #eee;
-            margin: 20px 0;
+            margin: 16px 0;
         }
 
         .metadata-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 12px;
         }
 
         .metadata-item {
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
         }
 
         .metadata-label {
-            font-size: 0.85em;
-            color: #999;
-            margin-bottom: 5px;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .metadata-value {
-            font-weight: 600;
-            color: #333;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9375rem;
         }
 
         .media-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 12px;
         }
 
         .media-item {
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            background: #f5f5f5;
+            background: var(--bg-tertiary);
         }
 
         .media-item img {
@@ -234,77 +251,72 @@
             display: block;
         }
 
-        .media-item.placeholder {
-            width: 100%;
-            height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 0.9em;
-        }
-
         .ai-section {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
-            padding: 25px;
+            background: var(--bg-tertiary);
+            padding: 24px;
             border-radius: 12px;
-            margin-top: 20px;
         }
 
         .key-points {
             list-style: none;
+            margin: 0;
+            padding: 0;
         }
 
         .key-points li {
-            padding: 10px 0;
-            padding-left: 30px;
+            padding: 8px 0;
+            padding-left: 20px;
             position: relative;
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
         }
 
         .key-points li:before {
-            content: '';
+            content: '•';
             position: absolute;
             left: 0;
+            color: var(--accent-color);
         }
 
         .topics {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .topic-tag {
-            padding: 5px 15px;
-            background: #e3f2fd;
-            color: #1976d2;
-            border-radius: 20px;
-            font-size: 0.9em;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            font-size: 0.8125rem;
         }
 
         .sentiment {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
-        .sentiment-positive { background: #e8f5e9; color: #2e7d32; }
-        .sentiment-negative { background: #ffebee; color: #c62828; }
-        .sentiment-neutral { background: #fff3e0; color: #e65100; }
-        .sentiment-unknown { background: #f5f5f5; color: #666; }
+        .sentiment-positive { background: #dcfce7; color: #16a34a; }
+        .sentiment-negative { background: #fee2e2; color: #dc2626; }
+        .sentiment-neutral { background: #ffedd5; color: #ea580c; }
+        .sentiment-unknown { background: var(--bg-tertiary); color: var(--text-tertiary); }
 
         .processing-info {
-            padding: 20px;
-            background: #fafafa;
-            border-top: 1px solid #f0f0f0;
+            padding: 20px 32px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+            border-radius: 0 0 12px 12px;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
         }
 
         .info-item {
@@ -312,52 +324,280 @@
         }
 
         .info-label {
-            font-size: 0.85em;
-            color: #999;
-            margin-bottom: 5px;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .info-value {
-            font-size: 1.2em;
+            font-size: 1rem;
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
         }
 
-        .subtitle-box {
-            background: #fff9e6;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
+        /* Sidebar styles */
+        .sidebar-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            padding: 8px 16px;
             border-radius: 8px;
-            margin-top: 15px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            transition: all 0.15s ease;
+            width: 100%;
+            text-align: center;
         }
 
-        .subtitle-text {
-            color: #555;
-            line-height: 1.6;
+        .btn:hover {
+            border-color: var(--border-hover);
         }
 
-        .old-format-notice {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .notes-list {
+            display: grid;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .note-item {
+            padding: 12px;
+            background: var(--bg-tertiary);
             border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .note-type {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+        }
+
+        .note-content {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .note-time {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 6px;
+        }
+
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .project-item {
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .project-name {
+            color: var(--text-primary);
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .project-name:hover {
+            color: var(--accent-color);
+        }
+
+        .project-remove {
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .project-remove:hover {
+            color: #ef4444;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--bg-tertiary);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px 16px;
+            }
+
+            .sidebar {
+                order: -1;
+            }
+
+            .card-header {
+                padding: 20px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .card-title {
+                font-size: 1.25rem;
+            }
+
+            .metadata-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .media-gallery {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .card-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                padding: 48px 20px;
+            }
         }
     </style>
 </head>
 <body>
+    {% set content_id = item.get('id', '') %}
     <div class="container">
-        <a href="/" class="back-link">← 返回列表</a>
+        <div class="main-content">
+            <a href="/" class="back-link">← 返回列表</a>
 
-        {% set is_new_format = item.get('content') is mapping %}
-        {% set content = item.get('content') if is_new_format else {'title': item.get('title', '无标题'), 'summary': item.get('content', ''), 'main_content': item.get('content', ''), 'metadata': {}, 'subtitle_text': ''} %}
-        {% set media = item.get('media', {}) %}
-        {% set ai = item.get('ai_analysis', {}) %}
-        {% set proc_info = item.get('processing_info', {}) %}
-        {% set platform = item.get('platform', item.get('source_type', 'web')) %}
+            {% set ai = item.get('ai_analysis', {}) %}
+            {% set platform = item.get('source_type', 'web') %}
+            {% set metadata = item.get('metadata', {}) or {} %}
+            {% set media = item.get('media', {}) or {} %}
+            {% set cover_image = media.get('cover') or metadata.get('cover_image') %}
 
-        <div class="card">
-            <div class="card-header">
+            <div class="card">
+            <!-- Cover Image -->
+            {% if cover_image %}
+            <div style="width: 100%; height: 300px; overflow: hidden; border-radius: 12px 12px 0 0;">
+                <img src="{{ cover_image }}" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            {% endif %}
+
+            <div class="card-header" style="{% if cover_image %}border-top: 1px solid var(--border-color); border-bottom: none; padding-top: 20px;{% endif %}">
                 <span class="platform-badge platform-{{ platform }}">
                     {% if platform == 'web' or platform == 'webpage' %}网页
                     {% elif platform == 'bilibili' %}B站
@@ -369,117 +609,66 @@
                     {% else %}{{ platform }}
                     {% endif %}
                 </span>
-                <h1 class="card-title">{{ content.get('title', '无标题') }}</h1>
+                <h1 class="card-title">{{ item.get('title', '无标题') }}</h1>
+
+                <!-- Subtitle / Author -->
+                {% if metadata.get('subtitle_text') or metadata.get('display_name') %}
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
+                    {{ metadata.get('subtitle_text') or (metadata.get('display_name') + ' (@' + (metadata.get('author', '').replace('@', '')) + ')') }}
+                </div>
+                {% endif %}
+
+                <!-- Metrics for Twitter/X -->
+                {% if metadata.get('metrics') %}
+                <div style="display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap;">
+                    {% if metadata.metrics.get('replies') %}
+                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <span>💬</span>
+                        <span>{{ "{:,}".format(metadata.metrics.replies) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if metadata.metrics.get('retweets') %}
+                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <span>🔄</span>
+                        <span>{{ "{:,}".format(metadata.metrics.retweets) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if metadata.metrics.get('quotes') %}
+                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <span>🔁</span>
+                        <span>{{ "{:,}".format(metadata.metrics.quotes) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if metadata.metrics.get('likes') %}
+                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <span>❤️</span>
+                        <span>{{ "{:,}".format(metadata.metrics.likes) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if metadata.metrics.get('views') %}
+                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <span>👁️</span>
+                        <span>{{ "{:,}".format(metadata.metrics.views) }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <div class="card-meta">
-                    <div class="meta-item">🆔 {{ item.get('id', 'N/A') }}</div>
-                    <div class="meta-item">📅 {{ item.get('timestamp', 'N/A')[:19].replace('T', ' ') }}</div>
-                    {% if proc_info.get('processing_time') %}
-                    <div class="meta-item">⏱️ {{ (proc_info.get('processing_time', 0) | round(2)) }}秒</div>
+                    <div class="meta-item">🆔 {{ item.get('id', 'N/A')[:8] }}...</div>
+                    <div class="meta-item">📅 {{ (item.get('created_at') or item.get('timestamp') or 'N/A')[:19].replace('T', ' ') }}</div>
+                    {% if metadata.get('url') %}
+                    <div class="meta-item">
+                        <a href="{{ metadata.url }}" target="_blank" style="color: var(--accent-color); text-decoration: none;">🔗 原文</a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
 
             <div class="card-body">
-                {% if not is_new_format %}
-                <div class="old-format-notice">
-                    ℹ️ 此内容使用旧格式存储，部分信息可能不完整。
-                </div>
-                {% endif %}
-
-                <!-- 内容摘要 -->
-                <div class="section">
-                    <div class="section-title">📝 内容摘要</div>
-                    <div class="content-text markdown-content">
-                        {{ content.get('summary') or content.get('main_content') or '无摘要' }}
-                    </div>
-                </div>
-
-                <!-- 元数据 -->
-                {% set metadata = content.get('metadata', {}) %}
-                {% if metadata %}
-                <div class="section">
-                    <div class="section-title">📊 元数据</div>
-                    <div class="metadata-grid">
-                        {% if metadata.get('author') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">作者</div>
-                            <div class="metadata-value">{{ metadata.get('author') }}</div>
-                        </div>
-                        {% endif %}
-                        {% if metadata.get('duration') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">时长</div>
-                            <div class="metadata-value">{{ metadata.get('duration') }}</div>
-                        </div>
-                        {% endif %}
-                        {% if metadata.get('view_count') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">观看数</div>
-                            <div class="metadata-value">{{ "{:,}".format(metadata.get('view_count', 0)) }}</div>
-                        </div>
-                        {% endif %}
-                        {% if metadata.get('publish_date') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">发布时间</div>
-                            <div class="metadata-value">{{ metadata.get('publish_date') }}</div>
-                        </div>
-                        {% endif %}
-                        {% if metadata.get('video_id') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">视频ID</div>
-                            <div class="metadata-value">{{ metadata.get('video_id') }}</div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- 字幕 -->
-                {% if content.get('subtitle_text') %}
-                <div class="section">
-                    <div class="section-title">📜 字幕文本</div>
-                    <div class="subtitle-box">
-                        <div class="subtitle-text">
-                            {% set sub = content.get('subtitle_text', '') %}
-                            {{ sub[:1000] }}{% if sub|length > 1000 %}...
-                            <br><br>
-                            <em>(共 {{ sub|length }} 个字符)</em>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- 媒体 -->
-                {% if media.get('images') or media.get('screenshots') %}
-                <div class="section">
-                    <div class="section-title">
-                        🖼️ 媒体
-                        {% if media.get('images') %}({{ media.images|length }} 图片){% endif %}
-                        {% if media.get('screenshots') %}({{ media.screenshots|length }} 截图){% endif %}
-                    </div>
-                    <div class="media-gallery">
-                        {% for img in media.get('images', [])[:8] %}
-                        <div class="media-item">
-                            {% if img.startswith('data:') %}
-                            <img src="{{ img }}" alt="Media">
-                            {% else %}
-                            <img src="{{ img }}" alt="Media" onerror="this.parentElement.style.display='none'">
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                        {% for shot in media.get('screenshots', [])[:5] %}
-                        <div class="media-item">
-                            <img src="{{ shot }}" alt="Screenshot">
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- AI 分析 -->
-                {% if ai and not ai.get('disabled') %}
-                <div class="ai-section">
+                <!-- AI 分析 (移到顶部) -->
+                {% if ai and ai|length > 0 %}
+                <div class="section ai-section">
                     <div class="section-title">🤖 AI 分析</div>
 
                     {% if ai.get('key_points') %}
@@ -515,51 +704,524 @@
                     </div>
                 </div>
                 {% endif %}
+
+                <!-- 内容正文 -->
+                <div class="section">
+                    <div class="section-title">📝 内容</div>
+                    <div class="content-text markdown-content rendered" style="white-space: pre-wrap;">
+                        {# For Twitter, use raw_content directly since _embed_images_in_content already processed it #}
+                        {# Don't apply clean_twitter_content - the TwitterProcessor already cleaned the content #}
+                        {% set raw = item.get('raw_content') or item.get('main_content') or item.get('summary', '') or '无内容' %}
+                        {{ raw }}
+                    </div>
+                </div>
+
+                <!-- 元数据 -->
+                {% if metadata and metadata|length > 0 and not metadata.get('metrics') %}
+                <div class="section">
+                    <div class="section-title">📊 元数据</div>
+                    <div class="metadata-grid">
+                        {% if metadata.get('author') and not metadata.get('metrics') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">作者</div>
+                            <div class="metadata-value">{{ metadata.get('author') }}</div>
+                        </div>
+                        {% endif %}
+                        {% if metadata.get('duration') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">时长</div>
+                            <div class="metadata-value">{{ metadata.get('duration') }}</div>
+                        </div>
+                        {% endif %}
+                        {% if metadata.get('view_count') and not metadata.get('metrics') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">观看数</div>
+                            <div class="metadata-value">{{ "{:,}".format(metadata.get('view_count', 0)) }}</div>
+                        </div>
+                        {% endif %}
+                        {% if metadata.get('publish_date') %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">发布时间</div>
+                            <div class="metadata-value">{{ metadata.get('publish_date') }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 媒体 (excluding cover image) -->
+                {# Try to get images from media dict first, fallback to metadata #}
+                {% set media_images = media.get('images', []) if media else [] %}
+                {% if not media_images and metadata %}
+                    {% set media_images = metadata.get('images', []) %}
+                {% endif %}
+                {% set content_images = media_images or [] %}
+                {% if cover_image and content_images and cover_image in content_images %}
+                    {% set content_images = content_images[1:] %}
+                {% endif %}
+                {% if content_images or (media.get('screenshots') if media else false) %}
+                <div class="section">
+                    <div class="section-title">
+                        🖼️ 媒体
+                        {% if content_images %}({{ content_images|length }} 图片){% endif %}
+                    </div>
+                    <div class="media-gallery">
+                        {% for img in content_images[:8] %}
+                        <div class="media-item">
+                            {% if img.startswith('data:') %}
+                            <img src="{{ img }}" alt="Media">
+                            {% else %}
+                            <img src="{{ img }}" alt="Media" onerror="this.parentElement.style.display='none'">
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        </div>
+
+        <div class="sidebar">
+            <!-- Quick Actions -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">快捷操作</div>
+                <button class="btn btn-primary" style="margin-bottom: 8px;" onclick="showAddNoteModal()">📝 添加笔记</button>
+                <button class="btn" onclick="showAddToProjectModal()">📁 加入项目</button>
+                <button class="btn" style="margin-top: 8px;" onclick="reprocessContent()">🔄 重新处理</button>
             </div>
 
-            <!-- 处理信息 -->
-            {% if proc_info %}
-            <div class="processing-info">
-                <div class="info-grid">
-                    {% if proc_info.get('processing_time') %}
-                    <div class="info-item">
-                        <div class="info-label">处理时间</div>
-                        <div class="info-value">{{ (proc_info.processing_time | round(2)) }}秒</div>
-                    </div>
-                    {% endif %}
-                    {% if proc_info.get('method') %}
-                    <div class="info-item">
-                        <div class="info-label">处理方法</div>
-                        <div class="info-value">{{ proc_info.method }}</div>
-                    </div>
-                    {% endif %}
-                    {% if proc_info.get('subtitles_fetched') %}
-                    <div class="info-item">
-                        <div class="info-label">字幕</div>
-                        <div class="info-value">✅ 已提取</div>
-                    </div>
-                    {% endif %}
-                    {% if proc_info.get('screenshots_captured') %}
-                    <div class="info-item">
-                        <div class="info-label">截图</div>
-                        <div class="info-value">✅ 已捕获</div>
-                    </div>
-                    {% endif %}
+            <!-- Notes -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">📝 笔记</div>
+                <div class="notes-list" id="notesList">
+                    <div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载中...</div>
                 </div>
             </div>
-            {% endif %}
+
+            <!-- Projects -->
+            <div class="sidebar-card">
+                <div class="sidebar-title">📁 所属项目/领域</div>
+                <div class="project-list" id="projectsList">
+                    <div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载中...</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
     <script>
+        // Content ID
+        const contentId = '{{ content_id }}';
+
+        // Configure marked for better rendering
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false,
+            smartLists: true,
+            smartypants: false
+        });
+
+        // Sanitization options
+        const sanitizationOptions = {
+            ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'div', 'span', 'del', 's', 'sub', 'sup', 'kbd'],
+            ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel', 'style', 'width', 'height'],
+            ALLOW_DATA_URI: true
+        };
+
+        // Convert image URLs to img tags
+        function convertImageUrls(content) {
+            const imagePatterns = [
+                /(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg|bmp))(?![^\s]*<\/a>)/gi,
+                /(https?:\/\/(?:i\.imgur\.com|imgur\.com|cdn\.discordapp\.com|github\.com|raw\.githubusercontent\.com|pbs\.twimg\.com)[^\s]*\.(?:png|jpg|jpeg|gif|webp|svg))/gi,
+                /data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/gi,
+            ];
+
+            let processed = content;
+            imagePatterns.forEach(pattern => {
+                processed = processed.replace(pattern, (match, url) => {
+                    return `<img src="${url}" alt="Embedded image" style="max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0;" loading="lazy" />`;
+                });
+            });
+            return processed;
+        }
+
+        // Check if content looks like markdown
+        function looksLikeMarkdown(content) {
+            const patterns = [/^#{1,6}\s/m, /^\*{3,}$/m, /^\s*[-*+]\s/m, /^\s*\d+\.\s/m, /\*\*.*\*\*/, /\[.*\]\(.*\)/, /^\s*>\s/m];
+            return patterns.some(p => p.test(content));
+        }
+
         // Render markdown content
+        function renderMarkdownContent() {
+            document.querySelectorAll('.markdown-content.rendered').forEach(el => {
+                // Use innerHTML to preserve nested link structure like [![Image](url)](link)
+                let content = el.innerHTML || el.textContent || '';
+                // Clean up any pre-converted img tags to avoid double conversion
+                content = content.replace(/<img[^>]*>/gi, (match) => {
+                    // Keep existing img tags but mark them
+                    return match;
+                });
+
+                if (!content || content.trim() === '无内容' || content.trim() === 'None') {
+                    el.innerHTML = '<p style="color: var(--text-tertiary);">无内容</p>';
+                    return;
+                }
+
+                if (looksLikeMarkdown(content)) {
+                    try {
+                        // First: render markdown with marked (preserves nested link structure)
+                        let rawHtml = marked.parse(content);
+
+                        // Then: sanitize
+                        let sanitized = DOMPurify.sanitize(rawHtml, sanitizationOptions);
+
+                        // Finally: enhance images with styling
+                        sanitized = sanitized.replace(/<img\s+([^>]*)>/gi, (match, attrs) => {
+                            // Add loading="lazy" if not present
+                            if (!attrs.includes('loading=')) {
+                                attrs = 'loading="lazy" ' + attrs;
+                            }
+                            // Ensure max-width
+                            if (!attrs.includes('style=')) {
+                                attrs += ' style="max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0;"';
+                            }
+                            return `<img ${attrs}>`;
+                        });
+
+                        el.innerHTML = sanitized;
+
+                        if (typeof hljs !== 'undefined') {
+                            el.querySelectorAll('pre code').forEach((block) => {
+                                hljs.highlightElement(block);
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Markdown error:', e);
+                        el.innerHTML = `<p style="white-space: pre-wrap;">${content}</p>`;
+                    }
+                } else {
+                    el.innerHTML = `<p style="white-space: pre-wrap;">${content}</p>`;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', renderMarkdownContent);
+
+        // ==================== Notes and Projects ====================
+
+        async function loadNotes() {
+            try {
+                const response = await fetch(`/api/contents/${contentId}/notes`);
+                const data = await response.json();
+                const notes = data.success ? data.data : [];
+                const notesList = document.getElementById('notesList');
+
+                if (!notes || notes.length === 0) {
+                    notesList.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">暂无笔记</div>';
+                    return;
+                }
+
+                notesList.innerHTML = notes.map(note => `
+                    <div class="note-item">
+                        <div class="note-header">
+                            <span class="note-type">${getNoteTypeLabel(note.note_type)}</span>
+                        </div>
+                        <div class="note-content">${note.content || ''}</div>
+                        <div class="note-time">${note.created_at ? new Date(note.created_at).toLocaleString('zh-CN') : '未知时间'}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load notes:', error);
+                document.getElementById('notesList').innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载失败</div>';
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                // Fetch both PROJECT and AREA nodes
+                const [projectResp, areaResp] = await Promise.all([
+                    fetch(`/api/nodes?type=PROJECT&limit=100`),
+                    fetch(`/api/nodes?type=AREA&limit=100`)
+                ]);
+
+                const projectData = await projectResp.json();
+                const areaData = await areaResp.json();
+
+                const projects = projectData.success ? projectData.data : [];
+                const areas = areaData.success ? areaData.data : [];
+
+                // Combine both types
+                const allNodes = [...projects, ...areas];
+
+                // Get nodes that contain this content
+                const nodesWithContent = await Promise.all(allNodes.map(async node => {
+                    try {
+                        const resp = await fetch(`/api/nodes/${node.id}/contents`);
+                        const contentsData = await resp.json();
+                        const contents = contentsData.success ? contentsData.data : [];
+                        return contents.some(c => c.id === contentId) ? node : null;
+                    } catch {
+                        return null;
+                    }
+                }));
+
+                const nodes = nodesWithContent.filter(n => n !== null);
+                const projectsList = document.getElementById('projectsList');
+
+                if (!nodes || nodes.length === 0) {
+                    projectsList.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">暂未加入项目或领域</div>';
+                    return;
+                }
+
+                projectsList.innerHTML = nodes.map(node => `
+                    <div class="project-item">
+                        <a href="/nodes/${node.id}" class="project-name">${node.name}</a>
+                        <span class="project-remove" onclick="removeFromProject('${node.id}')">×</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load projects:', error);
+                document.getElementById('projectsList').innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载失败</div>';
+            }
+        }
+
+        function getNoteTypeLabel(type) {
+            const labels = {
+                'learning': '📝 学习',
+                'inspiration': '💡 灵感',
+                'quote': '⭐ 金句',
+                'actionable': '🎯 可执行',
+                'question': '❓ 疑问',
+                'connection': '🔗 关联',
+                'todig': '📌 待深入',
+                'NOTE': '📝 笔记'
+            };
+            return labels[type] || '📝 笔记';
+        }
+
+        function showAddNoteModal() {
+            document.getElementById('addNoteModal').classList.add('active');
+        }
+
+        function hideAddNoteModal() {
+            document.getElementById('addNoteModal').classList.remove('active');
+        }
+
+        async function addNote(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                content_id: contentId,
+                note_type: formData.get('type'),
+                content: formData.get('content')
+            };
+
+            try {
+                const response = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    hideAddNoteModal();
+                    form.reset();
+                    loadNotes();
+                    showMessage('笔记添加成功', 'success');
+                } else {
+                    showMessage('添加失败: ' + (result.error || '未知错误'), 'error');
+                }
+            } catch (error) {
+                console.error('Error adding note:', error);
+                showMessage('请求失败: ' + error, 'error');
+            }
+        }
+
+        let allNodes = [];
+
+        async function showAddToProjectModal() {
+            const modal = document.getElementById('addToProjectModal');
+            const select = document.getElementById('projectSelect');
+
+            try {
+                // Fetch both PROJECT and AREA nodes
+                const [projectResp, areaResp] = await Promise.all([
+                    fetch('/api/nodes?type=PROJECT&limit=100'),
+                    fetch('/api/nodes?type=AREA&limit=100')
+                ]);
+
+                const projectData = await projectResp.json();
+                const areaData = await areaResp.json();
+
+                const projects = projectData.success ? projectData.data : [];
+                const areas = areaData.success ? areaData.data : [];
+
+                // Combine both types
+                allNodes = [...projects, ...areas];
+
+                if (allNodes.length === 0) {
+                    select.innerHTML = '<option value="">暂无项目或领域，请先创建</option>';
+                } else {
+                    // Group by type for better UX
+                    const projectOptions = projects.map(n => `<option value="${n.id}">🎯 ${n.name}</option>`).join('');
+                    const areaOptions = areas.map(n => `<option value="${n.id}">📁 ${n.name}</option>`).join('');
+
+                    select.innerHTML = '<option value="">选择项目或领域...</option>' +
+                        (projectOptions ? '<optgroup label="项目 (Projects)">' + projectOptions + '</optgroup>' : '') +
+                        (areaOptions ? '<optgroup label="领域 (Areas)">' + areaOptions + '</optgroup>' : '');
+                }
+
+                modal.classList.add('active');
+            } catch (error) {
+                console.error('Error loading nodes:', error);
+                showMessage('加载项目列表失败', 'error');
+            }
+        }
+
+        function hideAddToProjectModal() {
+            document.getElementById('addToProjectModal').classList.remove('active');
+        }
+
+        async function addToProject(event) {
+            event.preventDefault();
+            const form = event.target;
+            const nodeId = form.project.value;
+
+            if (!nodeId) {
+                showMessage('请选择项目', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/nodes/${nodeId}/contents`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content_id: contentId })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    hideAddToProjectModal();
+                    loadProjects();
+                    showMessage('已添加到项目', 'success');
+                } else {
+                    showMessage('添加失败: ' + (result.error || '未知错误'), 'error');
+                }
+            } catch (error) {
+                console.error('Error adding to project:', error);
+                showMessage('请求失败: ' + error, 'error');
+            }
+        }
+
+        async function removeFromProject(nodeId) {
+            if (!confirm('确定要从项目中移除吗？')) return;
+
+            try {
+                const response = await fetch(`/api/nodes/${nodeId}/contents/${contentId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    loadProjects();
+                    showMessage('已从项目中移除', 'success');
+                } else {
+                    showMessage('移除失败: ' + (result.error || '未知错误'), 'error');
+                }
+            } catch (error) {
+                console.error('Error removing from project:', error);
+                showMessage('请求失败: ' + error, 'error');
+            }
+        }
+
+        function showMessage(message, type = 'info') {
+            const div = document.createElement('div');
+            div.textContent = message;
+            div.style.cssText = `
+                position: fixed; top: 20px; right: 20px;
+                padding: 12px 20px;
+                background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#6c757d'};
+                color: white; border-radius: 4px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+            `;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.markdown-content').forEach(el => {
-                const markdown = el.textContent;
-                el.innerHTML = marked.parse(markdown);
+            loadNotes();
+            loadProjects();
+        });
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
             });
         });
     </script>
+
+    <!-- Add Note Modal -->
+    <div class="modal" id="addNoteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>添加笔记</h2>
+                <button class="close-btn" onclick="hideAddNoteModal()">&times;</button>
+            </div>
+            <form id="addNoteForm" onsubmit="addNote(event)">
+                <div class="form-group">
+                    <label>笔记类型</label>
+                    <select name="type">
+                        <option value="learning">📝 学习笔记</option>
+                        <option value="inspiration">💡 创作灵感</option>
+                        <option value="quote">⭐ 金句摘录</option>
+                        <option value="actionable">🎯 可执行</option>
+                        <option value="question">❓ 疑问记录</option>
+                        <option value="connection">🔗 关联思考</option>
+                        <option value="todig">📌 待深入</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>笔记内容</label>
+                    <textarea name="content" required placeholder="写下你的想法..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">添加笔记</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add to Project Modal -->
+    <div class="modal" id="addToProjectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>加入项目或领域</h2>
+                <button class="close-btn" onclick="hideAddToProjectModal()">&times;</button>
+            </div>
+            <form id="addToProjectForm" onsubmit="addToProject(event)">
+                <div class="form-group">
+                    <label>选择项目或领域</label>
+                    <select name="project" id="projectSelect" required>
+                        <option value="">加载中...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">添加</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

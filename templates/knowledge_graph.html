@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Graph - Linker Mind v2.0</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        .btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        select, input {
+            padding: 0.6rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        /* Graph Container */
+        .graph-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            height: 600px;
+            margin: 1.5rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0.25rem 0;
+        }
+
+        /* Node Tooltip */
+        .tooltip {
+            position: absolute;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .tooltip-type {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tooltip-summary {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .legend-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+
+            .graph-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">🕸️ Knowledge Graph</div>
+                <nav>
+                    <a href="/" class="nav-link">← Dashboard</a>
+                    <a href="#" class="nav-link">Force Graph</a>
+                    <a href="#" class="nav-link">Skill Tree</a>
+                    <a href="#" class="nav-link">Timeline</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="controls">
+            <div class="control-group">
+                <span class="control-label">Graph Type:</span>
+                <button class="btn active" onclick="switchGraphType('force')">Force Directed</button>
+                <button class="btn" onclick="switchGraphType('clusters')">Topic Clusters</button>
+                <button class="btn" onclick="switchGraphType('timeline')">Timeline</button>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Filter:</span>
+                <select id="contentTypeFilter" onchange="filterGraph()">
+                    <option value="all">All Content</option>
+                    <option value="article">Articles</option>
+                    <option value="video">Videos</option>
+                    <option value="book">Books</option>
+                    <option value="podcast">Podcasts</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Nodes:</span>
+                <select id="nodeCount" onchange="updateGraph()">
+                    <option value="50">50</option>
+                    <option value="100" selected>100</option>
+                    <option value="200">200</option>
+                    <option value="500">500</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <button class="btn primary" onclick="refreshGraph()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-label">Total Nodes</div>
+                <div class="stat-value" id="totalNodes">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Edges</div>
+                <div class="stat-value" id="totalEdges">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Connections</div>
+                <div class="stat-value" id="avgConnections">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Density</div>
+                <div class="stat-value" id="graphDensity">0%</div>
+            </div>
+        </div>
+
+        <!-- Graph -->
+        <div class="graph-container">
+            <div id="graph">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div style="margin-top: 1rem;">Loading knowledge graph...</div>
+                </div>
+            </div>
+            <div class="tooltip" id="tooltip">
+                <div class="tooltip-title"></div>
+                <div class="tooltip-type"></div>
+                <div class="tooltip-summary"></div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3498db;"></div>
+                <span class="legend-label">Webpage</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #1DA1F2;"></div>
+                <span class="legend-label">Twitter</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FF0000;"></div>
+                <span class="legend-label">YouTube</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FB7299;"></div>
+                <span class="legend-label">Bilibili</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #07C160;"></div>
+                <span class="legend-label">WeChat</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #9b59b6;"></div>
+                <span class="legend-label">Video</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c;"></div>
+                <span class="legend-label">Center Node</span>
+            </div>
+        </div>
+
+        <!-- Selected Node Info -->
+        <div id="nodeInfo" style="display: none; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 1rem; padding: 1.5rem; margin: 1.5rem 0;">
+            <h3 style="margin-bottom: 1rem;">Selected Node</h3>
+            <div id="nodeInfoContent"></div>
+        </div>
+    </main>
+
+    <script>
+        let currentGraphType = 'force';
+        let graphData = { nodes: [], links: [] };
+        let simulation = null;
+
+        // Color mapping for source types
+        const typeColors = {
+            'webpage': '#3498db',
+            'twitter': '#1DA1F2',
+            'youtube': '#FF0000',
+            'bilibili': '#FB7299',
+            'douyin': '#000000',
+            'weixin': '#07C160',
+            'video': '#9b59b6',
+            'podcast': '#e67e22',
+            'book': '#8e44ad',
+            'text': '#95a5a6',
+            'default': '#bdc3c7'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGraph();
+        });
+
+        async function loadGraph() {
+            try {
+                const response = await fetch('/api/graph?type=force&limit=100');
+                const data = await response.json();
+                graphData = data;
+                renderForceGraph(data);
+                updateStats(data);
+            } catch (error) {
+                console.error('Failed to load graph:', error);
+                // Use sample data for demo
+                loadSampleGraph();
+            }
+        }
+
+        function loadSampleGraph() {
+            // Sample data for demonstration
+            graphData = {
+                nodes: [
+                    { id: '1', label: 'AI Agents', type: 'webpage', size: 2.0 },
+                    { id: '2', label: 'AutoGPT', type: 'webpage', size: 1.5 },
+                    { id: '3', label: 'LangChain', type: 'webpage', size: 1.3 },
+                    { id: '4', label: 'Tutorial Video', type: 'youtube', size: 1.0 },
+                    { id: '5', label: 'Python Basics', type: 'book', size: 1.2 },
+                    { id: '6', label: 'ML Course', type: 'video', size: 1.1 },
+                    { id: '7', label: 'Design Systems', type: 'webpage', size: 1.0 },
+                    { id: '8', label: 'UI Inspiration', type: 'twitter', size: 0.8 }
+                ],
+                links: [
+                    { source: '1', target: '2', weight: 0.8 },
+                    { source: '1', target: '3', weight: 0.6 },
+                    { source: '2', target: '4', weight: 0.5 },
+                    { source: '1', target: '5', weight: 0.4 },
+                    { source: '3', target: '6', weight: 0.7 },
+                    { source: '7', target: '8', weight: 0.9 }
+                ]
+            };
+
+            renderForceGraph(graphData);
+            updateStats(graphData);
+        }
+
+        function renderForceGraph(data) {
+            const container = document.getElementById('graph');
+            container.innerHTML = '';
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const svg = d3.select('#graph')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Simulation
+            simulation = d3.forceSimulation(data.nodes)
+                .force('link', d3.forceLink(data.links).id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(30));
+
+            // Links
+            const link = svg.append('g')
+                .selectAll('line')
+                .data(data.links)
+                .enter()
+                .append('line')
+                .attr('stroke', '#334155')
+                .attr('stroke-width', d => d.weight * 2)
+                .attr('stroke-opacity', 0.6);
+
+            // Nodes
+            const node = svg.append('g')
+                .selectAll('circle')
+                .data(data.nodes)
+                .enter()
+                .append('circle')
+                .attr('r', d => d.size * 15)
+                .attr('fill', d => typeColors[d.type] || typeColors.default)
+                .attr('stroke', '#1e293b')
+                .attr('stroke-width', 2)
+                .style('cursor', 'pointer')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended))
+                .on('click', showNodeInfo)
+                .on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip);
+
+            // Labels
+            const label = svg.append('g')
+                .selectAll('text')
+                .data(data.nodes)
+                .enter()
+                .append('text')
+                .text(d => d.label.length > 15 ? d.label.substring(0, 15) + '...' : d.label)
+                .attr('font-size', 10)
+                .attr('fill', '#f1f5f9')
+                .attr('text-anchor', 'middle')
+                .attr('dy', 4)
+                .style('pointer-events', 'none');
+
+            // Tick function
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+
+                label
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            });
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function showTooltip(event, d) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.querySelector('.tooltip-title').textContent = d.label;
+            tooltip.querySelector('.tooltip-type').textContent = d.type;
+            tooltip.querySelector('.tooltip-summary').textContent = `Connections: ${getDegree(d.id, graphData.links)}`;
+            tooltip.classList.add('visible');
+
+            const container = document.getElementById('graph');
+            const rect = container.getBoundingClientRect();
+            tooltip.style.left = (event.pageX - rect.left + 15) + 'px';
+            tooltip.style.top = (event.pageY - rect.top + 15) + 'px';
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.remove('visible');
+        }
+
+        function showNodeInfo(event, d) {
+            const nodeInfo = document.getElementById('nodeInfo');
+            const nodeInfoContent = document.getElementById('nodeInfoContent');
+
+            // Find connected nodes
+            const connections = graphData.links.filter(l => l.source.id === d.id || l.target.id === d.id);
+
+            nodeInfoContent.innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">${d.label}</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Type: ${d.type}</div>
+                <div style="margin-bottom: 1rem;">Connections: ${connections.length}</div>
+                <div>
+                    <strong>Connected to:</strong>
+                    <ul style="margin-top: 0.5rem; padding-left: 1.25rem;">
+                        ${connections.map(l => {
+                            const other = l.source.id === d.id ? l.target : l.source;
+                            return `<li>${other.label}</li>`;
+                        }).join('')}
+                    </ul>
+                </div>
+            `;
+            nodeInfo.style.display = 'block';
+        }
+
+        function getDegree(nodeId, links) {
+            return links.filter(l => l.source.id === nodeId || l.target.id === nodeId).length;
+        }
+
+        function updateStats(data) {
+            document.getElementById('totalNodes').textContent = data.nodes.length;
+            document.getElementById('totalEdges').textContent = data.links.length;
+
+            const avgConn = data.nodes.length > 0 ? (data.links.length * 2 / data.nodes.length).toFixed(1) : 0;
+            document.getElementById('avgConnections').textContent = avgConn;
+
+            const maxEdges = data.nodes.length * (data.nodes.length - 1) / 2;
+            const density = maxEdges > 0 ? Math.round(data.links.length / maxEdges * 100) : 0;
+            document.getElementById('graphDensity').textContent = density + '%';
+        }
+
+        function switchGraphType(type) {
+            currentGraphType = type;
+            document.querySelectorAll('.controls .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            refreshGraph();
+        }
+
+        function filterGraph() {
+            const filter = document.getElementById('contentTypeFilter').value;
+            // TODO: Implement filtering
+            console.log('Filtering by:', filter);
+        }
+
+        function updateGraph() {
+            const count = parseInt(document.getElementById('nodeCount').value);
+            // TODO: Reload with different node count
+            console.log('Updating with', count, 'nodes');
+        }
+
+        function refreshGraph() {
+            document.getElementById('graph').innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div style="margin-top: 1rem;">Loading graph...</div>
+                </div>
+            `;
+            loadGraph();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (graphData.nodes.length > 0) {
+                renderForceGraph(graphData);
+            }
+        });
+    </script>
+</body>
+</html>

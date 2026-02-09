@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试 - PARA组织</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 API.js 加载测试</h1>
+            <button class="btn" onclick="showModal()">+ 测试输入</button>
+        </div>
+
+        <div class="info">
+            <strong>测试说明：</strong> 这个页面加载了 api.js（与原页面相同），但不进行任何 API 调用。
+            <br><br>
+            如果输入流畅 → 说明问题在 API 调用或数据渲染
+            <br>
+            如果输入卡顿 → 说明问题在 api.js 本身
+        </div>
+
+        <div class="stats" id="stats">
+            <div>API 对象状态: <span id="apiStatus">检查中...</span></div>
+            <div>API 方法数量: <span id="apiMethods">0</span></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="testModal">
+        <div class="modal-content">
+            <h2 style="margin-top: 0;">测试输入框</h2>
+            <form onsubmit="event.preventDefault(); closeModal();">
+                <div class="form-group">
+                    <label>节点类型</label>
+                    <select id="nodeType" required>
+                        <option value="PROJECT">🎯 项目 (Project)</option>
+                        <option value="AREA">📁 领域 (Area)</option>
+                        <option value="RESOURCE">📚 资源 (Resource)</option>
+                        <option value="ARCHIVE">📦 归档 (Archive)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>名称</label>
+                    <input type="text" id="nodeName" required placeholder="在这里输入测试...">
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea id="nodeDescription" placeholder="在这里输入多行文本..."></textarea>
+                </div>
+                <button type="submit" class="btn">提交</button>
+                <button type="button" class="btn" style="background: #666;" onclick="closeModal()">取消</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 加载与原页面相同的 api.js -->
+    <script src="/static/js/api.js"></script>
+    <script>
+        // 检查 api.js 是否正确加载
+        setTimeout(() => {
+            if (typeof api !== 'undefined') {
+                document.getElementById('apiStatus').textContent = '✅ 已加载';
+                const methodCount = Object.getOwnPropertyNames(Object.getPrototypeOf(api)).length;
+                document.getElementById('apiMethods').textContent = methodCount;
+                console.log('API 对象已加载:', api);
+            } else {
+                document.getElementById('apiStatus').textContent = '❌ 未加载';
+            }
+        }, 100);
+
+        function showModal() {
+            document.getElementById('testModal').classList.add('active');
+            document.getElementById('nodeName').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('testModal').classList.remove('active');
+        }
+
+        // 关闭 modal 的点击事件
+        document.getElementById('testModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // ESC 键关闭
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

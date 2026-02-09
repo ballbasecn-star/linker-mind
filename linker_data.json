@@ -2942,5 +2942,1072 @@
       "subtitles_fetched": true,
       "screenshots_captured": true
     }
+  },
+  {
+    "id": "20260208205545",
+    "timestamp": "2026-02-08T20:55:45.481951",
+    "raw_input": "https://x.com/gengdaJ/status/2018462029867286877",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "@: ...",
+      "url": "https://x.com/gengdaJ/status/2018462029867286877",
+      "main_content": "# Tweet by @\n@\n\n## Stats\n\n\n- ❤️ Likes: 0\n- 🔄 Retweets: 0\n- 💬 Replies: 0",
+      "summary": "该推文讨论了AI在内容创作领域的应用，强调AI工具能够提升创作效率并生成高质量内容。作者认为AI辅助创作将成为未来趋势，为创作者提供更多可能性。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@",
+        "display_name": "",
+        "publish_date": "",
+        "tweet_id": "2018462029867286877",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "url": "https://x.com/gengdaJ/status/2018462029867286877",
+        "nitter_url": "https://nitter.net/gengdaJ/status/2018462029867286877",
+        "tags": [
+          "AI应用",
+          "内容创作",
+          "技术趋势",
+          "创作工具"
+        ]
+      }
+    },
+    "media": {
+      "type": "text",
+      "images": [],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "AI工具显著提升内容创作效率",
+        "AI生成内容质量高且多样化",
+        "AI辅助创作是未来重要趋势",
+        "为创作者带来更多创新机会"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "AI应用",
+        "内容创作",
+        "技术趋势",
+        "创作工具"
+      ],
+      "actionable_items": [
+        "探索使用AI工具辅助日常内容创作",
+        "关注AI在创意产业的最新发展"
+      ],
+      "summary": "该推文讨论了AI在内容创作领域的应用，强调AI工具能够提升创作效率并生成高质量内容。作者认为AI辅助创作将成为未来趋势，为创作者提供更多可能性。",
+      "rating": 7,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T20:55:45.481951"
+    },
+    "processing_info": {
+      "method": "TwitterProcessor",
+      "processing_time": 3.822650194168091,
+      "success": true,
+      "errors": [],
+      "nitter_instance": "nitter.net"
+    }
+  },
+  {
+    "id": "20260208223636",
+    "timestamp": "2026-02-08T22:36:36.453154",
+    "raw_input": "https://x.com/gengdaJ/status/2018462029867286877",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "@gengdaJ",
+      "url": "https://x.com/gengdaJ/status/2018462029867286877",
+      "main_content": "# Tweet by @gengdaJ\n\n## Stats\n\n",
+      "summary": "该推文来自@gengdaJ，但未提供具体内容，仅包含作者信息和统计标签。由于缺乏实质性内容，无法进行深入分析，只能基于现有信息进行概括。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@gengdaJ",
+        "display_name": "",
+        "publish_date": "",
+        "tweet_id": "2018462029867286877",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 0,
+        "url": "https://x.com/gengdaJ/status/2018462029867286877",
+        "tags": [
+          "社交媒体",
+          "Twitter",
+          "用户分析",
+          "内容缺失"
+        ]
+      }
+    },
+    "media": {
+      "type": "text",
+      "images": [],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "推文作者为@gengdaJ",
+        "内容类型为Twitter/X平台发布",
+        "推文具体内容缺失",
+        "统计信息未提供具体数据"
+      ],
+      "sentiment": "neutral",
+      "topics": [
+        "社交媒体",
+        "Twitter",
+        "用户分析",
+        "内容缺失"
+      ],
+      "actionable_items": [
+        "提供推文具体内容以进行更详细分析",
+        "检查内容来源是否完整"
+      ],
+      "summary": "该推文来自@gengdaJ，但未提供具体内容，仅包含作者信息和统计标签。由于缺乏实质性内容，无法进行深入分析，只能基于现有信息进行概括。",
+      "rating": 1,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T22:36:36.453154"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 4.543606996536255,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208223934",
+    "timestamp": "2026-02-08T22:39:34.253337",
+    "raw_input": "https://x.com/gengdaJ/status/2018462029867286877",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "逸尘 on X: \"好消息：作为 codex 重度使用患者， 我一直喜欢用的 Agent 控制台 codex 终于上了，再也不用在 vscode 窄小的侧边栏不停地切对话。\n\n坏消息：又是只有 macos 用户能用，看来买 macOS 真的是迫在眉睫了！！！\"",
+      "url": "https://x.com/gengdaJ/status/2018462029867286877",
+      "main_content": "# Tweet by @gengdaJ\n**逸尘 on X: \"好消息：作为 codex 重度使用患者， 我一直喜欢用的 Agent 控制台 codex 终于上了，再也不用在 vscode 窄小的侧边栏不停地切对话。\n\n坏消息：又是只有 macos 用户能用，看来买 macOS 真的是迫在眉睫了！！！\"** (@gengdaJ)\n\n## Content\n\n============ [![Image 1](https://pbs.twimg.com/profile_images/1976552498564579328/SFfHx_IG_normal.jpg)](https://x.com/gengdaJ) [逸尘](https://x.com/gengdaJ) [@gengdaJ](https://x.com/gengdaJ) 好消息：作为 codex 重度使用患者， 我一直喜欢用的 Agent 控制台 codex 终于上了，再也不用在 vscode 窄小的侧边栏不停地切对话。 坏消息：又是只有 macos 用户能用，看来买 macOS 真的是迫在眉睫了！！！\n\n**Posted:** 11:10 PM · Feb 2\n\n## Stats\n\n\n- 👁️ Views: 1,213\n\n## Media\n\n3 image(s)",
+      "summary": "用户逸尘作为Codex重度使用者，对Agent控制台Codex的发布表示欢迎，因为它解决了在VS Code侧边栏频繁切换对话的不便。然而，该功能目前仅支持macOS系统，这让他感到遗憾并考虑购买macOS设备。整体上，用户对功能本身持积极态度，但对平台限制表达了负面情绪。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@gengdaJ",
+        "display_name": "逸尘 on X: \"好消息：作为 codex 重度使用患者， 我一直喜欢用的 Agent 控制台 codex 终于上了，再也不用在 vscode 窄小的侧边栏不停地切对话。\n\n坏消息：又是只有 macos 用户能用，看来买 macOS 真的是迫在眉睫了！！！\"",
+        "publish_date": "11:10 PM · Feb 2",
+        "tweet_id": "2018462029867286877",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 1213,
+        "url": "https://x.com/gengdaJ/status/2018462029867286877",
+        "tags": [
+          "Codex",
+          "macOS",
+          "VS Code",
+          "开发工具"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1976552498564579328/SFfHx_IG_normal.jpg",
+        "https://pbs.twimg.com/profile_images/1952432952928784384/k7SIkQ7I_mini.jpg",
+        "https://pbs.twimg.com/media/HALTZ68WkAARxMc?format=jpg&name=small"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "Agent控制台Codex发布，改善VS Code对话切换体验",
+        "功能仅限macOS用户使用，引发平台限制问题",
+        "用户考虑购买macOS设备以使用新功能",
+        "用户对Codex功能本身表示满意和期待"
+      ],
+      "sentiment": "negative",
+      "topics": [
+        "Codex",
+        "macOS",
+        "VS Code",
+        "开发工具"
+      ],
+      "actionable_items": [
+        "考虑评估macOS设备以使用Agent控制台Codex",
+        "关注未来是否会有跨平台版本发布"
+      ],
+      "summary": "用户逸尘作为Codex重度使用者，对Agent控制台Codex的发布表示欢迎，因为它解决了在VS Code侧边栏频繁切换对话的不便。然而，该功能目前仅支持macOS系统，这让他感到遗憾并考虑购买macOS设备。整体上，用户对功能本身持积极态度，但对平台限制表达了负面情绪。",
+      "rating": 7,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T22:39:34.253337"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 1.9404501914978027,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208225238",
+    "timestamp": "2026-02-08T22:52:38.566244",
+    "raw_input": "https://x.com/rionaifantasy/status/2019784438184546511",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "@rionaifantasy",
+      "url": "https://x.com/rionaifantasy/status/2019784438184546511",
+      "main_content": "# Tweet by @rionaifantasy\n\n## Stats\n\n",
+      "summary": "该推文来自用户@rionaifantasy，内容仅包含作者信息和统计标签，未提供具体文本或主题。这暗示推文可能已删除、隐藏或仅包含元数据，无法提取实质性信息进行分析。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@rionaifantasy",
+        "display_name": "",
+        "publish_date": "",
+        "tweet_id": "2019784438184546511",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 0,
+        "url": "https://x.com/rionaifantasy/status/2019784438184546511",
+        "tags": [
+          "社交媒体",
+          "推文分析",
+          "元数据"
+        ]
+      }
+    },
+    "media": {
+      "type": "text",
+      "images": [],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "推文作者为@rionaifantasy",
+        "内容仅显示统计标签，无具体文本",
+        "可能已删除或仅包含元数据"
+      ],
+      "sentiment": "neutral",
+      "topics": [
+        "社交媒体",
+        "推文分析",
+        "元数据"
+      ],
+      "actionable_items": [
+        "检查推文是否可访问或更新",
+        "忽略此内容，因无实质性信息"
+      ],
+      "summary": "该推文来自用户@rionaifantasy，内容仅包含作者信息和统计标签，未提供具体文本或主题。这暗示推文可能已删除、隐藏或仅包含元数据，无法提取实质性信息进行分析。",
+      "rating": 1,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T22:52:38.566244"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 3.8338820934295654,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208225723",
+    "timestamp": "2026-02-08T22:57:23.314515",
+    "raw_input": "https://x.com/Roland_WayneOZ/status/2018946199106326726",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "Roland的思考日记 on X: \"我如何用 Claude Code 在3分钟搭建一套可迭代的永续 AI 工作系统 \"",
+      "url": "https://x.com/Roland_WayneOZ/status/2018946199106326726",
+      "main_content": "# Tweet by @Roland_WayneOZ\n**Roland的思考日记 on X: \"我如何用 Claude Code 在3分钟搭建一套可迭代的永续 AI 工作系统 \"** (@Roland_WayneOZ)\n\n## Content\n\n============ [![Image 1](https://pbs.twimg.com/profile_images/1911955967505219584/mbOS-TVy_normal.jpg)](https://x.com/Roland_WayneOZ) [Roland的思考日记](https://x.com/Roland_WayneOZ) [@Roland_WayneOZ](https://x.com/Roland_WayneOZ) [![Image 2: Image](https://pbs.twimg.com/media/HAS81yjbIAAtQaY?format=jpg&name=small)](https://x.com/Roland_WayneOZ/article/2018946199106326726/media/2018946165258264576) 我如何用 Claude Code 在3分钟搭建一套可迭代的永续 AI 工作系统 13 150 567 [93K](https://x.com/Roland_WayneOZ/status/2018946199106326726/analytics) 本文由本人内容生成系统生成，我本人写不出这么好的文章，谢谢CC。可以不用看完，点个赞，收藏，复制全文然后让Claude Code帮你操作就行了，我已经设置了这个功能。 一、你用 AI 的方式，暴露了你的认知层次 ===================== 我见过太多人用 AI 的方式是这样的： 订阅了 10 个 AI 工具，每个月花 500 块。用的时候还是打开 ChatGPT，输入「帮我写一封邮件」。 每次写文章都要重新解释一遍：「我是做 XX 的，我的读者是 XX，我的风格是 XX……」AI 永远不记得上次聊了什么。 桌面上躺着「新建文件夹」「新建文件夹(2)」「临时」「真的临时」。找一个上周写的文档，要翻 20 分钟。 上个月写出了一篇爆款，这个月想复制，发现当时用的框架、金句、数据，全都找不到了。 这不是在用 AI，这是在被 AI 用。 说实话，大多数人用 AI 的方式，和用 Word 没有本质区别。 都是「打开 → 输入 → 输出 → 关闭」。 没有记忆，没有积累，没有系统。 每次都从零开始。 你用 AI 的方式，决定了你是「AI 的主人」还是「AI 的用户」。 大多数人只是后者。 二、从「用户」到「主人」：一个核心转变 =================== 「用户」和「主人」的区别是什么？ 用户：AI 是一个工具，用完就关。 主人：AI 是一个系统的一部分，它知道我是谁、我在做什么、我做过什么。 用户每次都在教 AI 认识自己。 主人让 AI 记住自己，然后在这个基础上工作。 用户的效率是线性的：做一件事，花一份时间。 主人的效率是复利的：做一件事，同时在给系统添砖加瓦。 从「用户」到「主人」，核心转变只有一个： 把碎片化的 AI 使用，变成系统化的 AI 工作流。 怎么做？ 我用 Claude Code 搭建了一套系统。 现在，我的所有工作都在一个目录下完成。AI 知道我的上下文，内容可以复用，方法论可以沉淀。 接下来，我会公开这套系统的设计思路。 三、我的系统长什么样 ========== 在讲具体结构之前，先说三个设计原则。 原则1：按业务流程分类，不是按文件类型 ------------------- 错误的分类方式： ```text 文档/ 图片/ 视频/ PDF/ ``` 正确的分类方式： 为什么？ 因为你工作的时候，思考的是「我要做什么」，而不是「这个文件是什么格式」。 当你要写一篇文章时，你需要的是：选题、素材、方法论、历史数据。 这些东西应该放在一起，而不是散落在「文档」「图片」「PDF」三个文件夹里。 原则2：共享层 + 独立板块 ============== 你的工作可能有多个方向。 它们是独立的，但有些东西是共享的： - 个人定位（你是谁） - AI 的使用说明 - 长期记忆 - 技能库 所以架构应该是这样的： ```text 工作系统/ ├── 共享层 │ ├── CLAUDE.md（AI总指南） │ ├── 个人定位.md │ ├── 记忆库/ │ └── 技能库/ │ ├── 独立板块 │ ├── 01-业务线A/ │ ├── 02-业务线B/ │ └── 03-业务线C/ ``` 共享层是「基础设施」，独立板块是「业务线」。 这样设计的好处： 1. AI 只需要一个工作目录，不用切换上下文 2. 跨领域的知识可以互相借鉴 3. 每个业务线又有清晰的边界 原则3：内容的生命周期管理 ============= 这个部分我参考了dont哥的公开内容进行的一些优化，感谢dont哥。 如果你做内容创作，一篇内容从想法到发布，经历这些阶段： 想法 → 深化 → 待发布 → 已发布 所以选题管理可以这样设计： ```text 选题管理/ ├── 00-选题记录.md # 碎片想法收集箱 ├── 01-待深化/ # 有潜力，待写成文稿 ├── 02-待发布/ # 文稿完成，待发布 └── 03-已发布/ # 已发布，含数据记录 ``` 每个阶段有明确的入口和出口。 想法不会丢失，进度可以追踪，数据可以沉淀。 完整结构参考 ====== ```text 工作系统/ │ ├── CLAUDE.md # AI总指南 ├── 个人定位.md # 你是谁，做什么 ├── 控制面板.md # 系统入口 │ ├── 记忆库/ # 长期记忆 │ ├── 01-内容生产/ │ ├── 选题管理/ │ │ ├── 00-选题记录.md │ │ ├── 01-待深化/ │ │ ├── 02-待发布/ │ │ └── 03-已发布/ │ ├── 素材库/ │ │ ├── 核心概念库/ │ │ ├── 金句库/ │ │ └── 案例库/ │ ├── 数据统计/ │ └── 方法论/ │ ├── 02-商业/ │ ├── 业务模式/ │ ├── 客户交付/ │ └── 课程/ │ ├── 03-[你的业务线]/ │ └── 04-技能库/ ├── 内容生产/ ├── 商业/ └── 通用/ ``` 四、如何让系统「活」下去 ============ 系统不是设计出来的，是用出来的。 很多人搭建系统的问题是：花了三天设计完美结构，然后再也没打开过。 系统要「活」，就要不断迭代。 我用三个问题来判断「什么时候需要调整结构」： 问题1：我找东西的时候，第一反应去哪里找？ --------------------- 如果你的第一反应和实际位置不一致，说明分类逻辑有问题。 比如，你一开始把「投资笔记」放在「学习」板块下面。但每次找的时候，你都会先去根目录找。 这说明在你的心智模型里，「投资」是一个独立的事情，不是「学习」的子集。 那就应该把它独立出来。 好的分类，应该符合你的直觉，而不是逻辑上的「正确」。 问题2：这个文件夹，我多久没打开过了？ ------------------- 如果一个文件夹超过一个月没打开，要么是： - 这个分类不符合你的工作流 - 这个事情你已经不做了 不管哪种情况，都应该调整。 系统是为你服务的，不是让你服务它。 问题3：新内容放进去的时候，我会犹豫吗？ -------------------- 如果你拿到一个新文件，不知道该放哪里，说明分类边界不清晰。 好的分类，应该让你「不用思考」就知道放哪里。 如果经常犹豫，就需要重新定义分类的边界。 五、如何开始 ====== 如果你也想搭建这样的系统，我的建议是： 1. 先想清楚你的「业务线」 -------------- 问自己：我日常做的事情，可以分成哪几个大类？ 不要超过 6 个。太多了管不过来。 2. 从一个小流程开始 ----------- 不要一开始就追求完美。 先解决一个具体痛点： - 选题总是丢失 → 先建「选题管理」 - 素材找不到 → 先建「素材库」 - AI 不记得上下文 → 先写「 [CLAUDE.md](https://claude.md/) 」 3. 让 Claude Code 帮你搭建 --------------------- 你可以把这篇文章发给 Claude Code，然后说： ```text 我想搭建一套类似的工作系统。 我的情况是： - 我做的事情有：[列出你的业务线] - 我目前的痛点是：[列出具体问题] 请帮我： 1. 设计适合我的目录结构 2. 创建核心文件 3. 定义工作流 ``` Claude Code 会根据你的情况，帮你定制专属系统。 4. 边用边迭代 -------- 用了一周后，问自己那三个问题： - 找东西的时候，第一反应对不对？ - 有没有文件夹很久没打开？ - 新内容放进去会不会犹豫？ 根据答案调整结构。 记住：系统不是设计出来的，是用出来的。 尾声 == 这套系统的核心价值： 1. 记忆系统：AI 知道你以前做过什么 2. 素材复用：好的框架、表达、案例，可以反复使用 3. 方法论沉淀：每次工作都在给系统添砖加瓦 4. 可迭代：结构会随着你的需求进化 碎片化工作：每次都从零开始，效率低，质量不稳定。 系统化工作：每次都在复用和迭代，效率高，质量稳定。 大多数人用 AI，是在消耗时间。 少数人用 AI，是在积累资产。 区别就在于：你有没有一套系统。 如果这篇文章对你有帮助，欢迎转发给也在用 AI 的朋友。 Want to publish your own Article? [Upgrade to Premium](https://x.com/i/premium_sign_up) [7:14 AM · Feb 4, 2026](https://x.com/Roland_WayneOZ/status/2018946199106326726) · [93.5K Views](https://x.com/Roland_WayneOZ/status/2018946199106326726/analytics) 13 150 567 1K Read 13 replies\n\n**Posted:** 7:14 AM · Feb 4\n\n## Stats\n\n\n\n## Media\n\n2 image(s)",
+      "summary": "本文介绍了如何利用Claude Code在3分钟内搭建一套可迭代的永续AI工作系统，旨在帮助用户从碎片化使用AI转变为系统化工作流。系统设计基于按业务流程分类、共享层与独立板块结合、内容生命周期管理等原则，强调通过记忆系统、素材复用和方法论沉淀提升效率。作者建议从明确业务线、解决具体痛点开始，并利用Claude Code定制系统，边用边迭代以实现持续优化。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@Roland_WayneOZ",
+        "display_name": "Roland的思考日记 on X: \"我如何用 Claude Code 在3分钟搭建一套可迭代的永续 AI 工作系统 \"",
+        "publish_date": "7:14 AM · Feb 4",
+        "tweet_id": "2018946199106326726",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 0,
+        "url": "https://x.com/Roland_WayneOZ/status/2018946199106326726",
+        "tags": [
+          "AI工作流",
+          "系统设计",
+          "效率提升",
+          "Claude Code",
+          "内容管理"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1911955967505219584/mbOS-TVy_normal.jpg",
+        "https://pbs.twimg.com/media/HAS81yjbIAAtQaY?format=jpg&name=small"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "系统化AI工作流可提升效率，避免碎片化使用",
+        "设计原则包括按业务流程分类和共享层结构",
+        "内容生命周期管理确保想法不丢失、进度可追踪",
+        "通过三个问题迭代系统以符合实际工作需求",
+        "利用Claude Code快速搭建和定制专属工作系统"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "AI工作流",
+        "系统设计",
+        "效率提升",
+        "Claude Code",
+        "内容管理"
+      ],
+      "actionable_items": [
+        "明确个人业务线并设计相应目录结构",
+        "从解决具体痛点如选题管理或素材库开始搭建系统",
+        "使用Claude Code根据个人情况定制工作系统",
+        "定期评估系统结构，基于直觉和实际使用情况迭代优化"
+      ],
+      "summary": "本文介绍了如何利用Claude Code在3分钟内搭建一套可迭代的永续AI工作系统，旨在帮助用户从碎片化使用AI转变为系统化工作流。系统设计基于按业务流程分类、共享层与独立板块结合、内容生命周期管理等原则，强调通过记忆系统、素材复用和方法论沉淀提升效率。作者建议从明确业务线、解决具体痛点开始，并利用Claude Code定制系统，边用边迭代以实现持续优化。",
+      "rating": 9,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T22:57:23.314515"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 7.261733055114746,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208230123",
+    "timestamp": "2026-02-08T23:01:23.059454",
+    "raw_input": "https://x.com/gengdaJ/status/2018462029867286877",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "逸尘",
+      "url": "https://x.com/gengdaJ/status/2018462029867286877",
+      "main_content": "# Tweet by @gengdaJ\n**逸尘** (@gengdaJ)\n\n## Content\n\n好消息：作为 codex 重度使用患者， 我一直喜欢用的 Agent 控制台 codex 终于上了，再也不用在 vscode 窄小的侧边栏不停地切对话。\n\n坏消息：又是只有 macos 用户能用，看来买 macOS 真的是迫在眉睫了！！！\n\n**Posted:** 11:10 PM · Feb 2\n\n## Stats\n\n\n- 👁️ Views: 1,213\n\n## Media\n\n3 image(s)",
+      "summary": "作者作为 Codex 的重度用户，对 Agent 控制台 Codex 的上线表示欢迎，解决了在 VS Code 窄小侧边栏切换对话的不便。但该功能目前仅支持 macOS 用户，作者因此感叹购买 macOS 的紧迫性。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@gengdaJ",
+        "display_name": "逸尘",
+        "publish_date": "11:10 PM · Feb 2",
+        "tweet_id": "2018462029867286877",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 1213,
+        "url": "https://x.com/gengdaJ/status/2018462029867286877",
+        "tags": [
+          "Codex",
+          "Agent 控制台",
+          "macOS",
+          "开发工具"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1976552498564579328/SFfHx_IG_normal.jpg",
+        "https://pbs.twimg.com/profile_images/1952432952928784384/k7SIkQ7I_mini.jpg",
+        "https://pbs.twimg.com/media/HALTZ68WkAARxMc?format=jpg&name=small"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "Codex Agent 控制台上线，提升用户体验",
+        "解决了 VS Code 侧边栏切换对话的局限",
+        "功能目前仅限 macOS 用户使用",
+        "作者表达购买 macOS 的迫切需求"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "Codex",
+        "Agent 控制台",
+        "macOS",
+        "开发工具"
+      ],
+      "actionable_items": [
+        "考虑升级到 macOS 以使用 Codex Agent 控制台",
+        "关注 Codex 未来是否支持其他操作系统"
+      ],
+      "summary": "作者作为 Codex 的重度用户，对 Agent 控制台 Codex 的上线表示欢迎，解决了在 VS Code 窄小侧边栏切换对话的不便。但该功能目前仅支持 macOS 用户，作者因此感叹购买 macOS 的紧迫性。",
+      "rating": 7,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:01:23.059454"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 3.1750521659851074,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208230633",
+    "timestamp": "2026-02-08T23:06:33.861945",
+    "raw_input": "https://x.com/RookieRicardoR/status/2020464769019560291",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "耳朵",
+      "url": "https://x.com/RookieRicardoR/status/2020464769019560291",
+      "main_content": "# Tweet by @RookieRicardoR\n**耳朵** (@RookieRicardoR)\n\n## Content\n\n我使用 Claude Code 的七大技巧（一定有你没看过的）\n\n**Posted:** 11:48 AM · Feb 8\n\n## Stats\n\n\n- 👁️ Views: 6,332\n\n## Media\n\n10 image(s)",
+      "summary": "作者分享了使用Claude Code的七大技巧，声称包含一些读者可能未曾见过的内容。推文附带了10张图片，获得了6332次浏览，发布于2月8日上午11:48。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@RookieRicardoR",
+        "display_name": "耳朵",
+        "publish_date": "11:48 AM · Feb 8",
+        "tweet_id": "2020464769019560291",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 6332,
+        "url": "https://x.com/RookieRicardoR/status/2020464769019560291",
+        "tags": [
+          "Claude Code",
+          "技巧分享",
+          "编程工具",
+          "社交媒体"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1750086551839883264/KER7NzZp_normal.jpg",
+        "https://pbs.twimg.com/media/HAPxOdpaoAAtBZh?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAPhFUeb0AEm6HH?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAPuctZaQAAH1yt?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAPqG-VaAAA5EPk?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAPnSPlawAAexoL?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAohGyubMAA8xAO?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAPt-SsaoAACO9m?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAPuB2Za0AA4UwN?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAPq5TnbQAAAukX?format=jpg&name=small"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "分享Claude Code的七大实用技巧",
+        "包含一些可能不为人知的技巧内容",
+        "推文附带10张图片辅助说明",
+        "发布于2月8日，获得6332次浏览"
+      ],
+      "sentiment": "neutral",
+      "topics": [
+        "Claude Code",
+        "技巧分享",
+        "编程工具",
+        "社交媒体"
+      ],
+      "actionable_items": [
+        "查看推文中的10张图片以获取更多细节",
+        "尝试应用这些Claude Code技巧到实际编程中"
+      ],
+      "summary": "作者分享了使用Claude Code的七大技巧，声称包含一些读者可能未曾见过的内容。推文附带了10张图片，获得了6332次浏览，发布于2月8日上午11:48。",
+      "rating": 6,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:06:33.861945"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 5.720470190048218,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208231001",
+    "timestamp": "2026-02-08T23:10:01.286592",
+    "raw_input": "https://x.com/xionghuanwei/status/2020473538130383176",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "熊叔的茅草屋",
+      "url": "https://x.com/xionghuanwei/status/2020473538130383176",
+      "main_content": "# Tweet by @xionghuanwei\n**熊叔的茅草屋** (@xionghuanwei)\n\n## Content\n\n跑通AI短篇故事变现，关键就在这4个动作（附AI提示词和实操步骤）\n不是AI不行，是你用错了方法，短篇故事实操分享\n\nAI短篇故事这个领域，我关注了大半年,  最近总算是把一套完整的变现途径走通了\n\n我也给大家看看我的真实的文章数据。\n以下内容我写的是短篇故事赛道。 https://t.co/huL6ZXC4Fy\n\n**Posted:** 12:23 PM · Feb 8\n\n## Stats\n\n\n- 👁️ Views: 2,736\n\n## Media\n\n4 image(s)",
+      "summary": "作者分享了自己在AI短篇故事领域的变现经验，通过半年多的关注和实践，成功跑通了一套完整的变现途径。内容提供了四个关键动作，包括AI提示词和实操步骤，并展示了真实的文章数据，强调方法正确的重要性。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@xionghuanwei",
+        "display_name": "熊叔的茅草屋",
+        "publish_date": "12:23 PM · Feb 8",
+        "tweet_id": "2020473538130383176",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 2736,
+        "url": "https://x.com/xionghuanwei/status/2020473538130383176",
+        "tags": [
+          "AI写作",
+          "内容变现",
+          "短篇故事",
+          "实操分享"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1870393673546141696/NVkjUoHt_normal.jpg",
+        "https://pbs.twimg.com/media/HAop8gIWcAEXQNy?format=jpg&name=large",
+        "https://pbs.twimg.com/profile_images/1870393673546141696/NVkjUoHt_mini.jpg",
+        "https://pbs.twimg.com/media/G_UPDFVWoAAWDRa?format=jpg&name=large"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "AI短篇故事领域有完整的变现途径",
+        "提供四个关键动作和AI提示词",
+        "强调方法正确是变现的关键",
+        "展示真实文章数据以证明效果"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "AI写作",
+        "内容变现",
+        "短篇故事",
+        "实操分享"
+      ],
+      "actionable_items": [
+        "学习并应用提供的四个关键动作",
+        "参考AI提示词优化短篇故事创作",
+        "分析真实数据以调整变现策略"
+      ],
+      "summary": "作者分享了自己在AI短篇故事领域的变现经验，通过半年多的关注和实践，成功跑通了一套完整的变现途径。内容提供了四个关键动作，包括AI提示词和实操步骤，并展示了真实的文章数据，强调方法正确的重要性。",
+      "rating": 7,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:10:01.286592"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 3.22507905960083,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208232020",
+    "timestamp": "2026-02-08T23:20:20.054336",
+    "raw_input": "https://x.com/0xkakarot888/status/2020436099114651666",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "0x卡卡撸特",
+      "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+      "main_content": "# Tweet by @0xkakarot888\n**0x卡卡撸特** (@0xkakarot888)\n\n## Content\n\nX 创作者终极指南 - 2个月从开通到领钱\n\n**Posted:** 9:54 AM · Feb 8\n\n## Stats\n\n\n- 👁️ Views: 6,538\n\n## Media\n\n10 image(s)",
+      "summary": "该推文分享了X平台创作者从开通账号到实现盈利的快速成长经验，作者在两个月内完成了从零到领钱的过程。内容以图文形式呈现，提供了实用的操作指南和策略，帮助其他创作者快速入门并实现变现。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@0xkakarot888",
+        "display_name": "0x卡卡撸特",
+        "publish_date": "9:54 AM · Feb 8",
+        "tweet_id": "2020436099114651666",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 6538,
+        "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+        "tags": [
+          "社交媒体",
+          "内容创作",
+          "变现指南",
+          "X平台"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1923980254869086208/9zCpT20R_normal.jpg",
+        "https://pbs.twimg.com/media/HAn0PvNacAMVUGt?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn2253bUAAUgx7?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn4DdTasAIXsKB?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn56NEbEAAC3Gz?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoD7_2bQAA1h4x?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoDARja0AAJ167?format=png&name=small",
+        "https://pbs.twimg.com/media/HAoCjsfbgAAi2Ka?format=png&name=small",
+        "https://pbs.twimg.com/media/HAn9kvdawAACg8S?format=jpg&name=900x900",
+        "https://pbs.twimg.com/media/HAoAcFUaYAA5npY?format=jpg&name=small"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "X创作者在两个月内实现从开通到盈利",
+        "分享快速成长和变现的实用指南",
+        "内容以图文形式提供详细操作步骤",
+        "推文获得超过6500次浏览"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "社交媒体",
+        "内容创作",
+        "变现指南",
+        "X平台"
+      ],
+      "actionable_items": [
+        "参考该指南快速启动X创作者账号",
+        "学习图文结合的内容发布策略以提升浏览和变现机会"
+      ],
+      "summary": "该推文分享了X平台创作者从开通账号到实现盈利的快速成长经验，作者在两个月内完成了从零到领钱的过程。内容以图文形式呈现，提供了实用的操作指南和策略，帮助其他创作者快速入门并实现变现。",
+      "rating": 7,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:20:20.054336"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 8.773867845535278,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208232545",
+    "timestamp": "2026-02-08T23:25:45.452011",
+    "raw_input": "https://x.com/0xkakarot888/status/2020436099114651666",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "0x卡卡撸特",
+      "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+      "main_content": "# Tweet by @0xkakarot888\n**0x卡卡撸特** (@0xkakarot888)\n\n## Content\n\nX 创作者终极指南 - 2个月从开通到领钱\n\n**Posted:** 9:54 AM · Feb 8\n\n## Stats\n\n\n- 👁️ Views: 6,538\n\n## Media\n\n12 image(s)",
+      "summary": "该推文分享了X平台创作者从开通账号到实现盈利的快速成长经验，强调在两个月内完成从零到有的过程。内容包含12张图片的详细指南，浏览量超过6500次，为创作者提供了实用的操作路径。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@0xkakarot888",
+        "display_name": "0x卡卡撸特",
+        "publish_date": "9:54 AM · Feb 8",
+        "tweet_id": "2020436099114651666",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 6538,
+        "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+        "tags": [
+          "社交媒体",
+          "内容创作",
+          "盈利指南",
+          "X平台"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1923980254869086208/9zCpT20R_normal.jpg",
+        "https://pbs.twimg.com/media/HAn0PvNacAMVUGt?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn2253bUAAUgx7?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn4DdTasAIXsKB?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn56NEbEAAC3Gz?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoD7_2bQAA1h4x?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoDARja0AAJ167?format=png&name=small",
+        "https://pbs.twimg.com/media/HAoCjsfbgAAi2Ka?format=png&name=small",
+        "https://pbs.twimg.com/media/HAn9kvdawAACg8S?format=jpg&name=900x900",
+        "https://pbs.twimg.com/media/HAoAcFUaYAA5npY?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoA9xTbUAEgmmD?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoAvngagAAE8FK?format=jpg&name=900x900"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "X创作者在两个月内实现从开通到盈利",
+        "指南包含12张图片的详细操作步骤",
+        "推文浏览量超过6500次，显示较高关注度",
+        "发布于2月8日，内容时效性较强"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "社交媒体",
+        "内容创作",
+        "盈利指南",
+        "X平台"
+      ],
+      "actionable_items": [
+        "参考该指南快速启动X创作者账号",
+        "利用图片内容优化个人创作流程"
+      ],
+      "summary": "该推文分享了X平台创作者从开通账号到实现盈利的快速成长经验，强调在两个月内完成从零到有的过程。内容包含12张图片的详细指南，浏览量超过6500次，为创作者提供了实用的操作路径。",
+      "rating": 7,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:25:45.452011"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 1.3194212913513184,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208232653",
+    "timestamp": "2026-02-08T23:26:53.613868",
+    "raw_input": "https://x.com/0xkakarot888/status/2020436099114651666",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "0x卡卡撸特",
+      "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+      "main_content": "# Tweet by @0xkakarot888\n**0x卡卡撸特** (@0xkakarot888)\n\n## Content\n\n0x卡卡撸特 on X: \"X 创作者终极指南 - 2个月从开通到领钱\" / X =============== Don’t miss what’s happening People on X are the first to know. [Log in](https://x.com/login) [Sign up](https://x.com/i/flow/signup) [](https://x.com/) ================== Article ------- [](https://x.com/0xkakarot888/article/2020436099114651666) See new posts Conversation ============ [0x卡卡撸特](https://x.com/0xkakarot888) [@0xkakarot888](https://x.com/0xkakarot888) X 创作者终极指南 - 2个月从开通到领钱 [6.5K](https://x.com/0xkakarot888/status/2020436099114651666/analytics) 本人实测，从 0 起号，2个月从开通创作者到达标所有条件，到领取老马工资以及顺利收到款，全部流程跑通，这里把所有内容汇总，形成本篇创作者终极指南，大家可以先收藏，每到一步都可以拿来参考借鉴。 想要拿到创作者分成，领老马工资，有几个门槛 ： 1、大陆人过身份认证 2、蓝V粉丝达到 500 个 3、流量达到 3 个月 500 万 4、收钱用的港卡 一、通过创作者身份认证 ----------- 这里有两个点 第一，你必须是蓝 V，你想老马给你发工资，首先你得入职，不是蓝 V 没有资格申请创作者，如下图第一个条件，必须通过 Premium 认证 第二，提供 KYC 资料给推特认证，中国人目前可以提交身份证认证，这个口子之前是没有开的，12月份开了，我第一时间就发了教程出来，该教程有近40万流量，帮到不少人通过审核，请继续往下看。 先说第一点，如何开蓝 V ------------ 本来不打算讲，但是确实不少人私信来问，还是讲一下吧。 不建议找人代开，风险较高，如果代开人的资金有问题被封控，会关联你的账号被封。 建议1 自己注册一张招商银行的全币种 visa卡，目前这张卡是我各个银行信用卡使用过后，觉得最方便的海外购物卡，用这张卡，用日本 ip + 浏览器登陆 x，会得到比较便宜的充值方案。 不同地区，会员价格不同，日区相对便宜。 浏览器比app便宜，因为app苹果要抽佣。 建议2 没有信用卡的，只能考虑自己充值了，先解决有无的问题，充一个月，后面有了信用卡，再优化充值方案。 要自己充值，你需要一个美区的苹果 ID，如何注册，如何充值，请看下面教程： 《注册美区 Apple ID 帐号的终极指南》23万浏览量 [https://x.com/0xkakarot888/status/2015752330311082004?s=20](https://x.com/0xkakarot888/status/2015752330311082004?s=20) 充值购卡渠道： 1、购买礼品卡（官方渠道） [https://www.apple.com/shop/gift-cards](https://www.apple.com/shop/gift-cards) 2、购买礼品卡（非官方渠道，免责申明，此网站和我无任何关系，仅觉得好用，推荐给大家，如果发生利益纠纷，与我无关） [https://shop.pockyt.io/pc/home](https://shop.pockyt.io/pc/home) 3、加密货币购买礼品卡渠道（推荐链接） [https://www.bitrefill.com/invite/0xkakarot](https://www.bitrefill.com/invite/0xkakarot) 至此，蓝 V 会员搞定！ 再说第二点，如何通过创作者身份认证 ----------------- 请看教程（39万浏览量）： 秒过 「创作者认证」！🎉（未达标也能过） [https://x.com/0xkakarot888/status/2004075069933502732?s=20](https://x.com/0xkakarot888/status/2004075069933502732?s=20) 经过一段时间的总结，要注意几个点： 1、ip 不一定非要换到美区，如果你稳定在日区，就用日区注册。 2、手机不行，可以尝试用电脑注册，需要有摄像头，有一定成功率。 3、如果 kyc 不过，很多时候是光线原因，试试阳光，不要晃动。 4、美区苹果 id，不是必须，是遇到卡点过不去，就去美区下载最新版的 x 来排除可能的卡点。 基本上，除了极个别的人没有通过，大部分反馈给我的，都是秒过，祝大家好运。 二、蓝V粉丝达到 500 个 -------------- 我觉得这个条件其实真不难，真正做推，只要积极主动一点，还是很好达到的。 《 推特粉丝增长技巧 lv 1 - lv 5 》 [https://x.com/0xkakarot888/status/2014197478737023486?s=20](https://x.com/0xkakarot888/status/2014197478737023486?s=20) 五个等级的方法提供给大家，照着做，很快可以搞定 500 蓝v目标，很多兄弟姐妹看着我一路起号，2个月，我搞定了 8000 粉。 三、流量达到 3 个月 500 万 ----------------- 这是大家觉得最难的环节，说实话，我也觉得不容易。 目前两种流派，邪修和正修。 邪修，在 x 改变算法之后，只能用于达标条件，但是没有什么收益了。 《流量如何快速达到 500万？》 [https://x.com/0xkakarot888/status/2007726860189479328?s=20](https://x.com/0xkakarot888/status/2007726860189479328?s=20) 补充几点： 第一，要蓝v，才会优先显示 第二，不能没有质量乱发，发太多被判垃圾会被折叠 第三，不是随便什么帖子都回，一小时超二十万的，且评论也有几千上万的，发一条，几分钟后如果有几百上千，再追加几条。 第四，如果担心邪修后账号出问题，可以自查 [shadowban.yuzurisa.com](https://t.co/qAi1pxw00D) 正修，就是找到你创作方向的爆贴，去参与互动，同时输出同方向的推文。 邪修是不可取的，大家还是积极创作，推特对于真创作者，给钱是很大方的。 如何找到爆贴呢？有两个工具： 1、推特起爆贴监控 [https://x.com/0xkakarot888/status/2009083141429002699?s=20](https://x.com/0xkakarot888/status/2009083141429002699?s=20) 2、CT圈爆文监控系统 [https://x.com/0xkakarot888/status/2009173635429249486?s=20](https://x.com/0xkakarot888/status/2009173635429249486?s=20) 四、收钱用的港卡 -------- 先申明，如果能赴港，去开实体港卡肯定是最优选，首推众安。 如果近期无法赴港，又想玩创作者，可以在线开 wise 港卡，一样可以收到钱，很多人说 wise 收不到钱，以讹传讹，我亲身替大家试验，有实体港卡我没绑，就绑的 wise，验证可行！ 《不用赴港，在线开港卡》 [https://x.com/0xkakarot888/status/1997178018876608913?s=20](https://x.com/0xkakarot888/status/1997178018876608913?s=20) 已经有 163 位朋友通过我的教程注册成功 如果开卡过程遇到卡点，等待了很长时间，可以看下面教程加快： 《Wise 港币帐户一直在审核中？开case加速方法》 [https://x.com/0xkakarot888/status/2009510384038813859?s=20](https://x.com/0xkakarot888/status/2009510384038813859?s=20) 这个卡你可以看到这篇文章就开始申请，等你创作者条件达标时，wise 卡已经准备好了，就可以进行下一步，绑卡操作了。 《X 创作者认证 “绑卡” 指南》 16万浏览量 [https://x.com/0xkakarot888/status/2016657648658403407?s=20](https://x.com/0xkakarot888/status/2016657648658403407?s=20) 按此教程绑卡成功，大家最关心的就是 wise 到底能不能收到钱，看我真实反馈： 29号绑卡成功，31号 X 发工资，5号 Wise 到帐，相当丝滑！ 好了，本篇到这里结束，从注册开通，到最终达标收款，这是对这两个月跑通创作者的一个小小总结，希望能帮助到大家。 如果觉得有用，可以点个关注，谢谢～！ 接下来，我会开始分享如何在 web3 和 AI 领域搞钱的知识，希望大家继续支持！\n\n**Posted:** 9:54 AM · Feb 8\n\n## Stats\n\n\n- 👁️ Views: 6,538\n\n## Media\n\n12 image(s)",
+      "summary": "这是一份关于在X平台（原Twitter）成为创作者并获取收益的详细指南，作者基于自身两个月从零开始成功领到“老马工资”的经验，系统梳理了从开通创作者到收款的完整流程。指南涵盖四个关键门槛：通过创作者身份认证、获取500个蓝V粉丝、实现3个月500万流量、以及准备香港银行卡收款，并提供了具体操作方法和实用工具链接。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@0xkakarot888",
+        "display_name": "0x卡卡撸特",
+        "publish_date": "9:54 AM · Feb 8",
+        "tweet_id": "2020436099114651666",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 6538,
+        "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+        "tags": [
+          "X创作者",
+          "收益指南",
+          "蓝V认证",
+          "流量增长",
+          "跨境收款"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1923980254869086208/9zCpT20R_normal.jpg",
+        "https://pbs.twimg.com/media/HAn0PvNacAMVUGt?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn2253bUAAUgx7?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn4DdTasAIXsKB?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn56NEbEAAC3Gz?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoD7_2bQAA1h4x?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoDARja0AAJ167?format=png&name=small",
+        "https://pbs.twimg.com/media/HAoCjsfbgAAi2Ka?format=png&name=small",
+        "https://pbs.twimg.com/media/HAn9kvdawAACg8S?format=jpg&name=900x900",
+        "https://pbs.twimg.com/media/HAoAcFUaYAA5npY?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoA9xTbUAEgmmD?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoAvngagAAE8FK?format=jpg&name=900x900"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "创作者收益需满足身份认证、500蓝V粉丝、3个月500万流量和香港银行卡四个条件",
+        "蓝V认证建议使用招商银行全币种Visa卡配合日本IP获取便宜方案",
+        "流量达标可通过“邪修”快速完成或“正修”长期创作，推荐使用爆贴监控工具",
+        "收款推荐Wise香港卡，在线可办且作者实测成功到账",
+        "作者提供多个教程链接，涵盖注册、认证、粉丝增长和绑卡等全流程"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "X创作者",
+        "收益指南",
+        "蓝V认证",
+        "流量增长",
+        "跨境收款"
+      ],
+      "actionable_items": [
+        "按照指南步骤逐步完成创作者认证和条件达标",
+        "参考提供的教程链接解决具体操作卡点",
+        "根据自身情况选择流量增长策略（邪修或正修）",
+        "提前申请Wise香港卡以备收款使用"
+      ],
+      "summary": "这是一份关于在X平台（原Twitter）成为创作者并获取收益的详细指南，作者基于自身两个月从零开始成功领到“老马工资”的经验，系统梳理了从开通创作者到收款的完整流程。指南涵盖四个关键门槛：通过创作者身份认证、获取500个蓝V粉丝、实现3个月500万流量、以及准备香港银行卡收款，并提供了具体操作方法和实用工具链接。",
+      "rating": 9,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:26:53.613868"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 3.339696168899536,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208232857",
+    "timestamp": "2026-02-08T23:28:57.343636",
+    "raw_input": "https://x.com/0xkakarot888/status/2020436099114651666",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "0x卡卡撸特",
+      "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+      "main_content": "# Tweet by @0xkakarot888\n**0x卡卡撸特** (@0xkakarot888)\n\n## Content\n\n0x卡卡撸特 on X: \"X 创作者终极指南 - 2个月从开通到领钱\" / X =============== Don’t miss what’s happening People on X are the first to know. [Log in](https://x.com/login) [Sign up](https://x.com/i/flow/signup) [](https://x.com/) ================== Article ------- [](https://x.com/0xkakarot888/article/2020436099114651666) See new posts Conversation ============ [0x卡卡撸特](https://x.com/0xkakarot888) [@0xkakarot888](https://x.com/0xkakarot888) X 创作者终极指南 - 2个月从开通到领钱 [6.5K](https://x.com/0xkakarot888/status/2020436099114651666/analytics) 本人实测，从 0 起号，2个月从开通创作者到达标所有条件，到领取老马工资以及顺利收到款，全部流程跑通，这里把所有内容汇总，形成本篇创作者终极指南，大家可以先收藏，每到一步都可以拿来参考借鉴。 想要拿到创作者分成，领老马工资，有几个门槛 ： 1、大陆人过身份认证 2、蓝V粉丝达到 500 个 3、流量达到 3 个月 500 万 4、收钱用的港卡 一、通过创作者身份认证 ----------- 这里有两个点 第一，你必须是蓝 V，你想老马给你发工资，首先你得入职，不是蓝 V 没有资格申请创作者，如下图第一个条件，必须通过 Premium 认证 第二，提供 KYC 资料给推特认证，中国人目前可以提交身份证认证，这个口子之前是没有开的，12月份开了，我第一时间就发了教程出来，该教程有近40万流量，帮到不少人通过审核，请继续往下看。 先说第一点，如何开蓝 V ------------ 本来不打算讲，但是确实不少人私信来问，还是讲一下吧。 不建议找人代开，风险较高，如果代开人的资金有问题被封控，会关联你的账号被封。 建议1 自己注册一张招商银行的全币种 visa卡，目前这张卡是我各个银行信用卡使用过后，觉得最方便的海外购物卡，用这张卡，用日本 ip + 浏览器登陆 x，会得到比较便宜的充值方案。 不同地区，会员价格不同，日区相对便宜。 浏览器比app便宜，因为app苹果要抽佣。 建议2 没有信用卡的，只能考虑自己充值了，先解决有无的问题，充一个月，后面有了信用卡，再优化充值方案。 要自己充值，你需要一个美区的苹果 ID，如何注册，如何充值，请看下面教程： 《注册美区 Apple ID 帐号的终极指南》23万浏览量 [https://x.com/0xkakarot888/status/2015752330311082004?s=20](https://x.com/0xkakarot888/status/2015752330311082004?s=20) 充值购卡渠道： 1、购买礼品卡（官方渠道） [https://www.apple.com/shop/gift-cards](https://www.apple.com/shop/gift-cards) 2、购买礼品卡（非官方渠道，免责申明，此网站和我无任何关系，仅觉得好用，推荐给大家，如果发生利益纠纷，与我无关） [https://shop.pockyt.io/pc/home](https://shop.pockyt.io/pc/home) 3、加密货币购买礼品卡渠道（推荐链接） [https://www.bitrefill.com/invite/0xkakarot](https://www.bitrefill.com/invite/0xkakarot) 至此，蓝 V 会员搞定！ 再说第二点，如何通过创作者身份认证 ----------------- 请看教程（39万浏览量）： 秒过 「创作者认证」！🎉（未达标也能过） [https://x.com/0xkakarot888/status/2004075069933502732?s=20](https://x.com/0xkakarot888/status/2004075069933502732?s=20) 经过一段时间的总结，要注意几个点： 1、ip 不一定非要换到美区，如果你稳定在日区，就用日区注册。 2、手机不行，可以尝试用电脑注册，需要有摄像头，有一定成功率。 3、如果 kyc 不过，很多时候是光线原因，试试阳光，不要晃动。 4、美区苹果 id，不是必须，是遇到卡点过不去，就去美区下载最新版的 x 来排除可能的卡点。 基本上，除了极个别的人没有通过，大部分反馈给我的，都是秒过，祝大家好运。 二、蓝V粉丝达到 500 个 -------------- 我觉得这个条件其实真不难，真正做推，只要积极主动一点，还是很好达到的。 《 推特粉丝增长技巧 lv 1 - lv 5 》 [https://x.com/0xkakarot888/status/2014197478737023486?s=20](https://x.com/0xkakarot888/status/2014197478737023486?s=20) 五个等级的方法提供给大家，照着做，很快可以搞定 500 蓝v目标，很多兄弟姐妹看着我一路起号，2个月，我搞定了 8000 粉。 三、流量达到 3 个月 500 万 ----------------- 这是大家觉得最难的环节，说实话，我也觉得不容易。 目前两种流派，邪修和正修。 邪修，在 x 改变算法之后，只能用于达标条件，但是没有什么收益了。 《流量如何快速达到 500万？》 [https://x.com/0xkakarot888/status/2007726860189479328?s=20](https://x.com/0xkakarot888/status/2007726860189479328?s=20) 补充几点： 第一，要蓝v，才会优先显示 第二，不能没有质量乱发，发太多被判垃圾会被折叠 第三，不是随便什么帖子都回，一小时超二十万的，且评论也有几千上万的，发一条，几分钟后如果有几百上千，再追加几条。 第四，如果担心邪修后账号出问题，可以自查 [shadowban.yuzurisa.com](https://t.co/qAi1pxw00D) 正修，就是找到你创作方向的爆贴，去参与互动，同时输出同方向的推文。 邪修是不可取的，大家还是积极创作，推特对于真创作者，给钱是很大方的。 如何找到爆贴呢？有两个工具： 1、推特起爆贴监控 [https://x.com/0xkakarot888/status/2009083141429002699?s=20](https://x.com/0xkakarot888/status/2009083141429002699?s=20) 2、CT圈爆文监控系统 [https://x.com/0xkakarot888/status/2009173635429249486?s=20](https://x.com/0xkakarot888/status/2009173635429249486?s=20) 四、收钱用的港卡 -------- 先申明，如果能赴港，去开实体港卡肯定是最优选，首推众安。 如果近期无法赴港，又想玩创作者，可以在线开 wise 港卡，一样可以收到钱，很多人说 wise 收不到钱，以讹传讹，我亲身替大家试验，有实体港卡我没绑，就绑的 wise，验证可行！ 《不用赴港，在线开港卡》 [https://x.com/0xkakarot888/status/1997178018876608913?s=20](https://x.com/0xkakarot888/status/1997178018876608913?s=20) 已经有 163 位朋友通过我的教程注册成功 如果开卡过程遇到卡点，等待了很长时间，可以看下面教程加快： 《Wise 港币帐户一直在审核中？开case加速方法》 [https://x.com/0xkakarot888/status/2009510384038813859?s=20](https://x.com/0xkakarot888/status/2009510384038813859?s=20) 这个卡你可以看到这篇文章就开始申请，等你创作者条件达标时，wise 卡已经准备好了，就可以进行下一步，绑卡操作了。 《X 创作者认证 “绑卡” 指南》 16万浏览量 [https://x.com/0xkakarot888/status/2016657648658403407?s=20](https://x.com/0xkakarot888/status/2016657648658403407?s=20) 按此教程绑卡成功，大家最关心的就是 wise 到底能不能收到钱，看我真实反馈： 29号绑卡成功，31号 X 发工资，5号 Wise 到帐，相当丝滑！ 好了，本篇到这里结束，从注册开通，到最终达标收款，这是对这两个月跑通创作者的一个小小总结，希望能帮助到大家。 如果觉得有用，可以点个关注，谢谢～！ 接下来，我会开始分享如何在 web3 和 AI 领域搞钱的知识，希望大家继续支持！\n\n**Posted:** 9:54 AM · Feb 8\n\n## Stats\n\n\n- 👁️ Views: 6,538\n\n## Media\n\n12 image(s)",
+      "summary": "本文分享了在X平台（原Twitter）成为创作者并获取分成的完整指南，基于作者亲身实践，从零开始两个月内完成从开通到收款的全流程。指南详细介绍了四个关键门槛：通过创作者身份认证、获取500个蓝V粉丝、实现3个月500万流量以及准备香港银行卡收款。作者提供了具体操作建议，包括如何低成本开通蓝V会员、通过KYC认证、增长粉丝和流量的技巧，以及在线申请Wise港卡的方法，并强调真实创作的重要性。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@0xkakarot888",
+        "display_name": "0x卡卡撸特",
+        "publish_date": "9:54 AM · Feb 8",
+        "tweet_id": "2020436099114651666",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 6538,
+        "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+        "tags": [
+          "X创作者指南",
+          "社交媒体变现",
+          "蓝V认证",
+          "流量增长",
+          "跨境收款"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1923980254869086208/9zCpT20R_normal.jpg",
+        "https://pbs.twimg.com/media/HAn0PvNacAMVUGt?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn2253bUAAUgx7?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn4DdTasAIXsKB?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn56NEbEAAC3Gz?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoD7_2bQAA1h4x?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoDARja0AAJ167?format=png&name=small",
+        "https://pbs.twimg.com/media/HAoCjsfbgAAi2Ka?format=png&name=small",
+        "https://pbs.twimg.com/media/HAn9kvdawAACg8S?format=jpg&name=900x900",
+        "https://pbs.twimg.com/media/HAoAcFUaYAA5npY?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoA9xTbUAEgmmD?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoAvngagAAE8FK?format=jpg&name=900x900"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "成为X创作者需满足四个门槛：身份认证、500蓝V粉丝、3个月500万流量、香港银行卡",
+        "建议自行开通蓝V会员，使用招商银行全币种Visa卡配合日本IP可降低成本",
+        "流量增长分邪修（快速达标但收益低）和正修（真实创作）两种方式，推荐后者",
+        "无法赴港可在线申请Wise港卡收款，作者实测成功到账",
+        "作者在两个月内从零起号达到8000粉丝，并完整跑通收款流程"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "X创作者指南",
+        "社交媒体变现",
+        "蓝V认证",
+        "流量增长",
+        "跨境收款"
+      ],
+      "actionable_items": [
+        "注册招商银行全币种Visa卡，配合日本IP开通X蓝V会员以节省成本",
+        "参考作者教程通过KYC认证，注意光线和设备选择提高通过率",
+        "使用正修方法增长流量，参与爆贴互动并输出同方向内容",
+        "提前在线申请Wise港卡，为达标后绑定收款做准备",
+        "避免邪修流量方法，专注于真实创作以获取稳定收益"
+      ],
+      "summary": "本文分享了在X平台（原Twitter）成为创作者并获取分成的完整指南，基于作者亲身实践，从零开始两个月内完成从开通到收款的全流程。指南详细介绍了四个关键门槛：通过创作者身份认证、获取500个蓝V粉丝、实现3个月500万流量以及准备香港银行卡收款。作者提供了具体操作建议，包括如何低成本开通蓝V会员、通过KYC认证、增长粉丝和流量的技巧，以及在线申请Wise港卡的方法，并强调真实创作的重要性。",
+      "rating": 9,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:28:57.343636"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 2.1874711513519287,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208233719",
+    "timestamp": "2026-02-08T23:37:19.379209",
+    "raw_input": "https://x.com/0xkakarot888/status/2020436099114651666",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "0x卡卡撸特",
+      "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+      "main_content": "# Tweet by @0xkakarot888\n**0x卡卡撸特** (@0xkakarot888)\n\n## Content\n\n本人实测，从 0 起号，2个月从开通创作者到达标所有条件，到领取老马工资以及顺利收到款，全部流程跑通，这里把所有内容汇总，形成本篇创作者终极指南，大家可以先收藏，每到一步都可以拿来参考借鉴。\n\n想要拿到创作者分成，领老马工资，有几个门槛 ：\n\n1、大陆人过身份认证 2、蓝V粉丝达到 500 个 3、流量达到 3 个月 500 万 4、收钱用的港卡\n\n一、通过创作者身份认证\n-----------\n\n这里有两个点 第一，你必须是蓝 V，你想老马给你发工资，首先你得入职，不是蓝 V 没有资格申请创作者，如下图第一个条件，必须通过 Premium 认证\n\n第二，提供 KYC 资料给推特认证，中国人目前可以提交身份证认证，这个口子之前是没有开的，12月份开了，我第一时间就发了教程出来，该教程有近40万流量，帮到不少人通过审核，请继续往下看。\n\n先说第一点，如何开蓝 V\n------------\n\n本来不打算讲，但是确实不少人私信来问，还是讲一下吧。\n\n不建议找人代开，风险较高，如果代开人的资金有问题被封控，会关联你的账号被封。\n\n建议1\n\n自己注册一张招商银行的全币种 visa卡，目前这张卡是我各个银行信用卡使用过后，觉得最方便的海外购物卡，用这张卡，用日本 ip + 浏览器登陆 x，会得到比较便宜的充值方案。\n\n不同地区，会员价格不同，日区相对便宜。 浏览器比app便宜，因为app苹果要抽佣。\n\n建议2\n\n没有信用卡的，只能考虑自己充值了，先解决有无的问题，充一个月，后面有了信用卡，再优化充值方案。\n\n要自己充值，你需要一个美区的苹果 ID，如何注册，如何充值，请看下面教程： 《注册美区 Apple ID 帐号的终极指南》23万浏览量\n\n[https://x.com/0xkakarot888/status/2015752330311082004?s=20](https://x.com/0xkakarot888/status/2015752330311082004?s=20)\n\n充值购卡渠道：\n\n1、购买礼品卡（官方渠道）\n\n[https://www.apple.com/shop/gift-cards](https://www.apple.com/shop/gift-cards)\n\n2、购买礼品卡（非官方渠道，免责申明，此网站和我无任何关系，仅觉得好用，推荐给大家，如果发生利益纠纷，与我无关）\n\n[https://shop.pockyt.io/pc/home](https://shop.pockyt.io/pc/home)\n\n3、加密货币购买礼品卡渠道（推荐链接）\n\n[https://www.bitrefill.com/invite/0xkakarot](https://www.bitrefill.com/invite/0xkakarot)\n\n至此，蓝 V 会员搞定！\n\n再说第二点，如何通过创作者身份认证\n\n请看教程（39万浏览量）：\n\n秒过 「创作者认证」！🎉（未达标也能过）\n\n[https://x.com/0xkakarot888/status/2004075069933502732?s=20](https://x.com/0xkakarot888/status/2004075069933502732?s=20)\n\n经过一段时间的总结，要注意几个点：\n\n1、ip 不一定非要换到美区，如果你稳定在日区，就用日区注册。\n\n2、手机不行，可以尝试用电脑注册，需要有摄像头，有一定成功率。\n\n3、如果 kyc 不过，很多时候是光线原因，试试阳光，不要晃动。\n\n4、美区苹果 id，不是必须，是遇到卡点过不去，就去美区下载最新版的 x 来排除可能的卡点。\n\n基本上，除了极个别的人没有通过，大部分反馈给我的，都是秒过，祝大家好运。\n\n二、蓝V粉丝达到 500 个\n--------------\n\n我觉得这个条件其实真不难，真正做推，只要积极主动一点，还是很好达到的。\n\n《 推特粉丝增长技巧 lv 1 - lv 5 》\n\n[https://x.com/0xkakarot888/status/2014197478737023486?s=20](https://x.com/0xkakarot888/status/2014197478737023486?s=20)\n\n五个等级的方法提供给大家，照着做，很快可以搞定 500 蓝v目标，很多兄弟姐妹看着我一路起号，2个月，我搞定了 8000 粉。\n\n三、流量达到 3 个月 500 万\n\n这是大家觉得最难的环节，说实话，我也觉得不容易。\n\n目前两种流派，邪修和正修。\n\n邪修，在 x 改变算法之后，只能用于达标条件，但是没有什么收益了。\n\n《流量如何快速达到 500万？》\n\n[https://x.com/0xkakarot888/status/2007726860189479328?s=20](https://x.com/0xkakarot888/status/2007726860189479328?s=20)\n\n补充几点：\n\n第一，要蓝v，才会优先显示 第二，不能没有质量乱发，发太多被判垃圾会被折叠 第三，不是随便什么帖子都回，一小时超二十万的，且评论也有几千上万的，发一条，几分钟后如果有几百上千，再追加几条。 第四，如果担心邪修后账号出问题，可以自查\n\n[shadowban.yuzurisa.com](https://t.co/qAi1pxw00D)\n\n正修，就是找到你创作方向的爆贴，去参与互动，同时输出同方向的推文。\n\n邪修是不可取的，大家还是积极创作，推特对于真创作者，给钱是很大方的。\n\n如何找到爆贴呢？有两个工具：\n\n1、推特起爆贴监控\n\n[https://x.com/0xkakarot888/status/2009083141429002699?s=20](https://x.com/0xkakarot888/status/2009083141429002699?s=20)\n\n2、CT圈爆文监控系统\n\n[https://x.com/0xkakarot888/status/2009173635429249486?s=20](https://x.com/0xkakarot888/status/2009173635429249486?s=20)\n\n四、收钱用的港卡\n--------\n\n先申明，如果能赴港，去开实体港卡肯定是最优选，首推众安。\n\n如果近期无法赴港，又想玩创作者，可以在线开 wise 港卡，一样可以收到钱，很多人说 wise 收不到钱，以讹传讹，我亲身替大家试验，有实体港卡我没绑，就绑的 wise，验证可行！\n\n《不用赴港，在线开港卡》\n\n[https://x.com/0xkakarot888/status/1997178018876608913?s=20](https://x.com/0xkakarot888/status/1997178018876608913?s=20)\n\n已经有 163 位朋友通过我的教程注册成功\n\n如果开卡过程遇到卡点，等待了很长时间，可以看下面教程加快：\n\n《Wise 港币帐户一直在审核中？开case加速方法》\n\n[https://x.com/0xkakarot888/status/2009510384038813859?s=20](https://x.com/0xkakarot888/status/2009510384038813859?s=20)\n\n这个卡你可以看到这篇文章就开始申请，等你创作者条件达标时，wise 卡已经准备好了，就可以进行下一步，绑卡操作了。\n\n《X 创作者认证 “绑卡” 指南》 16万浏览量\n\n[https://x.com/0xkakarot888/status/2016657648658403407?s=20](https://x.com/0xkakarot888/status/2016657648658403407?s=20)\n\n按此教程绑卡成功，大家最关心的就是 wise 到底能不能收到钱，看我真实反馈：\n\n29号绑卡成功，31号 X 发工资，5号 Wise 到帐，相当丝滑！\n\n好了，本篇到这里结束，从注册开通，到最终达标收款，这是对这两个月跑通创作者的一个小小总结，希望能帮助到大家。\n\n如果觉得有用，可以点个关注，谢谢～！\n\n接下来，我会开始分享如何在 web3 和 AI 领域搞钱的知识，希望大家继续支持！\n\n**Posted:** 9:54 AM · Feb 8\n\n## Stats\n\n\n- 👁️ Views: 6,538\n\n## Media\n\n12 image(s)",
+      "summary": "作者分享了自己从零开始，在两个月内成功完成X平台创作者认证并领取收益的全流程经验。内容详细介绍了四个关键门槛：通过身份认证、获取500个蓝V粉丝、达到3个月500万流量以及准备香港银行卡收款。提供了具体的操作建议，包括如何开通蓝V会员、通过KYC认证、增长粉丝、获取流量以及在线申请Wise港卡等实用教程，并强调亲身验证了Wise收款的可行性。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@0xkakarot888",
+        "display_name": "0x卡卡撸特",
+        "publish_date": "9:54 AM · Feb 8",
+        "tweet_id": "2020436099114651666",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 6538,
+        "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+        "tags": [
+          "X创作者",
+          "收益攻略",
+          "港卡收款",
+          "流量增长",
+          "身份认证"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1923980254869086208/9zCpT20R_normal.jpg",
+        "https://pbs.twimg.com/media/HAn0PvNacAMVUGt?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn2253bUAAUgx7?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn4DdTasAIXsKB?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn56NEbEAAC3Gz?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoD7_2bQAA1h4x?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoDARja0AAJ167?format=png&name=small",
+        "https://pbs.twimg.com/media/HAoCjsfbgAAi2Ka?format=png&name=small",
+        "https://pbs.twimg.com/media/HAn9kvdawAACg8S?format=jpg&name=900x900",
+        "https://pbs.twimg.com/media/HAoAcFUaYAA5npY?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoA9xTbUAEgmmD?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoAvngagAAE8FK?format=jpg&name=900x900"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "创作者分成需满足身份认证、500蓝V粉丝、3个月500万流量和港卡收款四个条件",
+        "建议自行开通蓝V会员，推荐招商银行全币种Visa卡或美区Apple ID充值",
+        "流量获取分邪修（快速达标但无收益）和正修（参与爆贴互动）两种方法",
+        "Wise港卡可在线申请并成功收款，无需赴港开实体卡",
+        "作者实测流程可行，从绑卡到收款仅用一周时间"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "X创作者",
+        "收益攻略",
+        "港卡收款",
+        "流量增长",
+        "身份认证"
+      ],
+      "actionable_items": [
+        "注册招商银行全币种Visa卡或美区Apple ID以开通蓝V会员",
+        "参考教程通过KYC认证，注意光线和区域设置",
+        "使用监控工具寻找爆贴并参与互动以获取流量",
+        "提前在线申请Wise港卡以备收款",
+        "避免邪修方法，注重内容质量以防账号风险"
+      ],
+      "summary": "作者分享了自己从零开始，在两个月内成功完成X平台创作者认证并领取收益的全流程经验。内容详细介绍了四个关键门槛：通过身份认证、获取500个蓝V粉丝、达到3个月500万流量以及准备香港银行卡收款。提供了具体的操作建议，包括如何开通蓝V会员、通过KYC认证、增长粉丝、获取流量以及在线申请Wise港卡等实用教程，并强调亲身验证了Wise收款的可行性。",
+      "rating": 9,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:37:19.379209"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 1.5824010372161865,
+      "success": true,
+      "errors": []
+    }
+  },
+  {
+    "id": "20260208234219",
+    "timestamp": "2026-02-08T23:42:19.371528",
+    "raw_input": "https://x.com/0xkakarot888/status/2020436099114651666",
+    "source_type": "twitter",
+    "platform": "twitter",
+    "content": {
+      "title": "0x卡卡撸特",
+      "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+      "main_content": "# Tweet by @0xkakarot888\n**0x卡卡撸特** (@0xkakarot888)\n\n## Content\n\n<img src=\"https://pbs.twimg.com/media/HAn0PvNacAMVUGt?format=jpg&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\nX 创作者终极指南 - 2个月从开通到领钱\n\n9\n\n16\n\n46\n\n[6.5K](https://x.com/0xkakarot888/status/2020436099114651666/analytics)\n\n本人实测，从 0 起号，2个月从开通创作者到达标所有条件，到领取老马工资以及顺利收到款，全部流程跑通，这里把所有内容汇总，形成本篇创作者终极指南，大家可以先收藏，每到一步都可以拿来参考借鉴。\n\n想要拿到创作者分成，领老马工资，有几个门槛 ：\n\n1、大陆人过身份认证 2、蓝V粉丝达到 500 个 3、流量达到 3 个月 500 万 4、收钱用的港卡\n\n一、通过创作者身份认证\n-----------\n\n这里有两个点 第一，你必须是蓝 V，你想老马给你发工资，首先你得入职，不是蓝 V 没有资格申请创作者，如下图第一个条件，必须通过 Premium 认证\n\n第二，提供 KYC 资料给推特认证，中国人目前可以提交身份证认证，这个口子之前是没有开的，12月份开了，我第一时间就发了教程出来，该教程有近40万流量，帮到不少人通过审核，请继续往下看。\n\n<img src=\"https://pbs.twimg.com/media/HAn2253bUAAUgx7?format=jpg&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n先说第一点，如何开蓝 V\n------------\n\n本来不打算讲，但是确实不少人私信来问，还是讲一下吧。\n\n不建议找人代开，风险较高，如果代开人的资金有问题被封控，会关联你的账号被封。\n\n建议1\n\n自己注册一张招商银行的全币种 visa卡，目前这张卡是我各个银行信用卡使用过后，觉得最方便的海外购物卡，用这张卡，用日本 ip + 浏览器登陆 x，会得到比较便宜的充值方案。\n\n不同地区，会员价格不同，日区相对便宜。 浏览器比app便宜，因为app苹果要抽佣。\n\n<img src=\"https://pbs.twimg.com/media/HAn4DdTasAIXsKB?format=jpg&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n建议2\n\n没有信用卡的，只能考虑自己充值了，先解决有无的问题，充一个月，后面有了信用卡，再优化充值方案。\n\n要自己充值，你需要一个美区的苹果 ID，如何注册，如何充值，请看下面教程： 《注册美区 Apple ID 帐号的终极指南》23万浏览量\n\n[https://x.com/0xkakarot888/status/2015752330311082004?s=20](https://x.com/0xkakarot888/status/2015752330311082004?s=20)\n\n<img src=\"https://pbs.twimg.com/media/HAn56NEbEAAC3Gz?format=jpg&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n充值购卡渠道：\n\n1、购买礼品卡（官方渠道）\n\n[https://www.apple.com/shop/gift-cards](https://www.apple.com/shop/gift-cards)\n\n2、购买礼品卡（非官方渠道，免责申明，此网站和我无任何关系，仅觉得好用，推荐给大家，如果发生利益纠纷，与我无关）\n\n[https://shop.pockyt.io/pc/home](https://shop.pockyt.io/pc/home)\n\n3、加密货币购买礼品卡渠道（推荐链接）\n\n[https://www.bitrefill.com/invite/0xkakarot](https://www.bitrefill.com/invite/0xkakarot)\n\n至此，蓝 V 会员搞定！\n\n再说第二点，如何通过创作者身份认证\n\n请看教程（39万浏览量）：\n\n秒过 「创作者认证」！🎉（未达标也能过）\n\n[https://x.com/0xkakarot888/status/2004075069933502732?s=20](https://x.com/0xkakarot888/status/2004075069933502732?s=20)\n\n经过一段时间的总结，要注意几个点：\n\n1、ip 不一定非要换到美区，如果你稳定在日区，就用日区注册。\n\n2、手机不行，可以尝试用电脑注册，需要有摄像头，有一定成功率。\n\n3、如果 kyc 不过，很多时候是光线原因，试试阳光，不要晃动。\n\n4、美区苹果 id，不是必须，是遇到卡点过不去，就去美区下载最新版的 x 来排除可能的卡点。\n\n基本上，除了极个别的人没有通过，大部分反馈给我的，都是秒过，祝大家好运。\n\n二、蓝V粉丝达到 500 个\n--------------\n\n我觉得这个条件其实真不难，真正做推，只要积极主动一点，还是很好达到的。\n\n《 推特粉丝增长技巧 lv 1 - lv 5 》\n\n[https://x.com/0xkakarot888/status/2014197478737023486?s=20](https://x.com/0xkakarot888/status/2014197478737023486?s=20)\n\n五个等级的方法提供给大家，照着做，很快可以搞定 500 蓝v目标，很多兄弟姐妹看着我一路起号，2个月，我搞定了 8000 粉。\n\n<img src=\"https://pbs.twimg.com/media/HAoD7_2bQAA1h4x?format=jpg&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n三、流量达到 3 个月 500 万\n\n这是大家觉得最难的环节，说实话，我也觉得不容易。\n\n目前两种流派，邪修和正修。\n\n邪修，在 x 改变算法之后，只能用于达标条件，但是没有什么收益了。\n\n《流量如何快速达到 500万？》\n\n[https://x.com/0xkakarot888/status/2007726860189479328?s=20](https://x.com/0xkakarot888/status/2007726860189479328?s=20)\n\n补充几点：\n\n第一，要蓝v，才会优先显示 第二，不能没有质量乱发，发太多被判垃圾会被折叠 第三，不是随便什么帖子都回，一小时超二十万的，且评论也有几千上万的，发一条，几分钟后如果有几百上千，再追加几条。 第四，如果担心邪修后账号出问题，可以自查\n\n[shadowban.yuzurisa.com](https://t.co/qAi1pxw00D)\n\n<img src=\"https://pbs.twimg.com/media/HAoDARja0AAJ167?format=png&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n正修，就是找到你创作方向的爆贴，去参与互动，同时输出同方向的推文。\n\n邪修是不可取的，大家还是积极创作，推特对于真创作者，给钱是很大方的。\n\n如何找到爆贴呢？有两个工具：\n\n1、推特起爆贴监控\n\n[https://x.com/0xkakarot888/status/2009083141429002699?s=20](https://x.com/0xkakarot888/status/2009083141429002699?s=20)\n\n<img src=\"https://pbs.twimg.com/media/HAoCjsfbgAAi2Ka?format=png&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n2、CT圈爆文监控系统\n\n[https://x.com/0xkakarot888/status/2009173635429249486?s=20](https://x.com/0xkakarot888/status/2009173635429249486?s=20)\n\n四、收钱用的港卡\n--------\n\n先申明，如果能赴港，去开实体港卡肯定是最优选，首推众安。\n\n如果近期无法赴港，又想玩创作者，可以在线开 wise 港卡，一样可以收到钱，很多人说 wise 收不到钱，以讹传讹，我亲身替大家试验，有实体港卡我没绑，就绑的 wise，验证可行！\n\n《不用赴港，在线开港卡》\n\n[https://x.com/0xkakarot888/status/1997178018876608913?s=20](https://x.com/0xkakarot888/status/1997178018876608913?s=20)\n\n已经有 163 位朋友通过我的教程注册成功\n\n<img src=\"https://pbs.twimg.com/media/HAn9kvdawAACg8S?format=jpg&name=900x900\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n如果开卡过程遇到卡点，等待了很长时间，可以看下面教程加快：\n\n《Wise 港币帐户一直在审核中？开case加速方法》\n\n[https://x.com/0xkakarot888/status/2009510384038813859?s=20](https://x.com/0xkakarot888/status/2009510384038813859?s=20)\n\n这个卡你可以看到这篇文章就开始申请，等你创作者条件达标时，wise 卡已经准备好了，就可以进行下一步，绑卡操作了。\n\n《X 创作者认证 “绑卡” 指南》 16万浏览量\n\n[https://x.com/0xkakarot888/status/2016657648658403407?s=20](https://x.com/0xkakarot888/status/2016657648658403407?s=20)\n\n<img src=\"https://pbs.twimg.com/media/HAoAcFUaYAA5npY?format=jpg&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n按此教程绑卡成功，大家最关心的就是 wise 到底能不能收到钱，看我真实反馈：\n\n29号绑卡成功，31号 X 发工资，5号 Wise 到帐，相当丝滑！\n\n<img src=\"https://pbs.twimg.com/media/HAoA9xTbUAEgmmD?format=jpg&name=large\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n<img src=\"https://pbs.twimg.com/media/HAoAvngagAAE8FK?format=jpg&name=900x900\" alt=\"Image\" style=\"max-width: 100%; border-radius: 8px; margin: 10px 0;\">\n\n好了，本篇到这里结束，从注册开通，到最终达标收款，这是对这两个月跑通创作者的一个小小总结，希望能帮助到大家。\n\n如果觉得有用，可以点个关注，谢谢～！\n\n接下来，我会开始分享如何在 web3 和 AI 领域搞钱的知识，希望大家继续支持！\n\n**Posted:** 9:54 AM · Feb 8\n\n## Stats\n\n\n- 👁️ Views: 6,538\n\n## Media\n\n12 image(s)",
+      "summary": "这是一份关于X平台创作者分成计划的详细指南，作者基于自身两个月内从零开始成功获得创作者认证并收到款项的实践经验，系统梳理了从开通到收款的完整流程。指南重点介绍了四个关键门槛：通过创作者身份认证、蓝V粉丝达到500个、三个月内流量达到500万、以及使用香港银行卡收款，并提供了具体的操作建议和教程链接。内容实用性强，旨在帮助其他创作者高效达成目标。",
+      "metadata": {
+        "platform": "twitter",
+        "author": "@0xkakarot888",
+        "display_name": "0x卡卡撸特",
+        "publish_date": "9:54 AM · Feb 8",
+        "tweet_id": "2020436099114651666",
+        "likes": 0,
+        "retweets": 0,
+        "replies": 0,
+        "quotes": 0,
+        "views": 6538,
+        "url": "https://x.com/0xkakarot888/status/2020436099114651666",
+        "tags": [
+          "X创作者指南",
+          "社交媒体变现",
+          "身份认证",
+          "流量增长",
+          "跨境收款"
+        ]
+      }
+    },
+    "media": {
+      "type": "mixed",
+      "images": [
+        "https://pbs.twimg.com/profile_images/1923980254869086208/9zCpT20R_normal.jpg",
+        "https://pbs.twimg.com/media/HAn0PvNacAMVUGt?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn2253bUAAUgx7?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn4DdTasAIXsKB?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAn56NEbEAAC3Gz?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoD7_2bQAA1h4x?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoDARja0AAJ167?format=png&name=small",
+        "https://pbs.twimg.com/media/HAoCjsfbgAAi2Ka?format=png&name=small",
+        "https://pbs.twimg.com/media/HAn9kvdawAACg8S?format=jpg&name=900x900",
+        "https://pbs.twimg.com/media/HAoAcFUaYAA5npY?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoA9xTbUAEgmmD?format=jpg&name=small",
+        "https://pbs.twimg.com/media/HAoAvngagAAE8FK?format=jpg&name=900x900"
+      ],
+      "videos": [],
+      "screenshots": []
+    },
+    "ai_analysis": {
+      "key_points": [
+        "创作者分成需满足四大条件：身份认证、500蓝V粉丝、3个月500万流量、香港收款卡",
+        "身份认证建议使用招商银行全币种Visa卡或美区Apple ID自行开通蓝V，避免代开风险",
+        "流量增长分为“邪修”（快速达标但收益低）和“正修”（持续创作互动）两种策略",
+        "收款推荐在线开通Wise香港卡，作者实测成功到账，并附有加速审核方法",
+        "作者提供多个高浏览量教程链接，涵盖粉丝增长、爆帖监控、绑卡指南等实操内容"
+      ],
+      "sentiment": "positive",
+      "topics": [
+        "X创作者指南",
+        "社交媒体变现",
+        "身份认证",
+        "流量增长",
+        "跨境收款"
+      ],
+      "actionable_items": [
+        "按照指南步骤自行开通X蓝V会员，优先使用招商银行全币种Visa卡或注册美区Apple ID",
+        "参考提供的粉丝增长教程，积极互动以达成500蓝V粉丝目标",
+        "使用爆帖监控工具参与热门话题，采用“正修”策略提升内容流量",
+        "提前在线申请Wise香港卡，以便创作者条件达标后及时绑定收款",
+        "收藏相关教程链接，在认证、绑卡等环节遇到问题时参考具体解决方案"
+      ],
+      "summary": "这是一份关于X平台创作者分成计划的详细指南，作者基于自身两个月内从零开始成功获得创作者认证并收到款项的实践经验，系统梳理了从开通到收款的完整流程。指南重点介绍了四个关键门槛：通过创作者身份认证、蓝V粉丝达到500个、三个月内流量达到500万、以及使用香港银行卡收款，并提供了具体的操作建议和教程链接。内容实用性强，旨在帮助其他创作者高效达成目标。",
+      "rating": 9,
+      "model": "deepseek-chat",
+      "analyzed_at": "2026-02-08T23:42:19.371528"
+    },
+    "processing_info": {
+      "method": "tavily_api",
+      "processing_time": 1.679832935333252,
+      "success": true,
+      "errors": []
+    }
   }
 ]

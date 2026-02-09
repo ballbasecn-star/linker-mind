@@ -1,0 +1,177 @@
+{
+  "skills": [
+    {
+      "skill_id": "skill_python_basics",
+      "skill_name": "Python基础",
+      "category": "编程",
+      "level": "beginner",
+      "description": "Python语言基础知识，包括变量、数据类型、控制流等",
+      "parent_skills": [],
+      "child_skills": [
+        "skill_python_intermediate"
+      ],
+      "resource_ids": [],
+      "progress": 0.0,
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "estimated_hours": 20,
+      "difficulty_score": 2,
+      "tags": [
+        "python",
+        "入门",
+        "基础"
+      ]
+    },
+    {
+      "skill_id": "skill_python_intermediate",
+      "skill_name": "Python进阶",
+      "category": "编程",
+      "level": "intermediate",
+      "description": "Python函数、类、模块、异常处理等进阶概念",
+      "parent_skills": [
+        "skill_python_basics"
+      ],
+      "child_skills": [
+        "skill_python_advanced",
+        "skill_python_web"
+      ],
+      "resource_ids": [],
+      "progress": 0.0,
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "estimated_hours": 40,
+      "difficulty_score": 5,
+      "tags": [
+        "python",
+        "进阶"
+      ]
+    },
+    {
+      "skill_id": "skill_python_web",
+      "skill_name": "Python Web开发",
+      "category": "编程",
+      "level": "intermediate",
+      "description": "使用Flask/Django进行Web应用开发",
+      "parent_skills": [
+        "skill_python_intermediate"
+      ],
+      "child_skills": [
+        "skill_python_advanced"
+      ],
+      "resource_ids": [],
+      "progress": 0.0,
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "estimated_hours": 60,
+      "difficulty_score": 6,
+      "tags": [
+        "python",
+        "web",
+        "flask",
+        "django"
+      ]
+    },
+    {
+      "skill_id": "skill_html_css",
+      "skill_name": "HTML/CSS",
+      "category": "Web开发",
+      "level": "beginner",
+      "description": "网页结构和样式基础",
+      "parent_skills": [],
+      "child_skills": [
+        "skill_javascript"
+      ],
+      "resource_ids": [],
+      "progress": 0.0,
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "estimated_hours": 30,
+      "difficulty_score": 2,
+      "tags": [
+        "html",
+        "css",
+        "前端"
+      ]
+    },
+    {
+      "skill_id": "skill_javascript",
+      "skill_name": "JavaScript",
+      "category": "Web开发",
+      "level": "intermediate",
+      "description": "JavaScript语言基础和DOM操作",
+      "parent_skills": [
+        "skill_html_css"
+      ],
+      "child_skills": [
+        "skill_react",
+        "skill_vue"
+      ],
+      "resource_ids": [],
+      "progress": 0.0,
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "estimated_hours": 50,
+      "difficulty_score": 5,
+      "tags": [
+        "javascript",
+        "前端"
+      ]
+    },
+    {
+      "skill_id": "skill_ml_basics",
+      "skill_name": "机器学习基础",
+      "category": "AI/ML",
+      "level": "intermediate",
+      "description": "机器学习基本概念和算法",
+      "parent_skills": [
+        "skill_python_intermediate"
+      ],
+      "child_skills": [
+        "skill_deep_learning"
+      ],
+      "resource_ids": [],
+      "progress": 0.0,
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "estimated_hours": 80,
+      "difficulty_score": 7,
+      "tags": [
+        "机器学习",
+        "AI",
+        "python"
+      ]
+    },
+    {
+      "skill_id": "skill_deep_learning",
+      "skill_name": "深度学习",
+      "category": "AI/ML",
+      "level": "advanced",
+      "description": "神经网络和深度学习框架",
+      "parent_skills": [
+        "skill_ml_basics"
+      ],
+      "child_skills": [],
+      "resource_ids": [],
+      "progress": 0.0,
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "estimated_hours": 120,
+      "difficulty_score": 9,
+      "tags": [
+        "深度学习",
+        "AI",
+        "tensorflow",
+        "pytorch"
+      ]
+    }
+  ],
+  "learning_paths": [],
+  "last_updated": "2026-02-09T00:51:25.954151"
+}

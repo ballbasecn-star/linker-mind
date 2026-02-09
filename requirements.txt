@@ -1,0 +1,61 @@
+# Linker Mind - Python Dependencies
+
+# ===================================================================
+# Core Dependencies
+# ===================================================================
+python-dotenv>=1.0.0
+
+# ===================================================================
+# Web Interface (Optional)
+# ===================================================================
+flask>=3.0.0
+werkzeug>=3.0.0
+
+# ===================================================================
+# Database (Required)
+# ===================================================================
+
+# PostgreSQL driver (required for PostgreSQL support)
+psycopg2-binary>=2.9.0
+
+# Note: sqlite3 is included in Python standard library
+
+# ===================================================================
+# Content Processing (Optional)
+# ===================================================================
+
+# Web scraping
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+requests>=2.31.0
+
+# Book processing
+EbookLib>=0.18
+PyPDF2>=3.0.0
+
+# Audio processing
+mutagen>=1.47.0
+
+# OCR (optional - requires system installation of tesseract)
+Pillow>=10.0.0
+pytesseract>=0.3.10
+
+# ===================================================================
+# AI Integration (Optional)
+# ===================================================================
+
+# HTTP client for API calls
+httpx>=0.25.0
+
+# ===================================================================
+# Development Dependencies (Optional)
+# ===================================================================
+
+# Testing
+# pytest>=7.4.0
+# pytest-cov>=4.1.0
+
+# Code quality
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.5.0

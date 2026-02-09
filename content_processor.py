@@ -34,6 +34,7 @@ class ProcessedContent:
     platform: str
 
     # Content fields
+    raw_content: str = ""  # Complete original extracted text
     content: Dict[str, Any] = field(default_factory=dict)
     media: Dict[str, Any] = field(default_factory=dict)
     ai_analysis: Dict[str, Any] = field(default_factory=dict)
@@ -47,6 +48,7 @@ class ProcessedContent:
             "raw_input": self.raw_input,
             "source_type": self.source_type,
             "platform": self.platform,
+            "raw_content": self.raw_content,
             "content": self.content,
             "media": self.media,
             "ai_analysis": self.ai_analysis,
@@ -483,15 +485,11 @@ class ProcessorFactory:
         except ValueError:
             print("Warning: Firecrawl not configured, web page processing disabled")
 
-        # Try to use TwitterProcessor for Twitter/X URLs
+        # Twitter/X URLs are handled by TwitterProcessor with MCP WebReader
         try:
-            from twitter_processor import TwitterProcessor, REQUESTS_AVAILABLE
-            if REQUESTS_AVAILABLE:
-                factory.register_processor(TwitterProcessor())
-                print("✅ TwitterProcessor enabled (nitter)")
-            else:
-                print("⚠️  TwitterProcessor unavailable (missing requests/bs4)")
-                factory.register_processor(SocialMediaProcessor())
+            from twitter_processor import TwitterProcessor
+            factory.register_processor(TwitterProcessor())
+            print("✅ TwitterProcessor enabled (MCP WebReader)")
         except ImportError as e:
             print(f"⚠️  TwitterProcessor unavailable: {e}")
             factory.register_processor(SocialMediaProcessor())
@@ -525,5 +523,29 @@ class ProcessorFactory:
             print("✅ WeixinProcessor enabled")
         except ImportError as e:
             print(f"⚠️  WeixinProcessor unavailable: {e}")
+
+        # Try to use BookProcessor for EPUB/PDF files
+        try:
+            from book_processor import BookProcessor
+            factory.register_processor(BookProcessor())
+            print("✅ BookProcessor enabled (EPUB/PDF)")
+        except ImportError as e:
+            print(f"⚠️  BookProcessor unavailable: {e}")
+
+        # Try to use AudioProcessor for audio files
+        try:
+            from audio_processor import AudioProcessor
+            factory.register_processor(AudioProcessor())
+            print("✅ AudioProcessor enabled (MP3/M4A/etc)")
+        except ImportError as e:
+            print(f"⚠️  AudioProcessor unavailable: {e}")
+
+        # Try to use OCRProcessor for images
+        try:
+            from ocr_processor import OCRProcessor
+            factory.register_processor(OCRProcessor())
+            print("✅ OCRProcessor enabled (Image text extraction)")
+        except ImportError as e:
+            print(f"⚠️  OCRProcessor unavailable: {e}")
 
         return factory

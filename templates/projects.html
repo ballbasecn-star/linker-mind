@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目管理 - Linker Mind</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --border-hover: #d1d1d1;
+            --accent-color: #000000;
+            --accent-hover: #333333;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .header a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .header a:hover {
+            color: var(--text-primary);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            transition: all 0.15s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            border-color: var(--border-hover);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            background: var(--bg-secondary);
+            cursor: pointer;
+        }
+
+        .project-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .project-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .project-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .project-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .project-status {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-collecting { background: #dbeafe; color: #1e40af; }
+        .status-planning { background: #fef3c7; color: #92400e; }
+        .status-in_progress { background: #dcfce7; color: #166534; }
+        .status-review { background: #f3e8ff; color: #7c3aed; }
+        .status-completed { background: #e5e7eb; color: #374151; }
+
+        .project-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            flex-wrap: wrap;
+        }
+
+        .project-type {
+            padding: 3px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .project-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--bg-tertiary);
+            transition: all 0.15s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: var(--bg-secondary);
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>项目管理</h1>
+            <a href="/">← 返回首页</a>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="showCreateModal()">+ 新建项目</button>
+        </div>
+
+        <div class="filters">
+            <select class="filter-select" id="statusFilter" onchange="filterProjects()">
+                <option value="">所有状态</option>
+                <option value="collecting">🔥 收集中</option>
+                <option value="planning">📋 规划中</option>
+                <option value="in_progress">⚡ 进行中</option>
+                <option value="review">👀 审核中</option>
+                <option value="completed">✅ 已完成</option>
+            </select>
+            <select class="filter-select" id="typeFilter" onchange="filterProjects()">
+                <option value="">所有类型</option>
+                <option value="design">🎨 设计</option>
+                <option value="learning">📚 学习</option>
+                <option value="writing">✍️ 写作</option>
+                <option value="research">🔬 研究</option>
+                <option value="development">💻 开发</option>
+                <option value="other">📁 其他</option>
+            </select>
+        </div>
+
+        {% if projects %}
+        <div class="project-list" id="projectList">
+            {% for project in projects %}
+            <div class="project-card"
+                 data-status="{{ project.status }}"
+                 data-type="{{ project.project_type }}"
+                 onclick="location.href='/project/{{ project.project_id }}'">
+                <div class="project-header">
+                    <div class="project-title">{{ project.project_name }}</div>
+                    <span class="project-status status-{{ project.status }}">
+                        {% if project.status == 'collecting' %}🔥 收集中
+                        {% elif project.status == 'planning' %}📋 规划中
+                        {% elif project.status == 'in_progress' %}⚡ 进行中
+                        {% elif project.status == 'review' %}👀 审核中
+                        {% elif project.status == 'completed' %}✅ 已完成
+                        {% endif %}
+                    </span>
+                </div>
+
+                {% if project.description %}
+                <div class="project-description">{{ project.description }}</div>
+                {% endif %}
+
+                <div class="project-meta">
+                    <span class="project-type">
+                        {% if project.project_type == 'design' %}🎨 设计
+                        {% elif project.project_type == 'learning' %}📚 学习
+                        {% elif project.project_type == 'writing' %}✍️ 写作
+                        {% elif project.project_type == 'research' %}🔬 研究
+                        {% elif project.project_type == 'development' %}💻 开发
+                        {% else %}📁 其他
+                        {% endif %}
+                    </span>
+                    <span>📅 {{ project.created_at[:10] }}</span>
+                    {% if project.target_date %}
+                    <span>🎯 目标: {{ project.target_date }}</span>
+                    {% endif %}
+                </div>
+
+                {% if project.tags %}
+                <div class="project-tags">
+                    {% for tag in project.tags[:5] %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="project-stats">
+                    <span class="stat-item">📄 {{ project.content_ids|length }} 项内容</span>
+                    {% if project.notes %}
+                    <span class="stat-item">📝 {{ project.notes|length }} 条笔记</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>暂无项目</h2>
+            <p>点击"新建项目"开始创建你的第一个项目</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Create Project Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>新建项目</h2>
+                <button class="close-btn" onclick="hideCreateModal()">&times;</button>
+            </div>
+            <form id="createForm" onsubmit="createProject(event)">
+                <div class="form-group">
+                    <label>项目名称 *</label>
+                    <input type="text" name="name" required placeholder="例如: 角色设计 - 灵感收集">
+                </div>
+                <div class="form-group">
+                    <label>项目类型</label>
+                    <select name="type">
+                        <option value="other">📁 其他</option>
+                        <option value="design">🎨 设计</option>
+                        <option value="learning">📚 学习</option>
+                        <option value="writing">✍️ 写作</option>
+                        <option value="research">🔬 研究</option>
+                        <option value="development">💻 开发</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>项目描述</label>
+                    <textarea name="description" placeholder="简要描述这个项目的目标..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>标签（用逗号分隔）</label>
+                    <input type="text" name="tags" placeholder="例如: 设计, 角色, 灵感">
+                </div>
+                <div class="form-group">
+                    <label>目标日期</label>
+                    <input type="date" name="target_date">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">创建项目</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showCreateModal() {
+            document.getElementById('createModal').classList.add('active');
+        }
+
+        function hideCreateModal() {
+            document.getElementById('createModal').classList.remove('active');
+        }
+
+        async function createProject(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                name: formData.get('name'),
+                type: formData.get('type'),
+                description: formData.get('description'),
+                tags: formData.get('tags') ? formData.get('tags').split(',').map(t => t.trim()) : [],
+                target_date: formData.get('target_date') || null
+            };
+
+            try {
+                const response = await fetch('/api/projects', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert('创建失败: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                alert('请求失败: ' + error);
+            }
+        }
+
+        function filterProjects() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const cards = document.querySelectorAll('.project-card');
+
+            cards.forEach(card => {
+                const status = card.dataset.status;
+                const type = card.dataset.type;
+
+                let show = true;
+                if (statusFilter && status !== statusFilter) show = false;
+                if (typeFilter && type !== typeFilter) show = false;
+
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        // Close modal on outside click
+        document.getElementById('createModal').addEventListener('click', function(e) {
+            if (e.target === this) hideCreateModal();
+        });
+    </script>
+</body>
+</html>

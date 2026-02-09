@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>收件箱 - Linker Mind</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --accent-color: #000000;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            transition: all 0.15s ease;
+            text-decoration: none;
+            color: var(--text-primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .inbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .inbox-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.15s ease;
+        }
+
+        .inbox-item:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .inbox-item.selected {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .inbox-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .inbox-item-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .inbox-item-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .inbox-item-content {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            max-height: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .inbox-item-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .inbox-item-source {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .batch-actions {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .batch-actions.visible {
+            display: flex;
+        }
+
+        .batch-actions span {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.snoozed {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .status-badge.processed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .quick-add {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+
+        .quick-add-form {
+            display: flex;
+            gap: 12px;
+        }
+
+        .quick-add-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .inbox-item-actions {
+                flex-direction: column;
+            }
+
+            .inbox-item-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📥 收件箱</h1>
+            <div class="header-actions">
+                <a href="/" class="btn">← 返回首页</a>
+                <button class="btn btn-primary" onclick="showQuickAddModal()">+ 快速添加</button>
+            </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-label">待处理</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="snoozedCount">0</div>
+                <div class="stat-label">已推迟</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="processedCount">0</div>
+                <div class="stat-label">已处理</div>
+            </div>
+        </div>
+
+        <!-- 批量操作栏 -->
+        <div class="batch-actions" id="batchActions">
+            <span class="selected-info">已选择 <strong id="selectedCount">0</strong> 项</span>
+            <button class="btn" onclick="batchProcess('archive')">📁 归类到项目</button>
+            <button class="btn" onclick="batchProcess('delete')">🗑️ 删除</button>
+            <button class="btn" onclick="batchSnooze()">⏰ 稍后处理</button>
+            <button class="btn" onclick="clearSelection()">取消选择</button>
+        </div>
+
+        <!-- 快速添加 -->
+        <div class="quick-add">
+            <div class="quick-add-form">
+                <input type="text" id="quickAddInput" class="quick-add-input" placeholder="输入URL或粘贴内容..." onkeypress="if(event.key==='Enter') quickAdd()">
+                <button class="btn btn-primary" onclick="quickAdd()">添加</button>
+            </div>
+        </div>
+
+        <!-- 标签页 -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('pending')">📬 待处理</div>
+            <div class="tab" onclick="switchTab('snoozed')">⏰ 已推迟</div>
+            <div class="tab" onclick="switchTab('processed')">✅ 已处理</div>
+        </div>
+
+        <!-- 收件箱列表 -->
+        <div id="pendingTab" class="tab-content active">
+            <div class="checkbox-wrapper" style="margin-bottom: 12px;">
+                <input type="checkbox" id="selectAllPending" onchange="toggleSelectAll('pending')">
+                <label for="selectAllPending">全选</label>
+            </div>
+            <div class="inbox-list" id="pendingList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <div>收件箱为空</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="snoozedTab" class="tab-content">
+            <div class="checkbox-wrapper" style="margin-bottom: 12px;">
+                <input type="checkbox" id="selectAllSnoozed" onchange="toggleSelectAll('snoozed')">
+                <label for="selectAllSnoozed">全选</label>
+            </div>
+            <div class="inbox-list" id="snoozedList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">😴</div>
+                    <div>没有推迟的项目</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="processedTab" class="tab-content">
+            <div class="inbox-list" id="processedList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">✨</div>
+                    <div>还没有处理过任何项目</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        let currentTab = 'pending';
+        let selectedItems = new Set();
+
+        // Load inbox items
+        async function loadInbox(status = 'pending') {
+            try {
+                const includeSnoozed = status === 'pending' ? 'false' : 'true';
+                const response = await fetch(`/api/inbox?status=${status}&include_snoozed=${includeSnoozed}&limit=50`);
+                const items = await response.json();
+
+                renderInboxItems(status, items);
+                updateStats();
+            } catch (error) {
+                console.error('Failed to load inbox:', error);
+            }
+        }
+
+        // Render inbox items
+        function renderInboxItems(status, items) {
+            const containerId = status + 'List';
+            const container = document.getElementById(containerId);
+
+            if (!items || items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">${status === 'pending' ? '📭' : status === 'snoozed' ? '😴' : '✨'}</div>
+                        <div>${status === 'pending' ? '收件箱为空' : status === 'snoozed' ? '没有推迟的项目' : '还没有处理过任何项目'}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+                <div class="inbox-item" data-id="${item.id}">
+                    <div class="inbox-item-header">
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <input type="checkbox" class="item-checkbox" value="${item.id}" onchange="updateSelection()">
+                            <div class="inbox-item-title">
+                                ${item.title || item.raw_input?.substring(0, 100) || '无标题'}
+                            </div>
+                        </div>
+                        <span class="status-badge ${item.status}">${getStatusLabel(item.status)}</span>
+                    </div>
+                    <div class="inbox-item-content">
+                        ${item.raw_input?.substring(0, 200) || '无内容'}
+                    </div>
+                    <div class="inbox-item-meta">
+                        <span>🏷️ ${item.source_type || 'unknown'}</span>
+                        <span>📅 ${item.added_at ? new Date(item.added_at).toLocaleString('zh-CN') : '未知时间'}</span>
+                    </div>
+                    <div class="inbox-item-actions">
+                        <button class="btn" onclick="processItem('${item.id}', 'archive')">📁 归类</button>
+                        <button class="btn" onclick="processItem('${item.id}', 'delete')">🗑️ 删除</button>
+                        ${item.status === 'pending' ? `<button class="btn" onclick="snoozeItem('${item.id}')">⏰ 稍后</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get status label
+        function getStatusLabel(status) {
+            const labels = {
+                'PENDING': '待处理',
+                'SNOOZED': '已推迟',
+                'PROCESSED': '已处理'
+            };
+            return labels[status] || status;
+        }
+
+        // Process item
+        async function processItem(itemId, action) {
+            try {
+                const response = await fetch(`/api/inbox/${itemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+
+                if (response.ok) {
+                    loadInbox(currentTab);
+                } else {
+                    alert('操作失败');
+                }
+            } catch (error) {
+                console.error('Process error:', error);
+                alert('操作失败');
+            }
+        }
+
+        // Snooze item
+        async function snoozeItem(itemId) {
+            const days = prompt('推迟多少天？（输入天数）');
+            if (!days) return;
+
+            try {
+                const response = await fetch(`/api/inbox/${itemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'snooze',
+                        snooze_until_days: parseInt(days)
+                    })
+                });
+
+                if (response.ok) {
+                    loadInbox(currentTab);
+                } else {
+                    alert('操作失败');
+                }
+            } catch (error) {
+                console.error('Snooze error:', error);
+                alert('操作失败');
+            }
+        }
+
+        // Quick add
+        async function quickAdd() {
+            const input = document.getElementById('quickAddInput');
+            const value = input.value.trim();
+
+            if (!value) return;
+
+            try {
+                const isURL = value.startsWith('http://') || value.startsWith('https://');
+
+                if (isURL) {
+                    // Process URL
+                    const result = await api.processURL(value, true);
+                    if (result) {
+                        await addToInbox(result.id, 'url', value);
+                    }
+                } else {
+                    // Add as text
+                    await addToInbox(null, 'text', value);
+                }
+
+                input.value = '';
+                loadInbox(currentTab);
+            } catch (error) {
+                console.error('Quick add error:', error);
+                alert('添加失败');
+            }
+        }
+
+        // Add to inbox
+        async function addToInbox(contentId, sourceType, rawInput) {
+            const response = await fetch('/api/inbox', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content_id: contentId,
+                    source_type: sourceType,
+                    raw_input: rawInput
+                })
+            });
+
+            return response.json();
+        }
+
+        // Update stats
+        async function updateStats() {
+            try {
+                const stats = await api.getInboxStats();
+                document.getElementById('pendingCount').textContent = stats.pending || 0;
+                document.getElementById('snoozedCount').textContent = stats.snoozed || 0;
+                document.getElementById('processedCount').textContent = stats.processed || 0;
+            } catch (error) {
+                console.error('Failed to update stats:', error);
+            }
+        }
+
+        // Switch tab
+        function switchTab(tab) {
+            // Update tab styles
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+
+            // Clear selection
+            clearSelection();
+
+            // Load items
+            currentTab = tab;
+            loadInbox(tab);
+        }
+
+        // Selection handling
+        function updateSelection() {
+            selectedItems.clear();
+            document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
+                selectedItems.add(cb.value);
+            });
+
+            document.getElementById('selectedCount').textContent = selectedItems.size;
+            document.getElementById('batchActions').classList.toggle('visible', selectedItems.size > 0);
+        }
+
+        function toggleSelectAll(tab) {
+            const checkbox = document.getElementById('selectAll' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            const container = document.getElementById(tab + 'List');
+            const checkboxes = container.querySelectorAll('.item-checkbox');
+
+            checkboxes.forEach(cb => {
+                if (cb.disabled !== true) {
+                    cb.checked = checkbox.checked;
+                }
+            });
+
+            updateSelection();
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.item-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            document.querySelectorAll('.selectAll-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            selectedItems.clear();
+            document.getElementById('selectedCount').textContent = '0';
+            document.getElementById('batchActions').classList.remove('visible');
+        }
+
+        // Batch operations
+        async function batchProcess(action) {
+            if (selectedItems.size === 0) return;
+
+            let contentId = null;
+            if (action === 'archive') {
+                const nodeId = prompt('输入要归类到的节点ID（留空则跳过）:');
+                if (nodeId && nodeId.trim()) {
+                    // For now, we'll use the node_id as content_id
+                    // TODO: Show node selection modal
+                    contentId = nodeId.trim();
+                }
+            }
+
+            try {
+                const itemIds = Array.from(selectedItems);
+                const response = await fetch('/api/inbox/process-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        item_ids: itemIds,
+                        action: action,
+                        content_id: contentId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    clearSelection();
+                    loadInbox(currentTab);
+                    // Show success message
+                    alert(`成功处理 ${result.data.success} 项`);
+                } else {
+                    alert(`批量操作失败: ${result.error || '未知错误'}`);
+                }
+            } catch (error) {
+                console.error('Batch process error:', error);
+                alert('批量操作失败');
+            }
+        }
+
+        async function batchSnooze() {
+            const days = prompt('推迟多少天？（输入天数）');
+            if (!days) return;
+
+            const daysNum = parseInt(days);
+            if (isNaN(daysNum) || daysNum <= 0) {
+                alert('请输入有效的天数');
+                return;
+            }
+
+            try {
+                // Calculate snooze_until date
+                const snoozeUntil = new Date();
+                snoozeUntil.setDate(snoozeUntil.getDate() + daysNum);
+
+                const itemIds = Array.from(selectedItems);
+                const response = await fetch('/api/inbox/process-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        item_ids: itemIds,
+                        action: 'snooze',
+                        snooze_until: snoozeUntil.toISOString()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    clearSelection();
+                    loadInbox(currentTab);
+                    alert(`成功推迟 ${result.data.success} 项`);
+                } else {
+                    alert(`批量操作失败: ${result.error || '未知错误'}`);
+                }
+            } catch (error) {
+                console.error('Batch snooze error:', error);
+                alert('批量操作失败');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInbox('pending');
+        });
+    </script>
+</body>
+</html>

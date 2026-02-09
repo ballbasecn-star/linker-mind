@@ -7,244 +7,651 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --border-hover: #d1d1d1;
+            --accent-color: #000000;
+            --accent-hover: #333333;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 800px;
             margin: 0 auto;
+            padding: 32px 20px;
         }
 
         .header {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 40px;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.75rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
         .search-box {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .search-box input {
             flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            background: var(--bg-tertiary);
+            transition: all 0.15s ease;
         }
 
         .search-box input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-color);
+            background: var(--bg-secondary);
         }
 
         .search-box button {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 12px 24px;
+            background: var(--accent-color);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-weight: 500;
             cursor: pointer;
+            transition: background 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .search-box button:hover {
+            background: var(--accent-hover);
+        }
+
+        .search-box button.ai-off {
+            background: var(--text-tertiary);
+        }
+
+        .btn-project {
+            padding: 10px 20px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.15s ease;
+        }
+
+        .btn-project:hover {
+            background: var(--accent-hover);
         }
 
         .stats {
-            color: white;
-            text-align: center;
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
         }
 
         .stats span {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin: 0 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
         }
 
         .content-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            display: grid;
+            gap: 16px;
+            width: 100%;
         }
 
         .content-item {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.15s ease;
             text-decoration: none;
             color: inherit;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         .content-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        .content-item-inner {
+            display: flex;
+            padding: 16px;
+            gap: 16px;
+        }
+
+        .content-cover {
+            flex-shrink: 0;
+            width: 160px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--bg-tertiary);
+        }
+
+        .content-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .content-main {
+            flex: 1;
+            min-width: 0;
         }
 
         .content-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
+            gap: 12px;
         }
 
         .platform-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .platform-web { background: #e3f2fd; color: #1976d2; }
-        .platform-bilibili { background: #fce4ec; color: #c2185b; }
-        .platform-youtube { background: #ffebee; color: #c62828; }
-        .platform-twitter { background: #e8f5e9; color: #2e7d32; }
-        .platform-douyin { background: #f3e5f5; color: #7b1fa2; }
-        .platform-wechat { background: #fff3e0; color: #e65100; }
-        .platform-video { background: #e0f2f1; color: #00695c; }
-        .platform-memo { background: #f5f5f5; color: #616161; }
+        .platform-web { background: var(--bg-tertiary); color: var(--text-secondary); }
+        .platform-bilibili { background: #fce7f3; color: #be185d; }
+        .platform-youtube { background: #fee2e2; color: #dc2626; }
+        .platform-twitter, .platform-x { background: #dcfce7; color: #16a34a; }
+        .platform-douyin { background: #f3e8ff; color: #7c3aed; }
+        .platform-wechat { background: #ffedd5; color: #ea580c; }
+        .platform-video { background: #ccfbf1; color: #0d9488; }
+        .platform-memo { background: var(--bg-tertiary); color: var(--text-secondary); }
 
         .content-title {
-            font-size: 1.3em;
+            font-size: 1rem;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .content-meta {
-            font-size: 0.9em;
-            color: #999;
-            margin-bottom: 15px;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .content-meta div {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .content-summary {
-            color: #444;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
             line-height: 1.6;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        /* Markdown styles */
-        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-            margin: 15px 0 10px 0;
-            font-weight: 600;
+        /* Hide images in list view preview */
+        .content-summary img {
+            display: none !important;
         }
-        .markdown-content h1 { font-size: 1.3em; }
-        .markdown-content h2 { font-size: 1.2em; }
-        .markdown-content h3 { font-size: 1.1em; }
+
+        .content-summary .hidden {
+            display: none !important;
+        }
+
+        /* Markdown styles (for detail page) */
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .markdown-content h1 { font-size: 1.25em; }
+        .markdown-content h2 { font-size: 1.125em; }
+        .markdown-content h3 { font-size: 1em; }
         .markdown-content p { margin: 8px 0; }
         .markdown-content ul, .markdown-content ol { margin: 8px 0; padding-left: 20px; }
         .markdown-content li { margin: 4px 0; }
         .markdown-content code {
-            background: #f5f5f5;
+            background: var(--bg-tertiary);
             padding: 2px 6px;
             border-radius: 4px;
-            font-size: 0.9em;
+            font-size: 0.875em;
         }
         .markdown-content pre {
-            background: #f5f5f5;
+            background: var(--bg-tertiary);
             padding: 12px;
             border-radius: 8px;
             overflow-x: auto;
-            margin: 10px 0;
+            margin: 12px 0;
         }
         .markdown-content pre code {
             background: none;
             padding: 0;
         }
         .markdown-content blockquote {
-            border-left: 3px solid #ddd;
-            margin: 10px 0;
-            padding-left: 15px;
-            color: #666;
+            border-left: 2px solid var(--border-color);
+            margin: 12px 0;
+            padding-left: 12px;
+            color: var(--text-secondary);
         }
         .markdown-content a {
-            color: #667eea;
+            color: var(--accent-color);
             text-decoration: none;
         }
         .markdown-content a:hover {
             text-decoration: underline;
         }
+        .markdown-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 12px 0;
+        }
 
         .content-tags {
             display: flex;
-            gap: 10px;
-            font-size: 0.9em;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .content-tag {
-            padding: 5px 12px;
-            background: #f5f5f5;
-            border-radius: 15px;
-            color: #666;
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: white;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
-            color: white;
+            padding: 60px 20px;
+            color: var(--text-secondary);
         }
 
         .spinner {
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-color);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            width: 32px;
+            height: 32px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .header {
+                margin-bottom: 32px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .search-box {
+                flex-direction: column;
+                gap: 8px;
+                padding: 12px;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            .search-box button {
+                width: 100%;
+            }
+
+            .stats {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+
+            .stats span {
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
+
+            .content-item {
+                padding: 16px;
+            }
+
+            .content-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .content-tags {
+                font-size: 0.75rem;
+            }
+
+            .nav-menu {
+                gap: 8px;
+            }
+
+            .nav-link {
+                padding: 8px 14px;
+                font-size: 0.8125rem;
+            }
+
+            .feature-cards {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .feature-card {
+                padding: 16px;
+            }
+
+            .feature-card-icon {
+                font-size: 1.5rem;
+            }
+
+            .feature-card-title {
+                font-size: 1rem;
+            }
+
+            .feature-card-desc {
+                font-size: 0.8125rem;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 768px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-link {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .nav-link.primary {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .nav-link.primary:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Feature Cards */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .feature-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .feature-card-icon {
+            font-size: 2rem;
+        }
+
+        .feature-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .feature-card-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .feature-card-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .feature-card-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .feature-card-badge.highlight {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                padding: 40px 20px;
+            }
+
+            .content-list {
+                gap: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧠 Linker Mind</h1>
-            <p>多模态内容提取与智能存储系统</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                    <h1>Linker Mind</h1>
+                    <p>第二大脑 + 创作工作台</p>
+                </div>
+                <a href="/inbox" class="btn-project">📥 收件箱</a>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <a href="/" class="nav-link primary">📝 内容库</a>
+            <a href="/inbox" class="nav-link">📥 收件箱</a>
+            <a href="/nodes" class="nav-link">📁 PARA组织</a>
+            <a href="/graph" class="nav-link">🕸️ 知识图谱</a>
+            <a href="/skills" class="nav-link">🌳 技能树</a>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="feature-cards">
+            <a href="/inbox" class="feature-card">
+                <div class="feature-card-header">
+                    <div class="feature-card-icon">📥</div>
+                    <div class="feature-card-title">收件箱</div>
+                </div>
+                <div class="feature-card-desc">快速收集内容，定期处理归类。CODE工作流的第一步。</div>
+                <div class="feature-card-stats">
+                    <span class="feature-card-badge highlight">⚡ 快速收集</span>
+                    <span class="feature-card-badge">🔄 定期整理</span>
+                </div>
+            </a>
+
+            <a href="/nodes" class="feature-card">
+                <div class="feature-card-header">
+                    <div class="feature-card-icon">📁</div>
+                    <div class="feature-card-title">PARA组织</div>
+                </div>
+                <div class="feature-card-desc">项目、领域、资源、归档。系统的知识组织方法。</div>
+                <div class="feature-card-stats">
+                    <span class="feature-card-badge">🎯 项目</span>
+                    <span class="feature-card-badge">📚 领域</span>
+                </div>
+            </a>
+
+            <a href="/graph" class="feature-card">
+                <div class="feature-card-header">
+                    <div class="feature-card-icon">🕸️</div>
+                    <div class="feature-card-title">知识图谱</div>
+                </div>
+                <div class="feature-card-desc">可视化知识关联，发现内容之间的联系。</div>
+                <div class="feature-card-stats">
+                    <span class="feature-card-badge">🔗 关联视图</span>
+                    <span class="feature-card-badge">🔍 智能探索</span>
+                </div>
+            </a>
+
+            <a href="/skills" class="feature-card">
+                <div class="feature-card-header">
+                    <div class="feature-card-icon">🌳</div>
+                    <div class="feature-card-title">技能树</div>
+                </div>
+                <div class="feature-card-desc">追踪学习进度，规划成长路径。</div>
+                <div class="feature-card-stats">
+                    <span class="feature-card-badge">📈 进度追踪</span>
+                    <span class="feature-card-badge">🗺️ 学习路径</span>
+                </div>
+            </a>
         </div>
 
         <div class="search-box">
             <input type="text" id="urlInput" placeholder="输入 URL (网页、视频、Twitter、微信公众号...)">
-            <button onclick="processUrl()">🚀 提取内容</button>
-            <button onclick="toggleAI()" id="aiBtn">🤖 AI: 开</button>
+            <button onclick="processUrl()">提取内容</button>
+            <button onclick="toggleAI()" id="aiBtn">AI: 开</button>
         </div>
 
         <div class="stats">
-            <span>📊 总计: {{ stats.total }} 条</span>
-            <span>🖼️ 有图片: {{ stats.with_images }} 条</span>
-            <span>📸 有截图: {{ stats.with_screenshots }} 条</span>
+            <span>总计: {{ stats.total }} 条</span>
+            <span>有图片: {{ stats.with_images }} 条</span>
+            <span>有截图: {{ stats.with_screenshots }} 条</span>
         </div>
 
         {% if items and stats.total > 0 %}
@@ -252,64 +659,82 @@
             {% for item in items %}
             {% set is_new_format = item.get('content') is mapping %}
             {% set content = item.get('content') if is_new_format else {'title': item.get('title', '无标题'), 'summary': item.get('content', ''), 'metadata': {}} %}
-            {% set media = item.get('media', {}) %}
-            {% set ai = item.get('ai_analysis', {}) %}
-            {% set proc_info = item.get('processing_info', {}) %}
+            {% set media = item.get('media', {}) or {} %}
+            {% set ai = item.get('ai_analysis', {}) or {} %}
+            {% set proc_info = item.get('processing_info', {}) or {} %}
+            {% set metadata = item.get('metadata', {}) or {} %}
             {% set platform = item.get('platform', item.get('source_type', 'web')) %}
+
+            {# Get cover image - prefer media.cover_image, then media.images[0], then metadata.cover_image #}
+            {% set cover_image = media.get('cover_image') or (media.get('images', [''])[0] if media.get('images') else metadata.get('cover_image')) %}
+
             <a href="/content/{{ item.get('id', '') }}" class="content-item">
-                <div class="content-header">
-                    <span class="platform-badge platform-{{ platform }}">
-                        {% if platform == 'web' or platform == 'webpage' %}网页
-                        {% elif platform == 'bilibili' %}B站
-                        {% elif platform == 'youtube' %}YouTube
-                        {% elif platform == 'twitter' or platform == 'x' %}Twitter/X
-                        {% elif platform == 'douyin' %}抖音
-                        {% elif platform == 'wechat' %}微信
-                        {% elif platform == 'direct_video' or platform == 'video' %}视频
-                        {% else %}{{ platform }}
-                        {% endif %}
-                    </span>
-                    <span style="color: #999; font-size: 0.9em;">
-                        {{ item.get('timestamp', 'N/A')[:19].replace('T', ' ') }}
-                    </span>
-                </div>
+                <div class="content-item-inner">
+                    {# Cover image #}
+                    {% if cover_image %}
+                    <div class="content-cover">
+                        <img src="{{ cover_image }}" alt="Cover" onerror="this.style.display='none'">
+                    </div>
+                    {% endif %}
 
-                <div class="content-title">
-                    {{ content.get('title', '无标题') }}
-                </div>
+                    <div class="content-main">
+                        <div class="content-header">
+                            <span class="platform-badge platform-{{ platform }}">
+                                {% if platform == 'web' or platform == 'webpage' %}网页
+                                {% elif platform == 'bilibili' %}B站
+                                {% elif platform == 'youtube' %}YouTube
+                                {% elif platform == 'twitter' or platform == 'x' %}Twitter/X
+                                {% elif platform == 'douyin' %}抖音
+                                {% elif platform == 'wechat' %}微信
+                                {% elif platform == 'direct_video' or platform == 'video' %}视频
+                                {% else %}{{ platform }}
+                                {% endif %}
+                            </span>
+                            <span style="color: #999; font-size: 0.9em;">
+                                {{ item.get('timestamp', item.get('created_at', 'N/A'))[:19].replace('T', ' ') }}
+                            </span>
+                        </div>
 
-                <div class="content-meta">
-                    {% set metadata = content.get('metadata', {}) %}
-                    {% if metadata.get('author') %}
-                    作者: {{ metadata.get('author') }} •
-                    {% endif %}
-                    {% if metadata.get('duration') %}
-                    时长: {{ metadata.get('duration') }} •
-                    {% endif %}
-                    {% if proc_info.get('processing_time') %}
-                    处理时间: {{ (proc_info.get('processing_time', 0) | round(2)) }}秒
-                    {% endif %}
-                </div>
+                        <div class="content-title">
+                            {{ content.get('title', '无标题') }}
+                        </div>
 
-                <div class="content-summary markdown-content">
-                    {% set summary = content.get('summary', '') or content.get('main_content', '') %}
-                    {% if summary %}
-                        {{ (summary[:200] + '...') if summary|length > 200 else summary }}
-                    {% else %}
-                        无内容
-                    {% endif %}
-                </div>
+                        <div class="content-meta">
+                            {% if metadata.get('author') %}
+                            作者: {{ metadata.get('author') }} •
+                            {% endif %}
+                            {% if metadata.get('duration') %}
+                            时长: {{ metadata.get('duration') }} •
+                            {% endif %}
+                            {% if proc_info.get('processing_time') %}
+                            处理时间: {{ (proc_info.get('processing_time', 0) | round(2)) }}秒
+                            {% endif %}
+                        </div>
 
-                <div class="content-tags">
-                    {% if media.get('images') %}
-                    <span class="content-tag">🖼️ {{ media.images|length }} 张图片</span>
-                    {% endif %}
-                    {% if media.get('screenshots') %}
-                    <span class="content-tag">📸 {{ media.screenshots|length }} 张截图</span>
-                    {% endif %}
-                    {% if ai.get('key_points') %}
-                    <span class="content-tag">🤖 已分析</span>
-                    {% endif %}
+                        <div class="content-summary">
+                            {# Use AI summary first, fallback to main_content for preview only #}
+                            {% set summary = content.get('summary', '') or content.get('main_content', '') %}
+                            {% if summary %}
+                                {# Strip HTML and images for list view preview #}
+                                {% set text_preview = summary | replace('<img', '<img class="hidden"') | replace('<', '&lt;') | replace('>', '&gt;') %}
+                                {{ (text_preview[:200] + '...') if text_preview|length > 200 else text_preview }}
+                            {% else %}
+                                无内容
+                            {% endif %}
+                        </div>
+
+                        <div class="content-tags">
+                            {% if media.get('images') %}
+                            <span class="content-tag">🖼️ {{ media.images|length }} 张图片</span>
+                            {% endif %}
+                            {% if media.get('screenshots') %}
+                            <span class="content-tag">📸 {{ media.screenshots|length }} 张截图</span>
+                            {% endif %}
+                            {% if ai and ai.get('key_points') %}
+                            <span class="content-tag">🤖 已分析</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </a>
             {% endfor %}
@@ -328,16 +753,57 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
     <script>
         let aiEnabled = true;
 
-        // Render markdown content
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.markdown-content').forEach(el => {
-                const markdown = el.textContent;
-                el.innerHTML = marked.parse(markdown);
-            });
+        // Configure marked for better rendering
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false,
+            smartLists: true,
+            smartypant: false
         });
+
+        // Render markdown content with syntax highlighting
+        function renderMarkdown() {
+            document.querySelectorAll('.markdown-content').forEach(el => {
+                let content = el.textContent || el.innerText || el.innerHTML;
+
+                // Check if content already has HTML tags (like <img>)
+                const hasHtml = /<[a-z][\s\S]*>/i.test(content);
+
+                const sanitizeOptions = {
+                    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'div', 'span', 'del', 's', 'sub', 'sup'],
+                    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel', 'style'],
+                    ALLOW_DATA_URI: true
+                };
+
+                if (hasHtml) {
+                    // Content has HTML - sanitize it directly
+                    const cleanHtml = DOMPurify.sanitize(content, sanitizeOptions);
+                    el.innerHTML = cleanHtml;
+                } else {
+                    // Parse markdown to HTML
+                    const rawHtml = marked.parse(content);
+                    const cleanHtml = DOMPurify.sanitize(rawHtml, sanitizeOptions);
+                    el.innerHTML = cleanHtml;
+                }
+
+                // Apply syntax highlighting to code blocks
+                el.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            });
+        }
+
+        // Render on page load
+        document.addEventListener('DOMContentLoaded', renderMarkdown);
 
         function toggleAI() {
             aiEnabled = !aiEnabled;
@@ -357,24 +823,45 @@
             loading.style.display = 'block';
 
             try {
-                const response = await fetch('/api/process', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url, enable_ai: aiEnabled })
-                });
+                // 使用新的 API 客户端
+                const result = await api.processURL(url, aiEnabled);
 
-                const data = await response.json();
-
-                if (data.success) {
-                    window.location.reload();
+                if (result) {
+                    // 显示成功消息
+                    showMessage('内容处理成功！正在跳转...', 'success');
+                    setTimeout(() => {
+                        window.location.href = `/content/${result.id}`;
+                    }, 1000);
                 } else {
-                    alert('处理失败: ' + (data.error || '未知错误'));
+                    alert('处理失败: 未知错误');
                 }
             } catch (error) {
-                alert('请求失败: ' + error);
+                console.error('Process error:', error);
+                showMessage('处理失败: ' + error.message, 'error');
             } finally {
                 loading.style.display = 'none';
             }
+        }
+
+        // 显示消息提示
+        function showMessage(message, type = 'info') {
+            // 简单的消息提示
+            const div = document.createElement('div');
+            div.textContent = message;
+            div.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#6c757d'};
+                color: white;
+                border-radius: 4px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
         }
 
         document.getElementById('urlInput').addEventListener('keypress', function(e) {

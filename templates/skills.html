@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能树 - Linker Mind</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --border-hover: #d1d1d1;
+            --accent-color: #000000;
+            --accent-hover: #333333;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            background: var(--bg-secondary);
+            cursor: pointer;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        /* Skills Grid */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .skill-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .skill-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .skill-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .skill-level {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .level-beginner { background: #dbeafe; color: #1e40af; }
+        .level-intermediate { background: #fef3c7; color: #92400e; }
+        .level-advanced { background: #fce7f3; color: #be185d; }
+        .level-expert { background: #fee2e2; color: #dc2626; }
+
+        .skill-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 16px;
+        }
+
+        .skill-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+        }
+
+        .skill-progress {
+            margin-bottom: 12px;
+        }
+
+        .progress-bar-bg {
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        .skill-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .skill-tag {
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Skill Tree View */
+        .tree-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 400px;
+        }
+
+        .tree-node {
+            margin: 8px 0;
+        }
+
+        .tree-node-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+
+        .tree-node-content:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .tree-node-toggle {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-tertiary);
+        }
+
+        .tree-node-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .tree-node-name {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .tree-children {
+            margin-left: 24px;
+            border-left: 1px dashed var(--border-color);
+            padding-left: 12px;
+        }
+
+        /* Learning Path */
+        .learning-path {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .path-step {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .path-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--text-tertiary);
+        }
+
+        .step-number.completed {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .step-meta {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .content-item {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .stats-bar {
+                flex-direction: row;
+                gap: 12px;
+            }
+
+            .stat-item {
+                padding: 12px;
+            }
+
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>技能树</h1>
+            <a href="/" style="color: var(--text-secondary); text-decoration: none;">← 返回首页</a>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('list')">📋 技能列表</button>
+            <button class="nav-tab" onclick="showTab('tree')">🌳 技能树</button>
+            <button class="nav-tab" onclick="showTab('recommendations')">💡 推荐学习</button>
+        </div>
+
+        <div class="filters">
+            <select class="filter-select" id="categoryFilter" onchange="filterSkills()">
+                <option value="">所有分类</option>
+            </select>
+            <select class="filter-select" id="levelFilter" onchange="filterSkills()">
+                <option value="">所有等级</option>
+                <option value="beginner">入门</option>
+                <option value="intermediate">中级</option>
+                <option value="advanced">高级</option>
+                <option value="expert">专家</option>
+            </select>
+            <select class="filter-select" id="statusFilter" onchange="filterSkills()">
+                <option value="">所有状态</option>
+                <option value="not_started">未开始</option>
+                <option value="in_progress">学习中</option>
+                <option value="completed">已完成</option>
+            </select>
+        </div>
+
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <div class="stat-value" id="totalSkills">0</div>
+                <div class="stat-label">技能总数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="completedSkills">0</div>
+                <div class="stat-label">已完成</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalHours">0</div>
+                <div class="stat-label">预计学时</div>
+            </div>
+        </div>
+
+        <div id="listTab">
+            <div class="skills-grid" id="skillsGrid">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <div id="treeTab" style="display: none;">
+            <div class="tree-container" id="treeContainer">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <div id="recommendationsTab" style="display: none;">
+            <div class="content-item" id="recommendationsList">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allSkills = [];
+
+        // Show/hide tabs
+        function showTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('listTab').style.display = tab === 'list' ? 'block' : 'none';
+            document.getElementById('treeTab').style.display = tab === 'tree' ? 'block' : 'none';
+            document.getElementById('recommendationsTab').style.display = tab === 'recommendations' ? 'block' : 'none';
+
+            if (tab === 'tree' && document.getElementById('treeContainer').textContent.includes('加载中')) {
+                loadSkillTree();
+            }
+            if (tab === 'recommendations' && document.getElementById('recommendationsList').textContent.includes('加载中')) {
+                loadRecommendations();
+            }
+        }
+
+        // Load skills
+        async function loadSkills() {
+            try {
+                const response = await fetch('/api/skills');
+                allSkills = await response.json();
+
+                // Populate category filter
+                const categories = [...new Set(allSkills.map(s => s.category))];
+                const categoryFilter = document.getElementById('categoryFilter');
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    categoryFilter.appendChild(option);
+                });
+
+                renderSkills(allSkills);
+                updateStats();
+            } catch (error) {
+                console.error('Failed to load skills:', error);
+            }
+        }
+
+        // Render skills grid
+        function renderSkills(skills) {
+            const grid = document.getElementById('skillsGrid');
+
+            if (skills.length === 0) {
+                grid.innerHTML = '<div class="empty-state">暂无技能</div>';
+                return;
+            }
+
+            grid.innerHTML = skills.map(skill => `
+                <div class="skill-card" onclick="showSkillPath('${skill.skill_id}')">
+                    <div class="skill-header">
+                        <div class="skill-name">${skill.skill_name}</div>
+                        <span class="skill-level level-${skill.level}">${getLevelLabel(skill.level)}</span>
+                    </div>
+
+                    ${skill.description ? `<div class="skill-description">${skill.description}</div>` : ''}
+
+                    <div class="skill-meta">
+                        <span>📚 ${skill.category}</span>
+                        <span>⏱️ ${skill.estimated_hours}小时</span>
+                        <span>难度: ${skill.difficulty_score}/10</span>
+                    </div>
+
+                    <div class="skill-progress">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${skill.progress * 100}%"></div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px;">
+                            ${Math.round(skill.progress * 100)}% 完成
+                        </div>
+                    </div>
+
+                    ${skill.tags && skill.tags.length > 0 ? `
+                    <div class="skill-tags">
+                        ${skill.tags.map(tag => `<span class="skill-tag">${tag}</span>`).join('')}
+                    </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Get level label
+        function getLevelLabel(level) {
+            const labels = {
+                'beginner': '入门',
+                'intermediate': '中级',
+                'advanced': '高级',
+                'expert': '专家'
+            };
+            return labels[level] || level;
+        }
+
+        // Filter skills
+        function filterSkills() {
+            const category = document.getElementById('categoryFilter').value;
+            const level = document.getElementById('levelFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            let filtered = allSkills;
+
+            if (category) {
+                filtered = filtered.filter(s => s.category === category);
+            }
+            if (level) {
+                filtered = filtered.filter(s => s.level === level);
+            }
+            if (status) {
+                filtered = filtered.filter(s => s.status === status);
+            }
+
+            renderSkills(filtered);
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalSkills').textContent = allSkills.length;
+            document.getElementById('completedSkills').textContent = allSkills.filter(s => s.status === 'mastered').length;
+            document.getElementById('totalHours').textContent = allSkills.reduce((sum, s) => sum + s.estimated_hours, 0);
+        }
+
+        // Load skill tree
+        async function loadSkillTree() {
+            try {
+                const response = await fetch('/api/skills/tree');
+                const treeData = await response.json();
+
+                const container = document.getElementById('treeContainer');
+                container.innerHTML = renderTree(treeData.trees || []);
+            } catch (error) {
+                console.error('Failed to load skill tree:', error);
+            }
+        }
+
+        // Render tree recursively
+        function renderTree(trees) {
+            if (!trees || trees.length === 0) {
+                return '<div class="empty-state">暂无技能树</div>';
+            }
+
+            return trees.map(tree => renderTreeNode(tree)).join('');
+        }
+
+        function renderTreeNode(node, depth = 0) {
+            if (!node || !node.skill) {
+                return '';
+            }
+
+            const skill = node.skill;
+            const hasChildren = node.children && node.children.length > 0;
+
+            return `
+                <div class="tree-node">
+                    <div class="tree-node-content" style="margin-left: ${depth * 16}px;">
+                        ${hasChildren ? '<span class="tree-node-toggle" onclick="toggleTreeNode(this)">▼</span>' : '<span></span>'}
+                        <span class="tree-node-icon" style="background: ${getLevelColor(skill.level)}"></span>
+                        <span class="tree-node-name">${skill.skill_name}</span>
+                    </div>
+                    ${hasChildren ? `<div class="tree-children">${node.children.map(child => renderTreeNode(child, depth + 1)).join('')}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function getLevelColor(level) {
+            const colors = {
+                'beginner': '#1e40af',
+                'intermediate': '#92400e',
+                'advanced': '#be185d',
+                'expert': '#dc2626'
+            };
+            return colors[level] || '#95a5a6';
+        }
+
+        function toggleTreeNode(element) {
+            const children = element.parentElement.nextElementSibling;
+            if (children && children.classList.contains('tree-children')) {
+                children.style.display = children.style.display === 'none' ? 'block' : 'none';
+                element.textContent = element.textContent === '▼' ? '▶' : '▼';
+            }
+        }
+
+        // Show skill path
+        async function showSkillPath(skillId) {
+            try {
+                const response = await fetch(`/api/skills/${skillId}/path`);
+                const path = await response.json();
+
+                const grid = document.getElementById('skillsGrid');
+                grid.innerHTML = `
+                    <div class="content-item">
+                        <h3 style="margin-bottom: 16px;">学习路径</h3>
+                        <div class="learning-path">
+                            ${path.map((step, index) => `
+                                <div class="path-step">
+                                    <div class="step-number ${step.status === 'mastered' ? 'completed' : ''}">${index + 1}</div>
+                                    <div class="step-content">
+                                        <div class="step-title">${step.skill_name}</div>
+                                        <div class="step-meta">
+                                            ${step.level} · ${step.estimated_hours}小时
+                                            ${step.status !== 'not_started' ? ` · ${getStatusLabel(step.status)}` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button onclick="loadSkills()" class="btn" style="margin-top: 16px;">← 返回列表</button>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load skill path:', error);
+            }
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'not_started': '未开始',
+                'in_progress': '学习中',
+                'completed': '已完成',
+                'mastered': '已掌握'
+            };
+            return labels[status] || status;
+        }
+
+        // Load recommendations
+        async function loadRecommendations() {
+            try {
+                const response = await fetch('/api/skills/recommendations');
+                const recommendations = await response.json();
+
+                const list = document.getElementById('recommendationsList');
+
+                if (recommendations.length === 0) {
+                    list.innerHTML = '<div class="empty-state">暂无推荐</div>';
+                    return;
+                }
+
+                list.innerHTML = `
+                    <h3 style="margin-bottom: 16px;">推荐学习的技能</h3>
+                    <div class="skills-grid">
+                        ${recommendations.map(item => `
+                            <div class="skill-card">
+                                <div class="skill-header">
+                                    <div class="skill-name">${item.skill.skill_name}</div>
+                                    <span class="skill-level level-${item.skill.level}">${getLevelLabel(item.skill.level)}</span>
+                                </div>
+                                ${item.skill.description ? `<div class="skill-description">${item.skill.description}</div>` : ''}
+                                <div class="skill-meta">
+                                    <span>📚 ${item.skill.category}</span>
+                                    <span>⏱️ ${item.skill.estimated_hours}小时</span>
+                                </div>
+                                <div style="margin-top: 12px; font-size: 0.875rem; color: var(--text-secondary);">
+                                    ${item.reason}
+                                </div>
+                                <button onclick="startLearning('${item.skill.skill_id}')" class="btn" style="margin-top: 12px; width: 100%;">
+                                    开始学习
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load recommendations:', error);
+            }
+        }
+
+        async function startLearning(skillId) {
+            try {
+                const response = await fetch(`/api/skills/${skillId}/progress`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'in_progress' })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('已开始学习！');
+                    loadSkills();
+                }
+            } catch (error) {
+                alert('操作失败: ' + error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadSkills);
+    </script>
+</body>
+</html>

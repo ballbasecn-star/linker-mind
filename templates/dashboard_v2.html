@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linker Mind v2.0 - Your Second Brain</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            max-width: 600px;
+            margin: 0 2rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-bar button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .search-bar button:hover {
+            background: var(--primary-dark);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .action-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .action-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .action-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .stat-card .label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .stat-card .change {
+            color: var(--success);
+            font-size: 0.85rem;
+        }
+
+        .stat-card.warning .change {
+            color: var(--warning);
+        }
+
+        /* Section */
+        .section {
+            margin: 3rem 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .section-actions a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .content-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .content-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .content-card .thumbnail {
+            width: 100%;
+            height: 160px;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .content-card .body {
+            padding: 1.25rem;
+        }
+
+        .content-card .platform {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .content-card .title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+            line-height: 1.4;
+        }
+
+        .content-card .summary {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .content-card .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .content-card .date {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .content-card .tags {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .content-card .tag {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+        }
+
+        /* Inbox Section */
+        .inbox-section {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1));
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .inbox-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .inbox-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .inbox-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .inbox-item .info {
+            flex: 1;
+        }
+
+        .inbox-item .title {
+            font-weight: 500;
+        }
+
+        .inbox-item .meta {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .inbox-item .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        /* Reviews Section */
+        .reviews-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(245, 158, 11, 0.1));
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .review-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .review-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+
+        .review-item .content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .review-item .overdue {
+            color: var(--warning);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-bar {
+                margin: 0;
+                max-width: none;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">🧠 Linker Mind v2.0</div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search your knowledge base...">
+                    <button onclick="performSearch()">🔍 Search</button>
+                </div>
+                <div class="header-actions">
+                    <a href="#inbox" class="nav-link">📥 Inbox</a>
+                    <a href="#projects" class="nav-link">📁 Projects</a>
+                    <a href="#creation" class="nav-link">🎨 Create</a>
+                    <a href="#learning" class="nav-link">📚 Learn</a>
+                    <a href="#graph" class="nav-link">🕸️ Graph</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="action-card" onclick="openModal('addContentModal')">
+                <div class="icon">📥</div>
+                <h3>Add Content</h3>
+                <p>Paste URL or text to capture</p>
+            </div>
+            <div class="action-card" onclick="openModal('createProjectModal')">
+                <div class="icon">📁</div>
+                <h3>New Project</h3>
+                <p>Create a learning project</p>
+            </div>
+            <div class="action-card" onclick="openModal('createNodeModal')">
+                <div class="icon">🗂️</div>
+                <h3>New Node</h3>
+                <p>Add to PARA organization</p>
+            </div>
+            <div class="action-card" onclick="openModal('createCreationModal')">
+                <div class="icon">✍️</div>
+                <h3>Start Creating</h3>
+                <p>Begin a creative project</p>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total Items</div>
+                <div class="value">{{ stats.total }}</div>
+                <div class="change">In your knowledge base</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Pending</div>
+                <div class="value" id="inboxCount">12</div>
+                <div class="change">Items in inbox</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="label">Due for Review</div>
+                <div class="value" id="reviewCount">5</div>
+                <div class="change">Content to review</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Active Projects</div>
+                <div class="value">8</div>
+                <div class="change">Currently learning</div>
+            </div>
+        </div>
+
+        <!-- Inbox Section -->
+        <div class="inbox-section" id="inbox">
+            <div class="inbox-header">
+                <h2 style="font-size: 1.25rem;">📥 Inbox <span style="color: var(--text-muted); font-size: 0.9rem;">(12 pending)</span></h2>
+                <a href="#" style="color: var(--primary); text-decoration: none;">View All →</a>
+            </div>
+            <div class="inbox-items">
+                <div class="inbox-item">
+                    <div class="info">
+                        <div class="title">Understanding Progressive Summarization</div>
+                        <div class="meta">Added 2 hours ago • from Evergreen Notes</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-sm btn-primary">Process</button>
+                        <button class="btn-sm btn-secondary">Snooze</button>
+                    </div>
+                </div>
+                <div class="inbox-item">
+                    <div class="info">
+                        <div class="title">The Future of AI Agents</div>
+                        <div class="meta">Added 5 hours ago • YouTube video</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-sm btn-primary">Process</button>
+                        <button class="btn-sm btn-secondary">Snooze</button>
+                    </div>
+                </div>
+                <div class="inbox-item">
+                    <div class="info">
+                        <div class="title">Design Systems for Scale</div>
+                        <div class="meta">Added yesterday • Article</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-sm btn-primary">Process</button>
+                        <button class="btn-sm btn-secondary">Snooze</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section" id="learning">
+            <div class="inbox-header">
+                <h2 style="font-size: 1.25rem;">📚 Due for Review <span style="color: var(--warning); font-size: 0.9rem;">(5 items)</span></h2>
+                <a href="/reviews" style="color: var(--primary); text-decoration: none;">View All →</a>
+            </div>
+            <div class="review-items">
+                <div class="review-item">
+                    <div class="content">
+                        <div style="font-weight: 500;">Python Decorators Deep Dive</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">Last reviewed: 7 days ago</div>
+                    </div>
+                    <div class="overdue" style="font-size: 0.85rem;">Overdue by 3 days</div>
+                </div>
+                <div class="review-item">
+                    <div class="content">
+                        <div style="font-weight: 500;">System Design Patterns</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">Last reviewed: 14 days ago</div>
+                    </div>
+                    <div style="color: var(--success); font-size: 0.85rem;">Due today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Content -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Content</h2>
+                <div class="section-actions">
+                    <a href="#" onclick="filterContent('all')">All</a>
+                    <a href="#" onclick="filterContent('articles')">Articles</a>
+                    <a href="#" onclick="filterContent('videos')">Videos</a>
+                    <a href="#" onclick="filterContent('books')">Books</a>
+                </div>
+            </div>
+            <div class="content-grid">
+                {% for item in items[:12] %}
+                <article class="content-card">
+                    <div class="thumbnail">
+                        {% if item.media and item.media.images %}
+                            <img src="{{ item.media.images[0] }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <span>📄</span>
+                        {% endif %}
+                    </div>
+                    <div class="body">
+                        <div class="platform">{{ item.platform }}</div>
+                        <h3 class="title">
+                            <a href="/content/{{ item.id }}" style="color: inherit; text-decoration: none;">
+                                {{ item.content.title or 'Untitled' }}
+                            </a>
+                        </h3>
+                        <p class="summary">{{ item.content.summary or item.content.main_content[:200] }}</p>
+                        <div class="meta">
+                            <span class="date">{{ item.timestamp[:10] }}</span>
+                            <div class="tags">
+                                {% for tag in item.ai_analysis.topics[:2] %}
+                                <span class="tag">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <!-- Add Content Modal -->
+    <div class="modal" id="addContentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Content</h3>
+                <button class="modal-close" onclick="closeModal('addContentModal')">&times;</button>
+            </div>
+            <form onsubmit="addContent(event)">
+                <div class="form-group">
+                    <label>URL or Text</label>
+                    <textarea id="newContentInput" placeholder="Paste a URL or type text content..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Add to Project (Optional)</label>
+                    <select id="newContentProject">
+                        <option value="">None (Add to Inbox)</option>
+                        <option value="python_learning">Python Learning</option>
+                        <option value="design_systems">Design Systems</option>
+                        <option value="ai_research">AI Research</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('addContentModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Content</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Node Modal -->
+    <div class="modal" id="createNodeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">New PARA Node</h3>
+                <button class="modal-close" onclick="closeModal('createNodeModal')">&times;</button>
+            </div>
+            <form onsubmit="createNode(event)">
+                <div class="form-group">
+                    <label>Node Type</label>
+                    <select id="nodeType">
+                        <option value="project">🚀 Project (has deadline)</option>
+                        <option value="area">📁 Area (ongoing responsibility)</option>
+                        <option value="resource">📚 Resource (future reference)</option>
+                        <option value="archive">📦 Archive (completed)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="nodeName" placeholder="e.g., Learn Python" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="nodeDescription" placeholder="What is this about?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" id="nodeTags" placeholder="programming, python, learning">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('createNodeModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Node</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div class="modal" id="createProjectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">New Learning Project</h3>
+                <button class="modal-close" onclick="closeModal('createProjectModal')">&times;</button>
+            </div>
+            <form onsubmit="createProject(event)">
+                <div class="form-group">
+                    <label>Project Name</label>
+                    <input type="text" id="projectName" placeholder="e.g., Master Python in 30 Days" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="projectDescription" placeholder="What do you want to learn?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <input type="date" id="projectTargetDate">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('createProjectModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Creation Modal -->
+    <div class="modal" id="createCreationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Start Creative Project</h3>
+                <button class="modal-close" onclick="closeModal('createCreationModal')">&times;</button>
+            </div>
+            <form onsubmit="createCreation(event)">
+                <div class="form-group">
+                    <label>Project Type</label>
+                    <select id="creationType">
+                        <option value="article">📝 Article / Blog Post</option>
+                        <option value="video_script">🎬 Video Script</option>
+                        <option value="presentation">📊 Presentation</option>
+                        <option value="social_post">📱 Social Media Content</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Working Title</label>
+                    <input type="text" id="creationTitle" placeholder="e.g., The Future of Productivity" required>
+                </div>
+                <div class="form-group">
+                    <label>Brief / Concept</label>
+                    <textarea id="creationBrief" placeholder="What is this about?"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('createCreationModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Start Creating</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        // Search function
+        function performSearch() {
+            const query = document.getElementById('searchInput').value;
+            if (query) {
+                window.location.href = `/api/search?q=${encodeURIComponent(query)}`;
+            }
+        }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        // Add content
+        async function addContent(event) {
+            event.preventDefault();
+            const input = document.getElementById('newContentInput').value;
+            const project = document.getElementById('newContentProject').value;
+
+            try {
+                const result = await api.processURL(input, true);
+
+                if (result && result.id) {
+                    // 如果选择了项目，将内容添加到项目
+                    if (project) {
+                        await api.addContentToNode(project, result.id);
+                    }
+
+                    closeModal('addContentModal');
+                    showMessage('内容添加成功！', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } catch (error) {
+                console.error('Add content error:', error);
+                alert('添加失败: ' + error.message);
+            }
+        }
+
+        // 显示消息提示
+        function showMessage(message, type = 'info') {
+            const div = document.createElement('div');
+            div.textContent = message;
+            div.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#6c757d'};
+                color: white;
+                border-radius: 4px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // Filter content
+        function filterContent(type) {
+            // Implement filtering logic
+            console.log('Filtering by:', type);
+        }
+
+        // TODO: Implement createNode, createProject, createCreation functions
+        function createNode(event) {
+            event.preventDefault();
+            // API call to create node
+            console.log('Creating node...');
+        }
+
+        function createProject(event) {
+            event.preventDefault();
+            // API call to create project
+            console.log('Creating project...');
+        }
+
+        function createCreation(event) {
+            event.preventDefault();
+            // API call to create creation project
+            console.log('Creating creative project...');
+        }
+
+        // Update inbox and review counts (simulate API call)
+        async function updateCounts() {
+            // These would be real API calls
+            // const inboxResponse = await fetch('/api/inbox/count');
+            // const reviewResponse = await fetch('/api/reviews/count');
+        }
+
+        updateCounts();
+    </script>
+</body>
+</html>

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARA Organization - Linker Mind v2.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Section */
+        .section {
+            padding: 2rem 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Nodes Grid */
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .node-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .node-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .node-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .node-icon {
+            font-size: 2rem;
+        }
+
+        .node-info {
+            flex: 1;
+        }
+
+        .node-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .node-meta {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .node-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .node-stats {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .node-stat {
+            text-align: center;
+        }
+
+        .node-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .node-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .node-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">🗂️ PARA Organization</div>
+                <nav>
+                    <a href="/" class="nav-link">← Back to Dashboard</a>
+                    <a href="#projects" class="nav-link">Projects</a>
+                    <a href="#areas" class="nav-link">Areas</a>
+                    <a href="#resources" class="nav-link">Resources</a>
+                    <a href="#archive" class="nav-link">Archive</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('projects')">🚀 Projects</button>
+            <button class="tab" onclick="switchTab('areas')">📁 Areas</button>
+            <button class="tab" onclick="switchTab('resources')">📚 Resources</button>
+            <button class="tab" onclick="switchTab('archive')">📦 Archive</button>
+        </div>
+
+        <!-- Projects Tab -->
+        <div id="projects-tab" class="section">
+            <div class="section-header">
+                <h2 class="section-title">Active Projects</h2>
+                <button class="btn btn-primary" onclick="openModal('createNodeModal')">+ New Project</button>
+            </div>
+            <div class="nodes-grid" id="projects-grid">
+                <!-- Project Cards -->
+                <div class="node-card">
+                    <div class="node-header">
+                        <div class="node-icon">🎨</div>
+                        <div class="node-info">
+                            <div class="node-title">Character Design Series</div>
+                            <div class="node-meta">Started: Jan 15, 2024</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Create a series of unique character designs exploring different art styles and personalities.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">47</div>
+                            <div class="node-stat-label">Items</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">12</div>
+                            <div class="node-stat-label">Days</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">65%</div>
+                            <div class="node-stat-label">Progress</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%;"></div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">design</span>
+                        <span class="tag">characters</span>
+                        <span class="tag">art</span>
+                    </div>
+                </div>
+
+                <div class="node-card">
+                    <div class="node-header">
+                        <div class="node-icon">🐍</div>
+                        <div class="node-info">
+                            <div class="node-title">Python Mastery</div>
+                            <div class="node-meta">Target: Mar 30, 2024</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Comprehensive Python learning from basics to advanced topics including web development, data science, and automation.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">23</div>
+                            <div class="node-stat-label">Items</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">45</div>
+                            <div class="node-stat-label">Days</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">40%</div>
+                            <div class="node-stat-label">Progress</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 40%;"></div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">python</span>
+                        <span class="tag">programming</span>
+                        <span class="tag">learning</span>
+                    </div>
+                </div>
+
+                <div class="node-card">
+                    <div class="node-header">
+                        <div class="node-icon">✍️</div>
+                        <div class="node-info">
+                            <div class="node-title">Weekly Writing</div>
+                            <div class="node-meta">Ongoing • Every Sunday</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Publish one article every week on productivity, technology, or personal growth.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">8</div>
+                            <div class="node-stat-label">Articles</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">4</div>
+                            <div class="node-stat-label">Weeks</div>
+                        </div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">writing</span>
+                        <span class="tag">blogging</span>
+                        <span class="tag">weekly</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Areas Tab -->
+        <div id="areas-tab" class="section" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Areas of Responsibility</h2>
+                <button class="btn btn-primary" onclick="openModal('createNodeModal')">+ New Area</button>
+            </div>
+            <div class="nodes-grid">
+                <div class="node-card">
+                    <div class="node-header">
+                        <div class="node-icon">💻</div>
+                        <div class="node-info">
+                            <div class="node-title">Technology & Programming</div>
+                            <div class="node-meta">Ongoing Responsibility</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Keep up with technology trends, learn new programming languages, and maintain coding skills.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">3</div>
+                            <div class="node-stat-label">Projects</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">67</div>
+                            <div class="node-stat-label">Items</div>
+                        </div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">tech</span>
+                        <span class="tag">programming</span>
+                        <span class="tag">career</span>
+                    </div>
+                </div>
+
+                <div class="node-card">
+                    <div class="node-header">
+                        <div class="node-icon">🎨</div>
+                        <div class="node-info">
+                            <div class="node-title">Design & Creativity</div>
+                            <div class="node-meta">Ongoing Responsibility</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Practice design skills, build portfolio, and stay inspired with creative work.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">2</div>
+                            <div class="node-stat-label">Projects</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">34</div>
+                            <div class="node-stat-label">Items</div>
+                        </div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">design</span>
+                        <span class="tag">creative</span>
+                        <span class="tag">portfolio</span>
+                    </div>
+                </div>
+
+                <div class="node-card">
+                    <div class="node-header">
+                        <div class="node-icon">💪</div>
+                        <div class="node-info">
+                            <div class="node-title">Health & Fitness</div>
+                            <div class="node-meta">Ongoing Responsibility</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Maintain physical health through exercise, nutrition, and wellness practices.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">1</div>
+                            <div class="node-stat-label">Project</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">18</div>
+                            <div class="node-stat-label">Items</div>
+                        </div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">health</span>
+                        <span class="tag">fitness</span>
+                        <span class="tag">wellness</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources Tab -->
+        <div id="resources-tab" class="section" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Resource Library</h2>
+                <button class="btn btn-primary" onclick="openModal('createNodeModal')">+ Add Resource</button>
+            </div>
+            <div class="nodes-grid">
+                <div class="node-card">
+                    <div class="node-header">
+                        <div class="node-icon">📚</div>
+                        <div class="node-info">
+                            <div class="node-title">Design Inspiration</div>
+                            <div class="node-meta">Future Reference</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Collection of inspiring designs, color palettes, typography examples, and creative work.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">124</div>
+                            <div class="node-stat-label">Items</div>
+                        </div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">inspiration</span>
+                        <span class="tag">design</span>
+                        <span class="tag">reference</span>
+                    </div>
+                </div>
+
+                <div class="node-card">
+                    <div class="node-header">
+                        <div class="node-icon">📖</div>
+                        <div class="node-info">
+                            <div class="node-title">Reading List</div>
+                            <div class="node-meta">Books to Read</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Curated list of books recommended by peers, mentors, and thought leaders.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">23</div>
+                            <div class="node-stat-label">Books</div>
+                        </div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">books</span>
+                        <span class="tag">reading</span>
+                        <span class="tag">learning</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Archive Tab -->
+        <div id="archive-tab" class="section" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Archive</h2>
+            </div>
+            <div class="nodes-grid">
+                <div class="node-card" style="opacity: 0.7;">
+                    <div class="node-header">
+                        <div class="node-icon">✅</div>
+                        <div class="node-info">
+                            <div class="node-title">React Tutorial Series</div>
+                            <div class="node-meta">Completed • March 2023</div>
+                        </div>
+                    </div>
+                    <div class="node-description">
+                        Built a complete React application with TypeScript, Redux, and GraphQL.
+                    </div>
+                    <div class="node-stats">
+                        <div class="node-stat">
+                            <div class="node-stat-value">42</div>
+                            <div class="node-stat-label">Items</div>
+                        </div>
+                        <div class="node-stat">
+                            <div class="node-stat-value">100%</div>
+                            <div class="node-stat-label">Done</div>
+                        </div>
+                    </div>
+                    <div class="node-tags">
+                        <span class="tag">react</span>
+                        <span class="tag">completed</span>
+                        <span class="tag">web-dev</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Node Modal -->
+    <div class="modal" id="createNodeModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem;">Create New Node</h3>
+            <form onsubmit="createNode(event)">
+                <div class="form-group">
+                    <label>Node Type</label>
+                    <select id="nodeType">
+                        <option value="project">🚀 Project (has deadline)</option>
+                        <option value="area">📁 Area (ongoing responsibility)</option>
+                        <option value="resource">📚 Resource (future reference)</option>
+                        <option value="archive">📦 Archive (completed)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="nodeName" placeholder="e.g., Learn Python in 30 Days" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="nodeDescription" placeholder="What is this about?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <input type="text" id="nodeTags" placeholder="design, learning, project">
+                </div>
+                <div class="form-group" id="targetDateGroup">
+                    <label>Target Date (Optional)</label>
+                    <input type="date" id="nodeTargetDate">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createNodeModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Node</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.section').forEach(tab => {
+                tab.style.display = 'none';
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tabBtn => {
+                tabBtn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').style.display = 'block';
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function createNode(event) {
+            event.preventDefault();
+            const type = document.getElementById('nodeType').value;
+            const name = document.getElementById('nodeName').value;
+            const description = document.getElementById('nodeDescription').value;
+            const tags = document.getElementById('nodeTags').value;
+            const targetDate = document.getElementById('nodeTargetDate').value;
+
+            console.log('Creating node:', { type, name, description, tags, targetDate });
+            // TODO: API call to create node
+            closeModal('createNodeModal');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARA组织 - Linker Mind</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --accent-color: #000000;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+
+            /* PARA Colors */
+            --project-color: #e74c3c;
+            --area-color: #9b59b6;
+            --resource-color: #3498db;
+            --archive-color: #95a5a6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            transition: background 0.15s ease, border-color 0.15s ease;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        /* PARA Tabs */
+        .para-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .para-tab {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .para-tab:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .para-tab.active {
+            border-color: var(--accent-color);
+        }
+
+        .para-tab.projects.active {
+            border-color: var(--project-color);
+        }
+
+        .para-tab.areas.active {
+            border-color: var(--area-color);
+        }
+
+        .para-tab.resources.active {
+            border-color: var(--resource-color);
+        }
+
+        .para-tab.archive.active {
+            border-color: var(--archive-color);
+        }
+
+        .para-tab-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .para-tab-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .para-tab-count {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Node List */
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .node-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: box-shadow 0.15s ease, transform 0.15s ease;
+            will-change: transform;
+        }
+
+        .node-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .node-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .node-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .node-card-type {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .node-card-type.project {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .node-card-type.area {
+            background: #f3e8ff;
+            color: #5b21b6;
+        }
+
+        .node-card-type.resource {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .node-card-type.archive {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .node-card-description {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .node-card-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .node-card-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Tree View */
+        .tree-view {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .tree-item {
+            padding: 8px 0;
+        }
+
+        .tree-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .tree-item-content:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .tree-item-icon {
+            font-size: 1.25rem;
+        }
+
+        .tree-item-label {
+            flex: 1;
+            font-size: 0.9375rem;
+            font-weight: 500;
+        }
+
+        .tree-item-children {
+            margin-left: 28px;
+            padding-left: 16px;
+            border-left: 1px solid var(--border-color);
+        }
+
+        /* Batch Actions */
+        .batch-actions {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .batch-actions.visible {
+            display: flex;
+        }
+
+        .batch-actions .selected-info {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Selection Bar */
+        .selection-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selection-bar input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .selection-bar label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Node Card with Selection */
+        .node-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
+        .node-card-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .node-card-checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .node-card-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 1.125rem;
+            margin-bottom: 24px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            /* Use GPU acceleration */
+            transform: translateZ(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: -1px;
+            border-color: var(--accent-color);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .para-tabs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .node-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 PARA组织</h1>
+            <div class="header-actions">
+                <a href="/" class="btn">← 返回首页</a>
+                <button class="btn btn-primary" onclick="showCreateNodeModal()">+ 新建节点</button>
+            </div>
+        </div>
+
+        <!-- PARA Tabs -->
+        <div class="para-tabs">
+            <div class="para-tab projects active" onclick="filterByType('PROJECT')">
+                <div class="para-tab-icon">🎯</div>
+                <div class="para-tab-title">项目 (Projects)</div>
+                <div class="para-tab-count" id="projectCount">0 个项目</div>
+            </div>
+            <div class="para-tab areas" onclick="filterByType('AREA')">
+                <div class="para-tab-icon">📁</div>
+                <div class="para-tab-title">领域 (Areas)</div>
+                <div class="para-tab-count" id="areaCount">0 个领域</div>
+            </div>
+            <div class="para-tab resources" onclick="filterByType('RESOURCE')">
+                <div class="para-tab-icon">📚</div>
+                <div class="para-tab-title">资源 (Resources)</div>
+                <div class="para-tab-count" id="resourceCount">0 个资源</div>
+            </div>
+            <div class="para-tab archive" onclick="filterByType('ARCHIVE')">
+                <div class="para-tab-icon">📦</div>
+                <div class="para-tab-title">归档 (Archive)</div>
+                <div class="para-tab-count" id="archiveCount">0 个归档</div>
+            </div>
+        </div>
+
+        <!-- Batch Actions Bar -->
+        <div class="batch-actions" id="batchActions">
+            <span class="selected-info">已选择 <strong id="selectedCount">0</strong> 项</span>
+            <button class="btn" onclick="batchMoveNodes()">📁 移动到...</button>
+            <button class="btn" onclick="batchChangeStatus()">🔄 更改状态</button>
+            <button class="btn" onclick="batchDeleteNodes()">🗑️ 删除</button>
+            <button class="btn" onclick="clearSelection()">取消选择</button>
+        </div>
+
+        <!-- Selection Bar -->
+        <div class="selection-bar" id="selectionBar">
+            <input type="checkbox" id="selectAllNodes" onchange="toggleSelectAll()">
+            <label for="selectAllNodes">全选</label>
+        </div>
+
+        <!-- Content Area -->
+        <div id="contentArea">
+            <!-- Nodes will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Create Node Modal - Simplified -->
+    <div id="createNodeModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:white;padding:30px;border-radius:8px;width:90%;max-width:500px;max-height:80vh;overflow-y:auto;">
+            <h2 style="margin:0 0 20px 0;">新建节点</h2>
+            <button onclick="hideCreateNodeModal()" style="float:right;font-size:24px;border:none;background:none;cursor:pointer;">&times;</button>
+            <form id="createNodeForm" onsubmit="createNode(event)">
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;margin-bottom:8px;font-weight:500;">节点类型</label>
+                    <select id="nodeType" required style="width:100%;padding:12px;border:1px solid #ccc;border-radius:4px;font-size:16px;">
+                        <option value="PROJECT">🎯 项目 (Project)</option>
+                        <option value="AREA">📁 领域 (Area)</option>
+                        <option value="RESOURCE">📚 资源 (Resource)</option>
+                        <option value="ARCHIVE">📦 归档 (Archive)</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;margin-bottom:8px;font-weight:500;">名称</label>
+                    <input type="text" id="nodeName" required placeholder="例如：Python学习项目" style="width:100%;padding:12px;border:1px solid #ccc;border-radius:4px;font-size:16px;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;margin-bottom:8px;font-weight:500;">描述</label>
+                    <textarea id="nodeDescription" placeholder="描述这个节点的目的..." style="width:100%;padding:12px;border:1px solid #ccc;border-radius:4px;font-size:16px;min-height:100px;box-sizing:border-box;resize:vertical;"></textarea>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;margin-bottom:8px;font-weight:500;">父节点 (可选)</label>
+                    <select id="parentNode" style="width:100%;padding:12px;border:1px solid #ccc;border-radius:4px;font-size:16px;">
+                        <option value="">无父节点</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                    <button type="button" onclick="hideCreateNodeModal()" style="padding:10px 20px;border:1px solid #ccc;background:white;border-radius:4px;cursor:pointer;font-size:16px;">取消</button>
+                    <button type="submit" style="padding:10px 20px;background:#000;color:white;border:none;border-radius:4px;cursor:pointer;font-size:16px;">创建</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        let currentType = 'PROJECT';
+        let allNodes = [];
+
+        // Load nodes by type
+        async function loadNodes(type = 'PROJECT') {
+            currentType = type;
+
+            try {
+                // Get nodes by type
+                const nodes = await api.getNodes({ type: type, limit: 100 });
+                allNodes = nodes;
+
+                renderNodes(nodes, type);
+                // Don't call updateCounts here - call it separately
+            } catch (error) {
+                console.error('Failed to load nodes:', error);
+            }
+        }
+
+        // Render nodes
+        function renderNodes(nodes, type) {
+            const contentArea = document.getElementById('contentArea');
+
+            if (!nodes || nodes.length === 0) {
+                const emptyState = {
+                    'PROJECT': { icon: '🎯', text: '还没有创建任何项目' },
+                    'AREA': { icon: '📁', text: '还没有创建任何领域' },
+                    'RESOURCE': { icon: '📚', text: '还没有创建任何资源' },
+                    'ARCHIVE': { icon: '📦', text: '归档为空' }
+                };
+
+                contentArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">${emptyState[type]?.icon || '📭'}</div>
+                        <div class="empty-state-text">${emptyState[type]?.text || '暂无内容'}</div>
+                        <button class="btn btn-primary" onclick="showCreateNodeModal()">创建第一个${getTypeLabel(type)}</button>
+                    </div>
+                `;
+                return;
+            }
+
+            contentArea.innerHTML = `
+                <div class="node-grid">
+                    ${nodes.map(node => `
+                        <div class="node-card" data-id="${node.id}">
+                            <div class="node-card-checkbox-wrapper">
+                                <input type="checkbox" class="node-card-checkbox" value="${node.id}" onchange="updateSelection()">
+                                <div class="node-card-main" onclick="viewNode('${node.id}')">
+                                    <div class="node-card-header" style="margin-bottom: 0;">
+                                        <div class="node-card-title">${node.name}</div>
+                                        <span class="node-card-type ${node.type.toLowerCase()}">${getTypeLabel(node.type)}</span>
+                                    </div>
+                                    ${node.description ? `<div class="node-card-description">${node.description}</div>` : ''}
+                                    <div class="node-card-meta">
+                                        <span class="node-card-meta-item">
+                                            📄 ${node.content_count || 0} 内容
+                                        </span>
+                                        ${node.target_date ? `<span class="node-card-meta-item">📅 ${node.target_date}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Get type label
+        function getTypeLabel(type) {
+            const labels = {
+                'PROJECT': '项目',
+                'AREA': '领域',
+                'RESOURCE': '资源',
+                'ARCHIVE': '归档'
+            };
+            return labels[type] || type;
+        }
+
+        // Filter by type
+        function filterByType(type) {
+            // Update tab styles
+            document.querySelectorAll('.para-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.classList.contains(type.toLowerCase())) {
+                    tab.classList.add('active');
+                }
+            });
+
+            loadNodes(type);
+        }
+
+        // View node
+        function viewNode(nodeId) {
+            // TODO: Show node detail modal
+            alert(`查看节点: ${nodeId}`);
+        }
+
+        // Update counts - optimized with parallel requests and caching
+        let countsCache = null;
+        let countsCacheTime = 0;
+        const COUNTS_CACHE_TTL = 5000; // 5 seconds
+
+        async function updateCounts(forceRefresh = false) {
+            // Use cache if available and not force refresh
+            const now = Date.now();
+            if (!forceRefresh && countsCache && (now - countsCacheTime < COUNTS_CACHE_TTL)) {
+                updateCountsDisplay(countsCache);
+                return;
+            }
+
+            try {
+                // Parallel requests for better performance
+                const [projects, areas, resources, archive] = await Promise.all([
+                    api.getNodes({ type: 'PROJECT', limit: 1000 }),
+                    api.getNodes({ type: 'AREA', limit: 1000 }),
+                    api.getNodes({ type: 'RESOURCE', limit: 1000 }),
+                    api.getNodes({ type: 'ARCHIVE', limit: 1000 })
+                ]);
+
+                countsCache = { projects, areas, resources, archive };
+                countsCacheTime = now;
+
+                updateCountsDisplay(countsCache);
+            } catch (error) {
+                console.error('Failed to update counts:', error);
+            }
+        }
+
+        function updateCountsDisplay(counts) {
+            document.getElementById('projectCount').textContent = `${counts.projects?.length || 0} 个项目`;
+            document.getElementById('areaCount').textContent = `${counts.areas?.length || 0} 个领域`;
+            document.getElementById('resourceCount').textContent = `${counts.resources?.length || 0} 个资源`;
+            document.getElementById('archiveCount').textContent = `${counts.archive?.length || 0} 个归档`;
+        }
+
+        // Create node
+        async function createNode(event) {
+            event.preventDefault();
+
+            const type = document.getElementById('nodeType').value;
+            const name = document.getElementById('nodeName').value;
+            const description = document.getElementById('nodeDescription').value;
+            const parentId = document.getElementById('parentNode').value || null;
+
+            try {
+                await api.createNode({
+                    node_type: type,
+                    name: name,
+                    description: description,
+                    parent_id: parentId
+                });
+
+                hideCreateNodeModal();
+                await loadNodes(currentType);
+                updateCounts(true); // Force refresh after creating node
+
+                // Reset form
+                document.getElementById('createNodeForm').reset();
+            } catch (error) {
+                console.error('Failed to create node:', error);
+                alert('创建失败');
+            }
+        }
+
+        // Show create node modal
+        function showCreateNodeModal() {
+            const modal = document.getElementById('createNodeModal');
+            modal.style.display = 'flex';
+        }
+
+        // Hide create node modal
+        function hideCreateNodeModal() {
+            const modal = document.getElementById('createNodeModal');
+            modal.style.display = 'none';
+        }
+
+        // Selection handling
+        let selectedNodes = new Set();
+
+        function updateSelection() {
+            selectedNodes.clear();
+            document.querySelectorAll('.node-card-checkbox:checked').forEach(cb => {
+                selectedNodes.add(cb.value);
+            });
+
+            document.getElementById('selectedCount').textContent = selectedNodes.size;
+            document.getElementById('batchActions').classList.toggle('visible', selectedNodes.size > 0);
+        }
+
+        function toggleSelectAll() {
+            const checkbox = document.getElementById('selectAllNodes');
+            const checkboxes = document.querySelectorAll('.node-card-checkbox');
+
+            checkboxes.forEach(cb => {
+                if (cb.disabled !== true) {
+                    cb.checked = checkbox.checked;
+                }
+            });
+
+            updateSelection();
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.node-card-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            document.getElementById('selectAllNodes').checked = false;
+            selectedNodes.clear();
+            document.getElementById('selectedCount').textContent = '0';
+            document.getElementById('batchActions').classList.remove('visible');
+        }
+
+        // Batch operations
+        async function batchDeleteNodes() {
+            if (selectedNodes.size === 0) return;
+
+            const confirmed = confirm(`确定要删除选中的 ${selectedNodes.size} 个节点吗？此操作不可恢复。`);
+            if (!confirmed) return;
+
+            try {
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const nodeId of selectedNodes) {
+                    try {
+                        await fetch(`/api/nodes/${nodeId}`, { method: 'DELETE' });
+                        successCount++;
+                    } catch (error) {
+                        console.error(`Failed to delete node ${nodeId}:`, error);
+                        failCount++;
+                    }
+                }
+
+                clearSelection();
+                loadNodes(currentType);
+                updateCounts(true); // Force refresh after batch delete
+
+                alert(`删除完成: ${successCount} 成功, ${failCount} 失败`);
+            } catch (error) {
+                console.error('Batch delete error:', error);
+                alert('批量删除失败');
+            }
+        }
+
+        async function batchMoveNodes() {
+            if (selectedNodes.size === 0) return;
+
+            // Show node selection modal (for now, just prompt for parent ID)
+            const parentId = prompt('输入要移动到的父节点ID（留空则设为顶级节点）:');
+            if (parentId === null) return; // User cancelled
+
+            try {
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const nodeId of selectedNodes) {
+                    try {
+                        await fetch(`/api/nodes/${nodeId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ parent_id: parentId || null })
+                        });
+                        successCount++;
+                    } catch (error) {
+                        console.error(`Failed to move node ${nodeId}:`, error);
+                        failCount++;
+                    }
+                }
+
+                clearSelection();
+                loadNodes(currentType);
+                updateCounts(true); // Force refresh after batch move
+
+                alert(`移动完成: ${successCount} 成功, ${failCount} 失败`);
+            } catch (error) {
+                console.error('Batch move error:', error);
+                alert('批量移动失败');
+            }
+        }
+
+        async function batchChangeStatus() {
+            if (selectedNodes.size === 0) return;
+
+            const statusOptions = ['ACTIVE', 'INACTIVE', 'COMPLETED', 'ARCHIVED'];
+            const statusLabels = {
+                'ACTIVE': '活跃',
+                'INACTIVE': '非活跃',
+                'COMPLETED': '已完成',
+                'ARCHIVED': '已归档'
+            };
+
+            const statusStr = prompt(`选择新状态:\n${statusOptions.map((s, i) => `${i + 1}. ${statusLabels[s]} (${s})`).join('\n')}\n\n输入序号或状态名称:`);
+
+            if (!statusStr) return;
+
+            let newStatus = statusStr.toUpperCase();
+            // If user entered a number, map to status
+            const num = parseInt(statusStr);
+            if (!isNaN(num) && num >= 1 && num <= statusOptions.length) {
+                newStatus = statusOptions[num - 1];
+            }
+
+            if (!statusOptions.includes(newStatus)) {
+                alert('无效的状态');
+                return;
+            }
+
+            try {
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const nodeId of selectedNodes) {
+                    try {
+                        await fetch(`/api/nodes/${nodeId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: newStatus })
+                        });
+                        successCount++;
+                    } catch (error) {
+                        console.error(`Failed to update node ${nodeId}:`, error);
+                        failCount++;
+                    }
+                }
+
+                clearSelection();
+                loadNodes(currentType);
+                updateCounts(true); // Force refresh after batch change status
+
+                alert(`状态更新完成: ${successCount} 成功, ${failCount} 失败`);
+            } catch (error) {
+                console.error('Batch change status error:', error);
+                alert('批量更改状态失败');
+            }
+        }
+
+        // Initialize - parallel load for better performance
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load initial nodes and counts in parallel
+            await Promise.all([
+                loadNodes('PROJECT'),
+                updateCounts()
+            ]);
+        });
+    </script>
+</body>
+</html>

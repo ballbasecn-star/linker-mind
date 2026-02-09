@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README.md",
+                "file": "PROJECT_STATUS.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "PROJECT_STATUS"
             }
           }
         ]
@@ -185,16 +185,24 @@
   },
   "active": "f5d34b365269ca93",
   "lastOpenFiles": [
-    "一口气跳完2025年热门舞蹈！ [BV1SMmCBXEGx].danmaku.xml",
-    "一口气跳完2025年热门舞蹈！ [BV1SMmCBXEGx].danmaku.xml.part",
-    "templates/detail.html",
-    "templates/index.html",
-    "templates",
-    "web_interface.py",
-    "interactive_test.py",
-    "__pycache__/weixin_processor.cpython-313.pyc",
-    "__pycache__/douyin_processor.cpython-313.pyc",
-    "weixin_processor.py",
-    "douyin_processor.py"
+    "templates/error.html",
+    "linker_mind.db-shm",
+    "linker_mind.db-wal",
+    "templates/para_organization_old.html",
+    "templates/para_organization_api_test.html",
+    "templates/para_organization_minimal.html",
+    "templates/para_organization_backup.html",
+    "templates/para_organization_css_test.html",
+    "templates/para_organization_test.html",
+    "templates/para_organization.html",
+    "templates/inbox.html",
+    "PROJECT_PROGRESS.md",
+    "PROJECT_AUDIT.md",
+    "POSTGRESQL_SETUP.md",
+    "MIGRATION_SUMMARY.md",
+    "IMPLEMENTATION_COMPLETE.md",
+    "CLAUDE.md",
+    "PROJECT_STATUS.md",
+    "README.md"
   ]
 }

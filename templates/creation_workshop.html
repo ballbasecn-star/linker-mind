@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creation Workshop - Linker Mind v2.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Main Layout */
+        .creation-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .project-item {
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .project-item:hover {
+            border-color: var(--primary);
+        }
+
+        .project-item.active {
+            border-color: var(--secondary);
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        .project-item-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .project-item-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Material Kanban */
+        .material-kanban {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .kanban-column {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem;
+        }
+
+        .kanban-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .kanban-title {
+            font-weight: 600;
+        }
+
+        .kanban-count {
+            background: var(--bg-tertiary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .material-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .material-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .material-card:hover {
+            border-color: var(--primary);
+        }
+
+        .material-card-image {
+            width: 100%;
+            height: 80px;
+            background: var(--bg-primary);
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .material-card-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 0.25rem;
+        }
+
+        .material-card-type {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Editor Area */
+        .editor-area {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .editor-title-input {
+            font-size: 2rem;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            width: 100%;
+        }
+
+        .editor-title-input:focus {
+            outline: none;
+        }
+
+        .editor-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .editor-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Outline */
+        .outline-section {
+            margin-bottom: 2rem;
+        }
+
+        .outline-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .outline-item-status {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .outline-item-status.completed {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .outline-item-content {
+            flex: 1;
+        }
+
+        .outline-item-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .outline-item-notes {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Toolbar */
+        .editor-toolbar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .toolbar-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        .toolbar-btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Draft Editor */
+        .draft-editor {
+            width: 100%;
+            min-height: 400px;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.8;
+            resize: vertical;
+        }
+
+        /* Stats */
+        .stats-bar {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .creation-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .material-kanban {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">✍️ Creation Workshop</div>
+                <nav>
+                    <a href="/" class="nav-link">← Dashboard</a>
+                    <a href="#" class="nav-link">My Projects</a>
+                    <a href="#" class="nav-link">Templates</a>
+                    <a href="#" class="nav-link">Publish</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="creation-layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">My Projects</div>
+                    <div class="project-list">
+                        <div class="project-item active">
+                            <div class="project-item-title">The Future of AI Agents</div>
+                            <div class="project-item-meta">Article • 65% done</div>
+                        </div>
+                        <div class="project-item">
+                            <div class="project-item-title">Character Design Series</div>
+                            <div class="project-item-meta">Video • 40% done</div>
+                        </div>
+                        <div class="project-item">
+                            <div class="project-item-title">Weekly Newsletter</div>
+                            <div class="project-item-meta">Email • Ongoing</div>
+                        </div>
+                    </div>
+                    <button style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: var(--primary); border: none; border-radius: 0.5rem; color: white; cursor: pointer;" onclick="openModal('newProjectModal')">
+                        + New Project
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Quick Actions</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button class="toolbar-btn" onclick="generateOutline()">🤖 Generate Outline</button>
+                        <button class="toolbar-btn" onclick="findGaps()">🔍 Find Gaps</button>
+                        <button class="toolbar-btn" onclick="showConnections()">🔗 Show Connections</button>
+                        <button class="toolbar-btn" onclick="generateCitations()">📚 Generate Citations</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Material Stats</div>
+                    <div class="stats-bar" style="flex-direction: column; gap: 1rem; margin-top: 0;">
+                        <div class="stat-item">
+                            <div class="stat-value">47</div>
+                            <div class="stat-label">Total Items</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">52</div>
+                            <div class="stat-label">Images</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">18</div>
+                            <div class="stat-label">Articles</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">8</div>
+                            <div class="stat-label">Videos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Editor Area -->
+            <div class="editor-area">
+                <div class="editor-header">
+                    <div style="flex: 1;">
+                        <input type="text" class="editor-title-input" value="The Future of AI Agents" placeholder="Project Title">
+                        <div class="editor-meta">
+                            <div class="editor-meta-item">📝 Article</div>
+                            <div class="editor-meta-item">📊 Drafting</div>
+                            <div class="editor-meta-item">🎯 1,500 words goal</div>
+                            <div class="editor-meta-item">📅 Due: Feb 15, 2024</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="toolbar-btn">⭐</button>
+                        <button class="toolbar-btn">🗂️</button>
+                        <button class="toolbar-btn">📤 Publish</button>
+                    </div>
+                </div>
+
+                <!-- Outline -->
+                <div class="sidebar-title">Outline</div>
+                <div class="outline-section">
+                    <div class="outline-item">
+                        <div class="outline-item-status completed"></div>
+                        <div class="outline-item-content">
+                            <div class="outline-item-title">1. Introduction - Hook and Thesis</div>
+                            <div class="outline-item-notes">Start with a compelling story about AI assistants changing how we work</div>
+                        </div>
+                    </div>
+                    <div class="outline-item">
+                        <div class="outline-item-status completed"></div>
+                        <div class="outline-item-content">
+                            <div class="outline-item-title">2. What Are AI Agents?</div>
+                            <div class="outline-item-notes">Define AI agents and distinguish from traditional chatbots</div>
+                        </div>
+                    </div>
+                    <div class="outline-item">
+                        <div class="outline-item-status"></div>
+                        <div class="outline-item-content">
+                            <div class="outline-item-title">3. Current State of AI Agents</div>
+                            <div class="outline-item-notes">Overview of AutoGPT, BabyAGI, AgentGPT, and recent developments</div>
+                        </div>
+                    </div>
+                    <div class="outline-item">
+                        <div class="outline-item-status"></div>
+                        <div class="outline-item-content">
+                            <div class="outline-item-title">4. Key Capabilities</div>
+                            <div class="outline-item-notes">Autonomous planning, tool use, memory, and self-correction</div>
+                        </div>
+                    </div>
+                    <div class="outline-item">
+                        <div class="outline-item-status"></div>
+                        <div class="outline-item-content">
+                            <div class="outline-item-title">5. Real-World Applications</div>
+                            <div class="outline-item-notes">Coding agents, research assistants, data analysis, content creation</div>
+                        </div>
+                    </div>
+                    <div class="outline-item">
+                        <div class="outline-item-status"></div>
+                        <div class="outline-item-content">
+                            <div class="outline-item-title">6. Challenges and Limitations</div>
+                            <div class="outline-item-notes">Hallucination, reliability, ethical concerns, technical hurdles</div>
+                        </div>
+                    </div>
+                    <div class="outline-item">
+                        <div class="outline-item-status"></div>
+                        <div class="outline-item-content">
+                            <div class="outline-item-title">7. The Future</div>
+                            <div class="outline-item-notes">Multi-agent systems, improved reasoning, broader adoption</div>
+                        </div>
+                    </div>
+                    <div class="outline-item">
+                        <div class="outline-item-status"></div>
+                        <div class="outline-item-content">
+                            <div class="outline-item-title">8. Conclusion - Call to Action</div>
+                            <div class="outline-item-notes">Summary and invitation to experiment with AI agents</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Material Kanban -->
+                <div class="sidebar-title" style="margin-top: 2rem;">Source Materials</div>
+                <div class="material-kanban">
+                    <div class="kanban-column">
+                        <div class="kanban-header">
+                            <span class="kanban-title">📸 Images (52)</span>
+                            <span class="kanban-count">52</span>
+                        </div>
+                        <div class="material-grid">
+                            <div class="material-card">
+                                <div class="material-card-image">🖼️</div>
+                                <div class="material-card-title">Agent Architecture Diagram</div>
+                                <div class="material-card-type">Reference</div>
+                            </div>
+                            <div class="material-card">
+                                <div class="material-card-image">🖼️</div>
+                                <div class="material-card-title">AutoGPT Screenshot</div>
+                                <div class="material-card-type">Example</div>
+                            </div>
+                            <div class="material-card">
+                                <div class="material-card-image">🖼️</div>
+                                <div class="material-card-title">Comparison Chart</div>
+                                <div class="material-card-type">Data</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="kanban-header">
+                            <span class="kanban-title">📄 Articles (18)</span>
+                            <span class="kanban-count">18</span>
+                        </div>
+                        <div class="material-grid">
+                            <div class="material-card">
+                                <div class="material-card-image">📄</div>
+                                <div class="material-card-title">AutoGPT Paper</div>
+                                <div class="material-card-type">Research</div>
+                            </div>
+                            <div class="material-card">
+                                <div class="material-card-image">📄</div>
+                                <div class="material-card-title">BabyAGI Explained</div>
+                                <div class="material-card-type">Tutorial</div>
+                            </div>
+                            <div class="material-card">
+                                <div class="material-card-image">📄</div>
+                                <div class="material-card-title">Agent Design Patterns</div>
+                                <div class="material-card-type">Guide</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="kanban-header">
+                            <span class="kanban-title">🎬 Videos (8)</span>
+                            <span class="kanban-count">8</span>
+                        </div>
+                        <div class="material-grid">
+                            <div class="material-card">
+                                <div class="material-card-image">🎬</div>
+                                <div class="material-card-title">LangChain Tutorial</div>
+                                <div class="material-card-type">Education</div>
+                            </div>
+                            <div class="material-card">
+                                <div class="material-card-image">🎬</div>
+                                <div class="material-card-title">Agents in Practice</div>
+                                <div class="material-card-type">Demo</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Draft Editor -->
+                <div class="sidebar-title" style="margin-top: 2rem;">Draft Content</div>
+                <div class="editor-toolbar">
+                    <button class="toolbar-btn" onclick="formatText('bold')">Bold</button>
+                    <button class="toolbar-btn" onclick="formatText('italic')">Italic</button>
+                    <button class="toolbar-btn" onclick="formatText('heading')">H2</button>
+                    <button class="toolbar-btn" onclick="formatText('link')">Link</button>
+                    <button class="toolbar-btn" onclick="formatText('quote')">Quote</button>
+                    <button class="toolbar-btn" onclick="insertCitation()">📚 Insert Citation</button>
+                    <div style="flex: 1;"></div>
+                    <button class="toolbar-btn primary" onclick="saveDraft()">Save Draft</button>
+                </div>
+                <textarea class="draft-editor" id="draftEditor" placeholder="Start writing your content here..."># The Future of AI Agents
+
+## Introduction
+
+Imagine having an assistant that doesn't just answer questions, but takes action on your behalf...
+
+## What Are AI Agents?
+
+AI agents represent a paradigm shift in how we interact with artificial intelligence...
+
+</textarea>
+
+                <!-- Progress Stats -->
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <div class="stat-value">972</div>
+                        <div class="stat-label">Words</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">65%</div>
+                        <div class="stat-label">Complete</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">~4 min</div>
+                        <div class="stat-label">Read Time</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">Citations</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- New Project Modal -->
+    <div class="modal" id="newProjectModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem;">Start New Creative Project</h3>
+            <form onsubmit="createProject(event)">
+                <div class="form-group">
+                    <label>Project Type</label>
+                    <select id="projectType">
+                        <option value="article">📝 Article / Blog Post</option>
+                        <option value="video_script">🎬 Video Script</option>
+                        <option value="presentation">📊 Presentation</option>
+                        <option value="social_post">📱 Social Media Content</option>
+                        <option value="book">📚 Book</option>
+                        <option value="course">🎓 Course</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Working Title</label>
+                    <input type="text" id="projectTitle" placeholder="e.g., The Future of Productivity" required>
+                </div>
+                <div class="form-group">
+                    <label>Brief / Concept</label>
+                    <textarea id="projectBrief" placeholder="What is this project about?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <input type="date" id="projectTargetDate">
+                </div>
+                <div class="form-group">
+                    <label>Word Count Goal</label>
+                    <input type="number" id="projectWordGoal" placeholder="e.g., 1500">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="toolbar-btn" onclick="closeModal('newProjectModal')">Cancel</button>
+                    <button type="submit" class="toolbar-btn primary">Start Creating</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function createProject(event) {
+            event.preventDefault();
+            const type = document.getElementById('projectType').value;
+            const title = document.getElementById('projectTitle').value;
+            const brief = document.getElementById('projectBrief').value;
+            const targetDate = document.getElementById('projectTargetDate').value;
+            const wordGoal = document.getElementById('projectWordGoal').value;
+
+            console.log('Creating project:', { type, title, brief, targetDate, wordGoal });
+            // TODO: API call to create project
+            closeModal('newProjectModal');
+        }
+
+        function generateOutline() {
+            console.log('Generating AI outline...');
+            // TODO: Call AI assistant service
+        }
+
+        function findGaps() {
+            console.log('Finding content gaps...');
+            // TODO: Call AI assistant service
+        }
+
+        function showConnections() {
+            console.log('Finding connections...');
+            // TODO: Call link service
+        }
+
+        function generateCitations() {
+            console.log('Generating citations...');
+            // TODO: Generate formatted citations
+        }
+
+        function formatText(format) {
+            const editor = document.getElementById('draftEditor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+
+            const formats = {
+                bold: '**',
+                italic: '*',
+                heading: '## ',
+                link: '[](url)',
+                quote: '> '
+            };
+
+            editor.setRangeText(
+                formats[format] + editor.value.substring(start, end) + formats[format],
+                start,
+                end
+            );
+        }
+
+        function insertCitation() {
+            // TODO: Insert citation from source materials
+            console.log('Inserting citation...');
+        }
+
+        function saveDraft() {
+            console.log('Saving draft...');
+            // TODO: Save to database
+        }
+
+        // Toggle outline item status
+        document.querySelectorAll('.outline-item-status').forEach(status => {
+            status.addEventListener('click', function() {
+                this.classList.toggle('completed');
+            });
+        });
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>

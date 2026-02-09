@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ node.name }} - Linker Mind</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --border-hover: #d1d1d1;
+            --accent-color: #000000;
+            --accent-hover: #333333;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 32px 20px;
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 24px;
+        }
+
+        .main-content {
+            min-width: 0;
+        }
+
+        .sidebar {
+            min-width: 0;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        .project-header {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .project-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .project-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-collecting { background: #dbeafe; color: #1e40af; }
+        .status-planning { background: #fef3c7; color: #92400e; }
+        .status-in_progress { background: #dcfce7; color: #166534; }
+        .status-review { background: #f3e8ff; color: #7c3aed; }
+        .status-completed { background: #e5e7eb; color: #374151; }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .tab.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .content-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .content-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .content-item:hover {
+            border-color: var(--border-hover);
+        }
+
+        .content-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .content-meta {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            display: flex;
+            gap: 12px;
+        }
+
+        .notes-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .note-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .note-type {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .note-content {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .note-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 8px;
+        }
+
+        .sidebar-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .tags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            transition: all 0.15s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            border-color: var(--border-hover);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+        }
+
+        /* Add content modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--bg-tertiary);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px 16px;
+            }
+
+            .sidebar {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <a href="/projects" class="back-link">← 返回项目列表</a>
+
+            <div class="project-header">
+                <div class="project-title">{{ node.name }}</div>
+                <div class="project-meta">
+                    <span class="status-badge status-{{ node.status }}">
+                        {% if node.status == 'collecting' %}🔥 收集中
+                        {% elif node.status == 'planning' %}📋 规划中
+                        {% elif node.status == 'in_progress' %}⚡ 进行中
+                        {% elif node.status == 'review' %}👀 审核中
+                        {% elif node.status == 'completed' %}✅ 已完成
+                        {% endif %}
+                    </span>
+                    <span>📅 创建于 {{ node.created_at[:10] }}</span>
+                    {% if node.target_date %}
+                    <span>🎯 目标: {{ node.target_date }}</span>
+                    {% endif %}
+                </div>
+                {% if node.description %}
+                <div class="project-description">{{ node.description }}</div>
+                {% endif %}
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('contents')">📄 内容</button>
+                <button class="tab" onclick="showTab('notes')">📝 笔记</button>
+            </div>
+
+            <div id="contentsTab" class="tab-content active">
+                <div class="content-list">
+                    {% if contents %}
+                        {% for item in contents %}
+                        <div class="content-item" onclick="location.href='/content/{{ item.id }}'">
+                            <div class="content-title">{{ item.title or item.summary or '无标题' }}</div>
+                            <div class="content-meta">
+                                <span>{{ item.source_type or 'unknown' }}</span>
+                                <span>{{ item.created_at[:10] if item.created_at else 'N/A' }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <p>暂无内容</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="notesTab" class="tab-content">
+                <div class="notes-list">
+                    {% if notes %}
+                        {% for note in notes %}
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-type">
+                                    {% if note.type == 'learning' %}📝 学习笔记
+                                    {% elif note.type == 'inspiration' %}💡 创作灵感
+                                    {% elif note.type == 'quote' %}⭐ 金句摘录
+                                    {% elif note.type == 'actionable' %}🎯 可执行
+                                    {% elif note.type == 'question' %}❓ 疑问记录
+                                    {% elif note.type == 'connection' %}🔗 关联思考
+                                    {% elif note.type == 'todig' %}📌 待深入
+                                    {% else %}📝 笔记
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="note-content">{{ note.content }}</div>
+                            <div class="note-time">{{ note.timestamp[:19].replace('T', ' ') }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <p>暂无笔记</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-card">
+                <div class="sidebar-title">📊 统计</div>
+                <div class="stat-row">
+                    <span class="stat-label">内容总数</span>
+                    <span class="stat-value">{{ stats.content_count }}</span>
+                </div>
+                {% if stats.by_content_type.get('images', 0) > 0 %}
+                <div class="stat-row">
+                    <span class="stat-label">图片</span>
+                    <span class="stat-value">{{ stats.by_content_type.get('images', 0) }}</span>
+                </div>
+                {% endif %}
+                {% if stats.by_content_type.get('articles', 0) > 0 %}
+                <div class="stat-row">
+                    <span class="stat-label">文章</span>
+                    <span class="stat-value">{{ stats.by_content_type.get('articles', 0) }}</span>
+                </div>
+                {% endif %}
+                {% if stats.by_content_type.get('videos', 0) > 0 %}
+                <div class="stat-row">
+                    <span class="stat-label">视频</span>
+                    <span class="stat-value">{{ stats.by_content_type.get('videos', 0) }}</span>
+                </div>
+                {% endif %}
+                <div class="stat-row">
+                    <span class="stat-label">笔记</span>
+                    <span class="stat-value">{{ stats.with_notes_count }}</span>
+                </div>
+            </div>
+
+            {% if node.tags %}
+            <div class="sidebar-card">
+                <div class="sidebar-title">🏷️ 标签</div>
+                <div class="tags-list">
+                    {% for tag in node.tags %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="sidebar-card">
+                <div class="sidebar-title">操作</div>
+                <button class="btn btn-primary" onclick="showAddNoteModal()">+ 添加笔记</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Note Modal -->
+    <div class="modal" id="addNoteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>添加笔记</h2>
+                <button class="close-btn" onclick="hideAddNoteModal()">&times;</button>
+            </div>
+            <form id="addNoteForm" onsubmit="addNote(event)">
+                <div class="form-group">
+                    <label>笔记类型</label>
+                    <select name="type">
+                        <option value="learning">📝 学习笔记</option>
+                        <option value="inspiration">💡 创作灵感</option>
+                        <option value="quote">⭐ 金句摘录</option>
+                        <option value="actionable">🎯 可执行</option>
+                        <option value="question">❓ 疑问记录</option>
+                        <option value="connection">🔗 关联思考</option>
+                        <option value="todig">📌 待深入</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>笔记内容</label>
+                    <textarea name="content" required placeholder="写下你的想法..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">添加笔记</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showAddNoteModal() {
+            document.getElementById('addNoteModal').classList.add('active');
+        }
+
+        function hideAddNoteModal() {
+            document.getElementById('addNoteModal').classList.remove('active');
+        }
+
+        async function addNote(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                content: formData.get('content'),
+                type: formData.get('type'),
+                project_id: '{{ node.id }}'
+            };
+
+            try {
+                const response = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert('添加失败: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                alert('请求失败: ' + error);
+            }
+        }
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

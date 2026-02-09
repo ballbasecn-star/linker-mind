@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复习提醒 - Linker Mind</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e5e5;
+            --border-hover: #d1d1d1;
+            --accent-color: #000000;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        .review-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .review-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.15s ease;
+        }
+
+        .review-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        .review-card.overdue {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .review-card.due-today {
+            border-left: 4px solid #f39c12;
+        }
+
+        .review-card.upcoming {
+            border-left: 4px solid #3498db;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .review-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .review-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .badge-overdue { background: #fee2e2; color: #dc2626; }
+        .badge-due { background: #fef3c7; color: #92400e; }
+        .badge-upcoming { background: #dbeafe; color: #1e40af; }
+
+        .review-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .review-stats {
+            display: flex;
+            gap: 16px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            margin-bottom: 12px;
+        }
+
+        .review-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--border-hover);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        /* Calendar View */
+        .calendar-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 8px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .calendar-day:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .calendar-day.today {
+            border-color: var(--accent-color);
+            background: var(--bg-tertiary);
+        }
+
+        .calendar-day-number {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .calendar-day-dots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+
+        .calendar-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .dot-overdue { background: #e74c3c; }
+        .dot-due { background: #f39c12; }
+        .dot-upcoming { background: #3498db; }
+
+        /* Stats View */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .stats-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stats-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+        }
+
+        .heatmap-cell.level-1 { background: #c6f6d5; }
+        .heatmap-cell.level-2 { background: #9ae6b4; }
+        .heatmap-cell.level-3 { background: #68d391; }
+        .heatmap-cell.level-4 { background: #38a169; }
+        .heatmap-cell.level-5 { background: #276749; }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .stats-bar {
+                flex-direction: row;
+                gap: 12px;
+            }
+
+            .stat-item {
+                padding: 12px;
+            }
+
+            .calendar-grid {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>复习提醒</h1>
+            <a href="/" style="color: var(--text-secondary); text-decoration: none;">← 返回首页</a>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('due')">📋 待复习</button>
+            <button class="nav-tab" onclick="showTab('calendar')">📅 日历</button>
+            <button class="nav-tab" onclick="showTab('stats')">📊 统计</button>
+        </div>
+
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <div class="stat-value" id="dueReviews">0</div>
+                <div class="stat-label">待复习</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="overdueReviews">0</div>
+                <div class="stat-label">已逾期</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="completedToday">0</div>
+                <div class="stat-label">今日完成</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="streakDays">0</div>
+                <div class="stat-label">连续天数</div>
+            </div>
+        </div>
+
+        <div id="dueTab">
+            <div class="review-list" id="reviewList">
+                <div class="empty-state">加载中...</div>
+            </div>
+        </div>
+
+        <div id="calendarTab" style="display: none;">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button class="btn" onclick="changeMonth(-1)">← 上月</button>
+                    <h2 id="calendarTitle">2026年2月</h2>
+                    <button class="btn" onclick="changeMonth(1)">下月 →</button>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">日</div>
+                    <div class="calendar-day-header">一</div>
+                    <div class="calendar-day-header">二</div>
+                    <div class="calendar-day-header">三</div>
+                    <div class="calendar-day-header">四</div>
+                    <div class="calendar-day-header">五</div>
+                    <div class="calendar-day-header">六</div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar days will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <div id="statsTab" style="display: none;">
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-card-title">学习热力图 (最近30天)</div>
+                    <div class="heatmap" id="heatmap">
+                        <!-- Heatmap cells will be inserted here -->
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card-title">复习统计</div>
+                    <div id="reviewStats">
+                        <div class="empty-state">加载中...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMonth = new Date();
+
+        // Show/hide tabs
+        function showTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('dueTab').style.display = tab === 'due' ? 'block' : 'none';
+            document.getElementById('calendarTab').style.display = tab === 'calendar' ? 'block' : 'none';
+            document.getElementById('statsTab').style.display = tab === 'stats' ? 'block' : 'none';
+
+            if (tab === 'calendar') {
+                loadCalendar();
+            } else if (tab === 'stats') {
+                loadStats();
+            }
+        }
+
+        // Load due reviews
+        async function loadReviews() {
+            try {
+                const response = await fetch('/api/reviews/due');
+                const reviews = await response.json();
+
+                renderReviews(reviews);
+                updateStats(reviews);
+            } catch (error) {
+                console.error('Failed to load reviews:', error);
+                document.getElementById('reviewList').innerHTML =
+                    '<div class="empty-state">加载失败</div>';
+            }
+        }
+
+        function renderReviews(reviews) {
+            const list = document.getElementById('reviewList');
+
+            if (reviews.length === 0) {
+                list.innerHTML = '<div class="empty-state">暂无待复习内容 🎉</div>';
+                return;
+            }
+
+            list.innerHTML = reviews.map(review => {
+                const status = getReviewStatus(review);
+                return `
+                    <div class="review-card ${status.class}">
+                        <div class="review-header">
+                            <div class="review-title">${review.content_title || '无标题'}</div>
+                            <span class="review-badge ${status.badgeClass}">${status.label}</span>
+                        </div>
+
+                        <div class="review-meta">
+                            <span>📅 ${formatDate(review.scheduled_date)}</span>
+                            <span>🔁 第 ${review.review_count} 次复习</span>
+                            <span>⏱️ 间隔: ${review.interval_days} 天</span>
+                        </div>
+
+                        <div class="review-stats">
+                            <span>难度系数: ${review.ease_factor.toFixed(2)}</span>
+                            <span>上次评分: ${review.last_quality || '-'}/5</span>
+                        </div>
+
+                        <div class="review-actions">
+                            <button class="btn btn-primary" onclick="completeReview('${review.schedule_id}', 5)">
+                                😊 完全掌握 (5)
+                            </button>
+                            <button class="btn" onclick="completeReview('${review.schedule_id}', 4)">
+                                👍 基本掌握 (4)
+                            </button>
+                            <button class="btn" onclick="completeReview('${review.schedule_id}', 3)">
+                                😐 有印象 (3)
+                            </button>
+                            <button class="btn" onclick="completeReview('${review.schedule_id}', 2)">
+                                😰 模糊 (2)
+                            </button>
+                            <button class="btn" onclick="completeReview('${review.schedule_id}', 1)">
+                                😭 完全忘记 (1)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getReviewStatus(review) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dueDate = new Date(review.scheduled_date);
+            dueDate.setHours(0, 0, 0, 0);
+
+            if (dueDate < today) {
+                return {
+                    label: '已逾期',
+                    class: 'overdue',
+                    badgeClass: 'badge-overdue'
+                };
+            } else if (dueDate.getTime() === today.getTime()) {
+                return {
+                    label: '今天',
+                    class: 'due-today',
+                    badgeClass: 'badge-due'
+                };
+            } else {
+                return {
+                    label: '即将到期',
+                    class: 'upcoming',
+                    badgeClass: 'badge-upcoming'
+                };
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const target = new Date(date);
+            target.setHours(0, 0, 0, 0);
+
+            if (target.getTime() === today.getTime()) {
+                return '今天';
+            } else if (target.getTime() === tomorrow.getTime()) {
+                return '明天';
+            } else {
+                return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+            }
+        }
+
+        async function completeReview(scheduleId, quality) {
+            try {
+                const response = await fetch(`/api/reviews/${scheduleId}/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quality, time_minutes: 5 })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('复习完成！下次复习时间: ' + formatDate(result.next_date));
+                    loadReviews();
+                } else {
+                    alert('操作失败: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                alert('操作失败: ' + error);
+            }
+        }
+
+        function updateStats(reviews) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const due = reviews.filter(r => {
+                const dueDate = new Date(r.scheduled_date);
+                dueDate.setHours(0, 0, 0, 0);
+                return dueDate <= today;
+            }).length;
+
+            const overdue = reviews.filter(r => {
+                const dueDate = new Date(r.scheduled_date);
+                dueDate.setHours(0, 0, 0, 0);
+                return dueDate < today;
+            }).length;
+
+            document.getElementById('dueReviews').textContent = due;
+            document.getElementById('overdueReviews').textContent = overdue;
+        }
+
+        // Calendar functions
+        async function loadCalendar() {
+            try {
+                const year = currentMonth.getFullYear();
+                const month = currentMonth.getMonth() + 1;
+
+                const response = await fetch(`/api/reviews/calendar?year=${year}&month=${month}`);
+                const data = await response.json();
+
+                renderCalendar(data);
+            } catch (error) {
+                console.error('Failed to load calendar:', error);
+            }
+        }
+
+        function renderCalendar(data) {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+
+            document.getElementById('calendarTitle').textContent =
+                `${year}年${month + 1}月`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay();
+            const totalDays = lastDay.getDate();
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let html = '';
+
+            // Empty cells before first day
+            for (let i = 0; i < startDay; i++) {
+                html += '<div class="calendar-day"></div>';
+            }
+
+            // Days of month
+            for (let day = 1; day <= totalDays; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = date.toISOString().split('T')[0];
+                const isToday = date.getTime() === today.getTime();
+
+                const dayData = data.find(d => d.date === dateStr) || { counts: { overdue: 0, due: 0, upcoming: 0 } };
+                const counts = dayData.counts || { overdue: 0, due: 0, upcoming: 0 };
+
+                let dots = '';
+                for (let i = 0; i < counts.overdue; i++) dots += '<span class="calendar-dot dot-overdue"></span>';
+                for (let i = 0; i < counts.due; i++) dots += '<span class="calendar-dot dot-due"></span>';
+                for (let i = 0; i < counts.upcoming; i++) dots += '<span class="calendar-dot dot-upcoming"></span>';
+
+                html += `
+                    <div class="calendar-day ${isToday ? 'today' : ''}" onclick="showDayReviews('${dateStr}')">
+                        <div class="calendar-day-number">${day}</div>
+                        <div class="calendar-day-dots">${dots}</div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+
+        function changeMonth(delta) {
+            currentMonth.setMonth(currentMonth.getMonth() + delta);
+            loadCalendar();
+        }
+
+        async function showDayReviews(dateStr) {
+            alert(`查看 ${dateStr} 的复习记录`);
+        }
+
+        // Stats functions
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/reviews/stats');
+                const stats = await response.json();
+
+                renderHeatmap(stats.heatmap || []);
+                renderReviewStats(stats);
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        function renderHeatmap(heatmap) {
+            const container = document.getElementById('heatmap');
+
+            if (heatmap.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无数据</div>';
+                return;
+            }
+
+            container.innerHTML = heatmap.map(cell => {
+                const level = cell.count > 0 ? Math.min(5, Math.ceil(cell.count / 2)) : 0;
+                return `<div class="heatmap-cell ${level > 0 ? 'level-' + level : ''}" title="${cell.date}: ${cell.count} 次复习"></div>`;
+            }).join('');
+        }
+
+        function renderReviewStats(stats) {
+            const container = document.getElementById('reviewStats');
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>总复习次数</span>
+                        <strong>${stats.total_reviews || 0}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>平均间隔</span>
+                        <strong>${(stats.avg_interval || 0).toFixed(1)} 天</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>平均难度系数</span>
+                        <strong>${(stats.avg_ease || 2.5).toFixed(2)}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>连续复习天数</span>
+                        <strong>${stats.streak || 0} 天</strong>
+                    </div>
+                </div>
+            `;
+            document.getElementById('streakDays').textContent = stats.streak || 0;
+            document.getElementById('completedToday').textContent = stats.today_completed || 0;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadReviews);
+    </script>
+</body>
+</html>
