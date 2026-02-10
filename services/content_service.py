@@ -24,6 +24,10 @@ class ContentService:
         self.processor_factory = ProcessorFactory.create_default()
         self.analyzer = None
 
+        # MCP tool references (injected if available)
+        self._web_reader_func = None
+        self._video_analyzer_func = None
+
         # 延迟初始化AI分析器
         try:
             import os
@@ -31,6 +35,11 @@ class ContentService:
                 self.analyzer = AIAnalyzer()
         except Exception as e:
             logger.warning(f"AI Analyzer not available: {e}")
+
+    def set_mcp_tools(self, web_reader_func=None, video_analyzer_func=None):
+        """Set MCP tool functions for enhanced processing"""
+        self._web_reader_func = web_reader_func
+        self._video_analyzer_func = video_analyzer_func
 
     def list_contents(
         self,
@@ -117,7 +126,8 @@ class ContentService:
     def create_from_url(
         self,
         url: str,
-        enable_ai: bool = True
+        enable_ai: bool = True,
+        deep_analysis: bool = False
     ) -> Optional[Dict[str, Any]]:
         """
         从URL创建内容
@@ -125,6 +135,7 @@ class ContentService:
         Args:
             url: URL地址
             enable_ai: 是否启用AI分析
+            deep_analysis: 是否进行深度分析（仅对视频有效，包括转录和关键帧）
 
         Returns:
             创建的内容或None
@@ -141,8 +152,38 @@ class ContentService:
             logger.error(f"No processor available for URL type: {url_info.url_type.value}")
             return None
 
+        # Inject MCP tools for specialized processors
+        processor_class_name = processor.__class__.__name__
+
+        # For DouyinProcessor, enable deep_analysis if requested
+        if processor_class_name == "DouyinProcessor" and deep_analysis:
+            # Check if video analysis service is available
+            if hasattr(processor, '_get_video_analysis_service'):
+                service = processor._get_video_analysis_service()
+                if service:
+                    logger.info("Enabling deep video analysis with transcription")
+                else:
+                    logger.warning("VideoAnalysisService not available, falling back to basic extraction")
+
+        # Check if processor supports deep_analysis parameter
+        import inspect
+        sig = inspect.signature(processor.extract)
+        if 'deep_analysis' in sig.parameters:
+            use_deep_analysis = deep_analysis and processor_class_name == "DouyinProcessor"
+        else:
+            use_deep_analysis = False
+
+        if processor_class_name == "TwitterProcessor" and self._web_reader_func:
+            processor.web_reader_func = self._web_reader_func
+        elif processor_class_name == "DouyinProcessor" and self._web_reader_func:
+            processor.set_mcp_tools(self._web_reader_func)
+
         # 提取内容
-        processed = processor.extract(url_info)
+        extract_kwargs = {}
+        if use_deep_analysis:
+            extract_kwargs['deep_analysis'] = True
+
+        processed = processor.extract(url_info, **extract_kwargs)
         if not processed:
             logger.error("Failed to extract content")
             return None

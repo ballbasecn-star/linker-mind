@@ -194,6 +194,9 @@ class LinkerMind:
             # For TwitterProcessor, inject web_reader_func if available
             if processor.__class__.__name__ == "TwitterProcessor" and self._web_reader_func:
                 processor.web_reader_func = self._web_reader_func
+            # For DouyinProcessor, inject web_reader_func if available
+            if processor.__class__.__name__ == "DouyinProcessor" and self._web_reader_func:
+                processor.set_mcp_tools(self._web_reader_func)
             return processor.extract(url_info)
 
     def _process_text(self, text: str) -> Optional[ProcessedContent]:

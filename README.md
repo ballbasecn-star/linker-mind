@@ -16,6 +16,7 @@
 ## 目录
 
 - [核心功能](#核心功能)
+- [🎬 抖音视频深度分析](#🎬-抖音视频深度分析)
 - [系统架构](#系统架构)
 - [技术栈](#技术栈)
 - [快速开始](#快速开始)
@@ -39,11 +40,78 @@
 | 网页文章 | Firecrawl | 通用网页内容抓取 |
 | Twitter/X | Tavily API | 推文、长文、线程 |
 | 微信公众号 | MCP WebReader | 公众号文章提取 |
-| 抖音 | MCP WebReader | 视频内容及描述 |
+| 抖音 | requests + 页面解析 | 视频信息 + 深度分析 |
 | YouTube/B站 | yt-dlp | 视频元数据及字幕 |
 | 电子书 | epubkit | EPUB/PDF解析 |
 | 播客/音频 | whisper | 音频转文字 |
 | 图片 | OCR | 图片文字提取 |
+
+### 🎬 抖音视频深度分析
+
+**功能特性**：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    抖音视频分析流程                           │
+├─────────────────────────────────────────────────────────────┤
+│  1️⃣ 基本提取 (即时完成)                                       │
+│     ├── 标题、作者、描述                                      │
+│     ├── 点赞/评论/分享/收藏数据                               │
+│     ├── 话题标签 (#xxx)                                       │
+│     └── 封面图片 + 视频播放链接                                │
+├─────────────────────────────────────────────────────────────┤
+│  2️⃣ 深度分析 (可选，需视频下载)                               │
+│     ├── 视频下载 (yt-dlp)                                     │
+│     ├── 音频提取 (ffmpeg)                                     │
+│     ├── 语音转录 (OpenAI Whisper)                             │
+│     ├── LLM 分析摘要 + 关键点                                 │
+│     └── 关键画面提取 (5帧均匀分布)                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**使用方式**：
+
+```bash
+# 基本提取 (默认)
+POST /api/process
+{"url": "https://v.douyin.com/xxx/", "enable_ai": true}
+
+# 深度分析 (需要安装额外依赖)
+POST /api/process
+{"url": "https://v.douyin.com/xxx/", "enable_ai": true, "deep_analysis": true}
+```
+
+**提取的数据**：
+
+| 数据项 | 基本提取 | 深度分析 |
+|--------|---------|---------|
+| 标题 | ✅ | ✅ |
+| 作者 | ✅ | ✅ |
+| 完整文案 | ✅ (描述) | ✅ (语音转录) |
+| 统计数据 | ✅ | ✅ |
+| 话题标签 | ✅ | ✅ |
+| 封面图片 | ✅ | ✅ |
+| 视频链接 | ✅ | ✅ |
+| 时长 | ✅ | ✅ |
+| 语音转录 | ❌ | ✅ |
+| LLM摘要 | ❌ | ✅ |
+| 关键点 | ❌ | ✅ |
+| 关键画面 | ❌ | ✅ |
+
+**依赖安装**：
+
+```bash
+# 视频下载
+pip install yt-dlp
+
+# 语音转录 (需要 Rust 编译)
+pip install openai-whisper
+
+# ffmpeg (macOS)
+brew install ffmpeg
+```
+
+**注意**：抖音视频下载需要登录认证才能完整下载，无登录时使用基本提取模式。
 
 ### 🤖 AI智能分析
 
@@ -175,8 +243,10 @@ Python 技能树
 | AI分析 | DeepSeek API | 摘要/标签生成 |
 | 网页抓取 | Firecrawl | 网页内容提取 |
 | Twitter抓取 | Tavily API | X平台内容 |
-| 视频处理 | yt-dlp | 视频元数据 |
-| 音频转写 | OpenAI Whisper | 音频转文字 |
+| 抖音抓取 | requests + BeautifulSoup | 页面解析+深度分析 |
+| 视频处理 | yt-dlp | 视频下载 |
+| 音频转写 | OpenAI Whisper | 语音转文字 |
+| 关键帧提取 | ffmpeg | 视频帧截图 |
 | 前端 | D3.js + Vanilla JS | 可视化/交互 |
 | 模板 | Jinja2 | HTML渲染 |
 
@@ -266,19 +336,20 @@ linker-mind/
 │       ├── pagination.py        # 分页工具
 │       └── api.py              # API响应封装
 │
-├── services/                    # 业务逻辑层 (9个服务)
+├── services/                    # 业务逻辑层 (10+个服务)
 │   ├── content_service.py       # 内容管理
 │   ├── node_service.py          # 节点管理
 │   ├── note_service.py          # 笔记服务
 │   ├── link_service.py          # 链接服务
 │   ├── inbox_service.py         # 收件箱服务
 │   ├── creation_service.py      # 创作项目
-│   ├── creation_assistant.py     # AI创作助手
+│   ├── creation_assistant.py    # AI创作助手
 │   ├── session_service.py       # 学习会话
 │   ├── skill_service.py         # 技能服务
 │   ├── graph_service.py         # 知识图谱
 │   ├── search_service.py        # 搜索服务
-│   └── summary_service.py       # 总结服务
+│   ├── summary_service.py       # 总结服务
+│   └── video_analysis_service.py # **视频深度分析**
 │
 ├── repositories/                 # 数据访问层
 │   ├── base.py                  # Repository基类
@@ -295,10 +366,12 @@ linker-mind/
 ├── processors/                  # 内容处理器
 │   ├── content_processor.py      # 基础处理器
 │   ├── twitter_processor.py     # Twitter/X处理器
+│   ├── douyin_processor.py      # **抖音视频处理器** (基础+深度分析)
 │   ├── video_processor.py       # 视频处理器
 │   ├── book_processor.py        # 电子书处理器
 │   ├── audio_processor.py       # 音频处理器
 │   ├── ocr_processor.py         # OCR处理器
+│   ├── weixin_processor.py      # 微信公众号
 │   └── ...
 │
 ├── static/                       # 静态资源
@@ -433,12 +506,40 @@ linker-mind/
 | GET | `/content/<id>` | 内容详情页 |
 | GET | `/api/contents` | 内容列表(分页) |
 | POST | `/api/contents` | 创建内容(URL/文本) |
+| POST | `/api/process` | **处理URL** |
 | GET | `/api/contents/<id>` | 获取内容 |
 | PUT | `/api/contents/<id>` | 更新内容 |
 | DELETE | `/api/contents/<id>` | 删除内容 |
 | POST | `/api/contents/<id>/favorite` | 切换收藏 |
 | POST | `/api/contents/<id>/archive` | 切换归档 |
 | PUT | `/api/contents/<id>/progress` | 更新阅读进度 |
+
+**处理URL请求**：
+
+```json
+POST /api/process
+{
+    "url": "https://v.douyin.com/xxx/",
+    "enable_ai": true,
+    "deep_analysis": false  // 可选：是否进行深度分析(视频)
+}
+```
+
+响应：
+
+```json
+{
+    "success": true,
+    "data": {
+        "id": "content_xxx",
+        "title": "内容标题",
+        "summary": "AI摘要",
+        "source_type": "douyin",
+        "content_type": "article",
+        "deep_analysis_enabled": false
+    }
+}
+```
 
 ### 组织API (PARA)
 
@@ -546,11 +647,41 @@ ContentProcessor (抽象基类)
 ├── WebPageProcessor      # 网页内容
 ├── SocialMediaProcessor # 社交媒体
 ├── TwitterProcessor     # Twitter/X (Tavily)
-├── VideoProcessor       # 视频
-├── TextMemoProcessor   # 纯文本
-├── BookProcessor       # EPUB/PDF
-├── AudioProcessor      # 音频
-└── OCRProcessor        # 图片OCR
+├── DouyinProcessor      # 抖音视频 (基础 + 深度分析)
+├── VideoProcessor       # 通用视频 (YouTube/B站)
+├── WeixinProcessor      # 微信公众号
+├── TextMemoProcessor    # 纯文本
+├── BookProcessor        # EPUB/PDF
+├── AudioProcessor       # 音频
+├── OCRProcessor         # 图片OCR
+└── ThreadProcessor      # 推文串
+```
+
+### 抖音处理器特性
+
+```python
+class DouyinProcessor(ContentProcessor):
+    """抖音视频处理器 - 支持深度分析"""
+
+    def extract(self, url_info: URLInfo, deep_analysis: bool = False) -> ProcessedContent:
+        """提取抖音视频内容
+
+        Args:
+            url_info: URL信息
+            deep_analysis: 是否进行深度分析(语音转录+关键帧)
+        """
+        # 基本提取: 即时完成
+        # - 标题、作者、描述
+        # - 统计数据(点赞/评论/分享)
+        # - 话题标签
+        # - 封面图片、视频链接
+
+        # 深度分析: 需额外30-60秒
+        # - 下载视频 (yt-dlp)
+        # - 提取音频 (ffmpeg)
+        # - 语音转录 (Whisper)
+        # - LLM分析摘要和关键点
+        # - 提取5个关键画面
 ```
 
 ### 处理器接口
@@ -667,9 +798,52 @@ python run.py --migrate
 2. 确认图片URL可访问
 3. 检查是否跨域问题
 
+### Q: 抖音视频深度分析需要什么?
+
+1. **基本提取** (默认): 即时完成，无需额外依赖
+   - 标题、作者、描述
+   - 点赞/评论/分享/收藏数据
+   - 话题标签
+   - 封面图片和视频链接
+
+2. **深度分析**: 需要安装以下依赖
+   ```bash
+   pip install yt-dlp openai-whisper
+   brew install ffmpeg
+   ```
+   - 完整语音转录 (Whisper)
+   - LLM智能摘要
+   - 关键画面提取
+   - **注意**: 抖音视频下载需要登录认证
+
+### Q: 抖音视频下载失败?
+
+抖音视频有版权保护，需要登录状态才能下载。解决方案：
+1. 使用基本提取模式（无需登录）
+2. 在浏览器中登录抖音后导出 Cookie
+3. 使用浏览器扩展预处理视频
+
 ---
 
 ## 更新日志
+
+### v2.1.0 (2026-02)
+
+**🎬 抖音视频深度分析**
+
+- ✨ 新增 `video_analysis_service.py` - 视频深度分析服务
+- ✨ 抖音视频支持完整转录（Whisper语音识别）
+- ✨ LLM智能摘要和关键点提取
+- ✨ 关键画面自动提取（5帧均匀分布）
+- ✨ 基本提取模式：即时完成，无需额外依赖
+- ✨ 深度分析模式：完整转录，需要安装 yt-dlp + whisper + ffmpeg
+- ✨ 新增 `deep_analysis` 参数支持
+
+**🐛 修复**
+
+- 修复抖音短链接展开问题
+- 修复 Firecrawl API 对某些URL的兼容性问题
+- 修复内容详情页图片显示问题
 
 ### v2.0.0 (2026-02)
 

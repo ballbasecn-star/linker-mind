@@ -131,11 +131,12 @@ def process_url():
         data = request.get_json()
         url = data.get('url')
         enable_ai = data.get('enable_ai', True)
+        deep_analysis = data.get('deep_analysis', False)  # Enable deep video analysis
 
         if not url:
             return json_error_response('URL is required', status_code=400)
 
-        content = service.create_from_url(url, enable_ai=enable_ai)
+        content = service.create_from_url(url, enable_ai=enable_ai, deep_analysis=deep_analysis)
 
         if not content:
             return json_error_response('Failed to process URL', status_code=500)
@@ -146,7 +147,8 @@ def process_url():
             'summary': content['summary'],
             'source_type': content['source_type'],
             'content_type': content['content_type'],
-            'message': 'Content processed successfully'
+            'message': 'Content processed successfully',
+            'deep_analysis_enabled': deep_analysis
         }, status_code=201)
 
     except Exception as e:
