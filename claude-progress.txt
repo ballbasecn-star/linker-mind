@@ -124,30 +124,54 @@ COMPLETED FEATURES (12/13)
 DATABASE SCHEMA
 ==============================================================================
 
-Type: PostgreSQL (Primary) / SQLite (Fallback)
+Type: PostgreSQL (117.72.207.52:5432/linker-mind)
 Tables: 13
-Total Records: 73
+Full-Text Search Tables: 2 (contents_fts, notes_fts)
 
 Table List:
-  1. contents           - Main content storage (64 records)
-  2. nodes              - PARA organization (1 record)
-  3. node_contents      - Content-node associations
-  4. notes              - Progressive notes (1 record)
-  5. links              - Bidirectional links
-  6. learning_sessions  - Learning tracking
-  7. review_schedules   - Spaced repetition
-  8. creation_projects  - Creative projects
-  9. citations          - Citation records
-  10. skills            - Skill definitions (7 records)
-  11. skill_contents    - Skill-content associations
-  12. inbox             - CODE workflow
-  13. tags              - Tag library
+  1. contents           - Main content storage
+     Fields: id, source_type, content_type, title, url, raw_content, summary,
+             main_content, ai_analysis (JSONB), metadata (JSONB), favorited,
+             archived, reading_progress, created_at, updated_at, processed_at
 
-JSONB Fields:
-  - contents.ai_analysis  - AI analysis results
-  - contents.metadata     - Content metadata
-  - contents.tags         - Tag list
-  - skills.parent_ids    - Parent skill IDs
+  2. notes              - Progressive notes
+     Fields: id, content_id, note_type, content, highlights (JSONB),
+             summary_layers (JSONB), project_tags (JSONB), created_at, updated_at
+
+  3. nodes              - PARA organization (Projects, Areas, Resources, Archive)
+     Fields: id, node_type, name, description, parent_id, status, icon,
+             tags (JSONB), properties (JSONB), target_date, completed_at
+
+  4. node_contents      - Content-node relationship
+     Fields: node_id, content_id, added_at (PK: node_id, content_id)
+
+  5. links              - Bidirectional links
+     Fields: id, source_id, target_id, link_type, strength, created_at, updated_at
+
+  6. learning_sessions  - Learning session tracking
+     Fields: id, content_id, duration, comprehension, next_review, session_data (JSONB)
+
+  7. review_schedules   - Spaced repetition scheduling
+     Fields: content_id, next_review, interval, ease_factor, review_history (JSONB)
+
+  8. skills             - Skill management
+     Fields: id, skill_name, level, parent_ids (JSONB), metadata (JSONB), progress (JSONB)
+
+  9. skill_contents     - Skill-content relationship
+     Fields: skill_id, content_id, order_index
+
+  10. creation_projects  - Creation projects
+     Fields: id, project_type, outline, status, metadata (JSONB), citations (JSONB)
+
+  11. citations          - Citation tracking
+     Fields: id, project_id, source_content_id, citation_data (JSONB)
+
+  12. inbox             - Inbox items
+     Fields: id, content_id, raw_input, title, url, source_type, status,
+             quick_tags (JSONB), properties (JSONB)
+
+  13. tags              - Tag management
+     Fields: id, name, color, use_count
 
 ==============================================================================
 BLUEPRINTS & SERVICES
@@ -166,22 +190,35 @@ Blueprints (11):
   ├─ search_bp.py       → EnhancedSearchService
   └─ api_bp.py          → Composite operations
 
-Services (9):
-  ├─ InboxService
-  ├─ NodeService
-  ├─ ContentService
-  ├─ NoteService
-  ├─ LinkService
-  ├─ CreationWorkshopService
-  ├─ CreationAssistant
-  ├─ EnhancedSearchService
-  ├─ LearningSessionService
-  ├─ KnowledgeGraphService
-  └─ SkillTreeManager
+Services (11):
+  ├─ ContentService (11 methods)
+  ├─ InboxService (11 methods)
+  ├─ NodeService (19 methods)
+  ├─ NoteService (10 methods)
+  ├─ LinkService (14 methods)
+  ├─ CreationWorkshopService (12 methods)
+  ├─ CreationAssistant (9 methods)
+  ├─ EnhancedSearchService (11 methods)
+  ├─ LearningSessionService (13 methods)
+  ├─ KnowledgeGraphService (12 methods)
+  └─ SkillService (13 methods)
 
 Total Routes: 117
   - Page Routes: 10
   - API Routes: 107
+
+API Endpoint Breakdown by Blueprint:
+  ├─ content_bp:   12 endpoints (content CRUD, batch, stats, favorite, archive)
+  ├─ node_bp:       15 endpoints (PARA CRUD, tree, reorder, contents, stats)
+  ├─ note_bp:       8 endpoints (notes CRUD, batch, content notes)
+  ├─ link_bp:       6 endpoints (links CRUD, backlinks, suggestions)
+  ├─ inbox_bp:      10 endpoints (inbox CRUD, process, bulk, overdue)
+  ├─ session_bp:    10 endpoints (sessions CRUD, reviews, stats)
+  ├─ skill_bp:      9 endpoints (skills CRUD, tree, contents)
+  ├─ graph_bp:      8 endpoints (graph data, layout, cluster, analyze)
+  ├─ search_bp:     4 endpoints (search, suggestions, facets, advanced)
+  ├─ creation_bp:   10 endpoints (projects CRUD, outline, export, suggestions)
+  └─ api_bp:        25 endpoints (composite operations: capture, organize, etc.)
 
 ==============================================================================
 REFACTORING PROGRESS
@@ -238,19 +275,34 @@ NEXT STEPS (Priority Order)
 P0 - Immediate:
   ✅ Fix content detail page display
   ✅ Add Markdown and image support
-  ⚠️ Add error page template
+  ⚠️ Add error page template (404, 500)
   ⚠️ Test all API endpoints
 
 P1 - Near Term:
   1. Complete Skill Tree System (20% remaining)
-     - Visualization UI
+     - Visualization UI (D3.js tree/force layout)
      - Path recommendation algorithm
-     - Progress tracking
+     - Progress tracking visualization
 
   2. Implement Inbox UI
+     - CODE workflow interface
+     - Bulk processing operations
+     - Quick tagging system
+
   3. Implement PARA organization UI
+     - Node tree view
+     - Drag-and-drop organization
+     - Project status tracking
+
   4. Enhance Knowledge Graph visualization
+     - Better force-directed layout
+     - Interactive node exploration
+     - Cluster highlighting
+
   5. Add batch operations
+     - Batch content processing
+     - Bulk tag management
+     - Bulk node assignment
 
 P2 - Long Term:
   1. Skill tree visualization
@@ -341,6 +393,7 @@ To resume development in a new session:
   4. Reference CLAUDE.md for PRD requirements
 
 ==============================================================================
-Last Updated: 2026-02-14
+Last Updated: 2026-02-15
 Maintainer: Claude Code Assistant (project-dev architecture)
+Session ID: 6e26500c-f439-4a64-999c-6056afd35494
 ==============================================================================

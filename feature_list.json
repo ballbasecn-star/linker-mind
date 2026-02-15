@@ -1,14 +1,22 @@
 {
   "metadata": {
     "project_name": "Linker Mind",
-    "project_type": "second-brain-creative-workspace",
+    "project_type": "knowledge-management",
     "version": "2.0.0",
     "created_at": "2026-02-14",
-    "updated_at": "2026-02-14",
-    "tech_stack": ["Flask 3.x", "Python 3.10+", "PostgreSQL", "SQLite", "D3.js"],
+    "updated_at": "2026-02-15",
+    "tech_stack": ["Flask 3.x", "Python 3.10+", "PostgreSQL", "D3.js"],
     "total_features": 13,
     "completed_features": 12,
-    "completion_rate": "92%"
+    "completion_rate": 0.92,
+    "blueprints": 11,
+    "services": 11,
+    "database": {
+      "type": "PostgreSQL",
+      "host": "117.72.207.52:5432",
+      "tables": 13,
+      "fts_tables": 2
+    }
   },
   "features": [
     {
@@ -214,32 +222,32 @@
   },
   "architecture": {
     "blueprints": 11,
-    "services": 9,
+    "services": 11,
     "blueprint_list": [
-      "content_bp",
-      "node_bp",
-      "note_bp",
-      "inbox_bp",
-      "link_bp",
-      "creation_bp",
-      "session_bp",
-      "skill_bp",
-      "graph_bp",
-      "search_bp",
-      "api_bp"
+      {"name": "content_bp", "routes": 12, "file": "app/blueprints/content_bp.py"},
+      {"name": "node_bp", "routes": 15, "file": "app/blueprints/node_bp.py"},
+      {"name": "note_bp", "routes": 8, "file": "app/blueprints/note_bp.py"},
+      {"name": "link_bp", "routes": 6, "file": "app/blueprints/link_bp.py"},
+      {"name": "inbox_bp", "routes": 10, "file": "app/blueprints/inbox_bp.py"},
+      {"name": "session_bp", "routes": 10, "file": "app/blueprints/session_bp.py"},
+      {"name": "skill_bp", "routes": 9, "file": "app/blueprints/skill_bp.py"},
+      {"name": "graph_bp", "routes": 8, "file": "app/blueprints/graph_bp.py"},
+      {"name": "search_bp", "routes": 4, "file": "app/blueprints/search_bp.py"},
+      {"name": "creation_bp", "routes": 10, "file": "app/blueprints/creation_bp.py"},
+      {"name": "api_bp", "routes": 25, "file": "app/blueprints/api_bp.py"}
     ],
     "service_list": [
-      "InboxService",
-      "NodeService",
-      "ContentService",
-      "NoteService",
-      "LinkService",
-      "CreationWorkshopService",
-      "CreationAssistant",
-      "EnhancedSearchService",
-      "LearningSessionService",
-      "KnowledgeGraphService",
-      "SkillTreeManager"
+      {"name": "ContentService", "methods": 11, "file": "services/content_service.py"},
+      {"name": "InboxService", "methods": 11, "file": "services/inbox_service.py"},
+      {"name": "NodeService", "methods": 19, "file": "services/node_service.py"},
+      {"name": "NoteService", "methods": 10, "file": "services/note_service.py"},
+      {"name": "LinkService", "methods": 14, "file": "services/link_service.py"},
+      {"name": "CreationWorkshopService", "methods": 12, "file": "services/creation_service.py"},
+      {"name": "CreationAssistant", "methods": 9, "file": "services/creation_assistant.py"},
+      {"name": "EnhancedSearchService", "methods": 11, "file": "services/search_service.py"},
+      {"name": "LearningSessionService", "methods": 13, "file": "services/session_service.py"},
+      {"name": "KnowledgeGraphService", "methods": 12, "file": "services/graph_service.py"},
+      {"name": "SkillService", "methods": 13, "file": "services/skill_service.py"}
     ]
   },
   "api_stats": {
@@ -252,5 +260,20 @@
     "实现学习路径推荐算法",
     "添加数据导出功能",
     "实现单元测试覆盖"
-  ]
+  ],
+  "known_issues": [
+    "内容详情页显示需要优化",
+    "缺少错误页面模板",
+    "需要测试所有API端点"
+  ],
+  "project_dev": {
+    "enabled": true,
+    "session_id": "6e26500c-f439-4a64-999c-6056afd35494",
+    "config_files": [
+      "feature_list.json",
+      "init.sh",
+      "claude-progress.txt"
+    ],
+    "resume_command": "/project-dev"
+  }
 }
