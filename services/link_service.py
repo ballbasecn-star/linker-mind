@@ -261,6 +261,34 @@ class LinkService:
             for row in rows
         ]
 
+    def get_all(
+        self,
+        link_type: Optional[LinkType] = None,
+        limit: int = 100
+    ) -> List[Link]:
+        """
+        Get all links with optional filtering
+
+        Args:
+            link_type: Optional link type filter
+            limit: Maximum number of links to return
+
+        Returns:
+            List of Link objects
+        """
+        sql = "SELECT * FROM links"
+        params = ()
+
+        if link_type:
+            sql += " WHERE link_type = ?"
+            params = (link_type.value,)
+
+        sql += " ORDER BY strength DESC, created_at DESC LIMIT ?"
+        params = params + (limit,)
+
+        rows = self.db.fetchall(sql, params)
+        return [self._row_to_link(row) for row in rows]
+
     def delete(self, link_id: str) -> bool:
         """Delete a link"""
         rows = self.db.delete("links", "id = ?", (link_id,))

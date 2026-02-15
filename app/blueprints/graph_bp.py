@@ -262,3 +262,34 @@ def get_graph_stats():
     except Exception as e:
         logger.error(f"Error getting graph stats: {e}")
         return json_error_response(str(e), status_code=500)
+
+
+@graph_bp.route('/api/graph/nodes', methods=['GET'])
+def get_graph_nodes():
+    """Get all nodes for graph visualization"""
+    try:
+        from services.node_service import NodeService
+        service = NodeService()
+        limit = request.args.get('limit', 100, type=int)
+        
+        nodes = service.get_all(limit=limit)
+        
+        # Convert to graph format
+        node_list = []
+        for node in nodes:
+            node_list.append({
+                'id': node.id,
+                'label': node.name,
+                'type': node.node_type,
+                'color': node.color,
+                'icon': node.icon,
+                'parent_id': node.parent_id
+            })
+        
+        return json_success_response({
+            'nodes': node_list,
+            'count': len(node_list)
+        })
+    except Exception as e:
+        logger.error(f"Error getting graph nodes: {e}")
+        return json_error_response(str(e), status_code=500)

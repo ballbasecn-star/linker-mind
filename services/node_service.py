@@ -260,6 +260,42 @@ class NodeService:
         """Get archived nodes"""
         return self.get_by_type(NodeType.ARCHIVE, limit=limit)
 
+    def get_all(
+        self,
+        node_type: Optional[NodeType] = None,
+        status: Optional[NodeStatus] = None,
+        limit: int = 100
+    ) -> List[OrganizationNode]:
+        """
+        Get all nodes with optional filtering
+
+        Args:
+            node_type: Optional node type filter
+            status: Optional status filter
+            limit: Maximum number of nodes to return
+
+        Returns:
+            List of OrganizationNode objects
+        """
+        sql = "SELECT * FROM nodes"
+        params = ()
+
+        if node_type:
+            sql += " WHERE node_type = ?"
+            params = params + (node_type.value,)
+            if status:
+                sql += " AND status = ?"
+                params = params + (status.value,)
+        elif status:
+            sql += " WHERE status = ?"
+            params = params + (status.value,)
+
+        sql += " ORDER BY order_index ASC, name ASC LIMIT ?"
+        params = params + (limit,)
+
+        rows = self.db.fetchall(sql, params)
+        return [self._row_to_node(row) for row in rows]
+
     def get_children(
         self,
         parent_id: str,

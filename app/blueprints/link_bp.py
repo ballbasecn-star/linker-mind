@@ -34,9 +34,8 @@ def list_links():
         link_type = request.args.get('link_type')
         limit = request.args.get('limit', 100, type=int)
 
-        links = service.list_links(
-            source_id=source_id,
-            target_id=target_id,
+        # Use get_all() method instead of list_links()
+        links = service.get_all(
             link_type=link_type,
             limit=limit
         )

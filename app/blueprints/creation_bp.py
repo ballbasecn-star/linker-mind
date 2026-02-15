@@ -575,3 +575,9 @@ def find_gaps(project_id: str):
     except Exception as e:
         logger.error(f"Error finding gaps: {e}")
         return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creation/projects', methods=['GET'])
+def list_projects_alias():
+    """Alias for /api/creations - list creation projects"""
+    return list_creations()

@@ -622,3 +622,38 @@ def get_stats():
     except Exception as e:
         logger.error(f"Error getting stats: {e}")
         return json_error_response(str(e), status_code=500)
+
+
+@content_bp.route('/api/contents/count', methods=['GET'])
+def get_contents_count():
+    """Get total count of contents"""
+    try:
+        service = get_content_service()
+        
+        # Get filters (optional)
+        content_type = request.args.get('content_type')
+        source_type = request.args.get('source_type')
+        tag = request.args.get('tag')
+        favorited = request.args.get('favorited')
+        
+        # Parse boolean
+        favorited_bool = False
+        if favorited and favorited.lower() == 'true':
+            favorited_bool = True
+        
+        # Get all contents with filters
+        contents = service.list_contents(
+            content_type=content_type,
+            source_type=source_type,
+            tag=tag,
+            favorited=favorited_bool,
+            archived=False,
+            sort_by='created_at',
+            sort_order='DESC',
+            limit=10000  # High limit to get count
+        )
+        
+        return json_success_response(len(contents))
+    except Exception as e:
+        logger.error(f"Error getting contents count: {e}")
+        return json_error_response(str(e), status_code=500)
