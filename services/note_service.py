@@ -122,7 +122,7 @@ class NoteService:
             创建的笔记
         """
         import time
-        from database.connection import json_dumps
+        from database import json_dumps
 
         note_id = f"note_{int(time.time() * 1000)}"
 
@@ -151,7 +151,7 @@ class NoteService:
     ) -> Optional[Dict[str, Any]]:
         """更新笔记"""
         updates = {}
-        from database.connection import json_dumps
+        from database import json_dumps
 
         if content is not None:
             updates['content'] = content
@@ -314,7 +314,7 @@ class NoteService:
 
     def _parse_note_row(self, row: Dict[str, Any]) -> Dict[str, Any]:
         """解析笔记行数据"""
-        from database.connection import json_list
+        from database import json_list
 
         if row.get('highlights'):
             row['highlights'] = json_list(row['highlights'])

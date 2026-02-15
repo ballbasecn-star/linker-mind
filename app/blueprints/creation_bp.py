@@ -12,7 +12,7 @@ from datetime import datetime
 from services.creation_service import CreationWorkshopService, CreationType, CreationStatus
 from app.utils.api import json_success_response, json_error_response
 from database.db_interface import get_connection
-from database.connection import json_list, json_dict
+from database import json_list, json_dict
 
 logger = logging.getLogger(__name__)
 

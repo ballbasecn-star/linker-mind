@@ -95,12 +95,9 @@ def create_app(config=None):
         'dev-secret-key-change-in-production'
     )
 
-    # Database configuration
-    db_type = os.environ.get('DB_TYPE', 'sqlite').lower()
-    if db_type == 'postgresql':
-        logger.info("Using PostgreSQL database")
-    else:
-        logger.info("Using SQLite database")
+    # Database configuration (PostgreSQL only)
+    db_type = os.environ.get('DB_TYPE', 'postgresql').lower()
+    logger.info("Using PostgreSQL database")
 
     # Debug mode
     debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'

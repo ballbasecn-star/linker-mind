@@ -1,0 +1,346 @@
+==============================================================================
+Linker Mind - Project Development Progress
+==============================================================================
+Project: Second Brain + Creative Workspace System
+Version: 2.0.0
+Architecture: Flask + PostgreSQL
+Status: 92% Complete (12/13 features)
+
+==============================================================================
+ARCHITECTURE OVERVIEW
+==============================================================================
+
+Tech Stack:
+  - Backend: Flask 3.x on Python 3.10+
+  - Database: PostgreSQL only
+  - AI Service: DeepSeek API
+  - Content Extraction: Firecrawl + MCP WebReader
+  - Frontend: D3.js + Vanilla JS
+
+Project Structure:
+  linker-mind/
+  ├── app/                    - Flask application
+  │   ├── __init__.py        - Application factory (11 blueprints)
+  │   ├── blueprints/        - Route handlers (11 modules)
+  │   ├── templates/         - Jinja2 templates
+  │   ├── static/            - Frontend assets (API client: 100+ methods)
+  │   └── utils/             - Helper functions
+  ├── services/               - Business logic layer (9 services)
+  ├── database/               - Data access layer
+  │   ├── db_interface.py    - Unified DB interface
+  │   ├── connection.py      - SQLite connection
+  │   ├── pg_connection.py   - PostgreSQL connection
+  │   └── migration.py       - Data migration scripts
+  ├── repositories/           - Repository pattern layer
+  ├── [processors]           - Multi-platform content handlers (10+)
+  ├── run.py                - Application entry point
+  ├── init.sh               - NEW: Environment management script
+  ├── feature_list.json     - NEW: Feature tracking
+  └── claude-progress.txt   - NEW: This file
+
+==============================================================================
+COMPLETED FEATURES (12/13)
+==============================================================================
+
+[P0 - Critical] All Complete:
+  ✅ Content Collection System
+     - 12+ platform support (WeChat, Douyin, YouTube, Twitter, etc.)
+     - 10+ specialized processors
+     - Service: ContentService
+     - Blueprint: content_bp.py
+
+  ✅ PARA Organization System
+     - Projects, Areas, Resources, Archive
+     - Service: NodeService
+     - Blueprint: node_bp.py
+     - 13 endpoints
+
+  ✅ Progressive Notes System
+     - 5-layer summarization (Highlight → Bold → Super Note → Summary → New Content)
+     - 7 note types (learning_note, inspiration, highlight, actionable, question, related_thought, deep_dive)
+     - Service: NoteService
+     - Blueprint: note_bp.py
+
+  ✅ Bidirectional Links System
+     - Content-to-content linking
+     - Citation tracking
+     - Service: LinkService
+     - Blueprint: link_bp.py
+
+  ✅ Inbox Workflow (CODE)
+     - Capture → Organize → Distill → Express
+     - Service: InboxService
+     - Blueprint: inbox_bp.py
+
+[P1 - High Priority] 3/4 Complete:
+  ✅ Creation Workshop
+     - Project management
+     - Materials board
+     - AI assistant
+     - Citation management
+     - Service: CreationWorkshopService
+     - Blueprint: creation_bp.py
+
+  ✅ Enhanced Search System
+     - FTS5 full-text search
+     - Tag, type, time range filters
+     - Service: EnhancedSearchService
+     - Blueprint: search_bp.py
+
+  ✅ Knowledge Graph Visualization
+     - D3.js force-directed graph
+     - Node exploration
+     - Service: KnowledgeGraphService
+     - Blueprint: graph_bp.py
+
+  ⚠️ Skill Tree System (80% Complete)
+     - Skill dependency tracking
+     - Service: SkillTreeManager
+     - Blueprint: skill_bp.py
+     - REMAINING: Visualization UI, path recommendation, progress tracking
+
+[P2 - Medium Priority] All Complete:
+  ✅ Learning & Review System
+     - Spaced repetition (Ebbinghaus curve)
+     - Review reminders
+     - Service: LearningSessionService
+     - Blueprint: session_bp.py
+
+  ✅ Statistics & Analytics
+     - Learning heatmaps
+     - Skill radar charts
+     - Creation progress tracking
+
+  ✅ Unified API Client
+     - 100+ API methods
+     - Auto error handling
+     - File: app/static/js/api.js (16,330 bytes)
+
+  ✅ Multi-Platform Content Processors
+     - 10+ specialized processors
+     - Unified ProcessedContent output format
+
+==============================================================================
+DATABASE SCHEMA
+==============================================================================
+
+Type: PostgreSQL (Primary) / SQLite (Fallback)
+Tables: 13
+Total Records: 73
+
+Table List:
+  1. contents           - Main content storage (64 records)
+  2. nodes              - PARA organization (1 record)
+  3. node_contents      - Content-node associations
+  4. notes              - Progressive notes (1 record)
+  5. links              - Bidirectional links
+  6. learning_sessions  - Learning tracking
+  7. review_schedules   - Spaced repetition
+  8. creation_projects  - Creative projects
+  9. citations          - Citation records
+  10. skills            - Skill definitions (7 records)
+  11. skill_contents    - Skill-content associations
+  12. inbox             - CODE workflow
+  13. tags              - Tag library
+
+JSONB Fields:
+  - contents.ai_analysis  - AI analysis results
+  - contents.metadata     - Content metadata
+  - contents.tags         - Tag list
+  - skills.parent_ids    - Parent skill IDs
+
+==============================================================================
+BLUEPRINTS & SERVICES
+==============================================================================
+
+Blueprints (11):
+  ├─ content_bp.py      → ContentService
+  ├─ node_bp.py         → NodeService
+  ├─ note_bp.py         → NoteService
+  ├─ inbox_bp.py        → InboxService
+  ├─ link_bp.py         → LinkService
+  ├─ creation_bp.py     → CreationWorkshopService
+  ├─ session_bp.py      → LearningSessionService
+  ├─ skill_bp.py        → SkillTreeManager
+  ├─ graph_bp.py        → KnowledgeGraphService
+  ├─ search_bp.py       → EnhancedSearchService
+  └─ api_bp.py          → Composite operations
+
+Services (9):
+  ├─ InboxService
+  ├─ NodeService
+  ├─ ContentService
+  ├─ NoteService
+  ├─ LinkService
+  ├─ CreationWorkshopService
+  ├─ CreationAssistant
+  ├─ EnhancedSearchService
+  ├─ LearningSessionService
+  ├─ KnowledgeGraphService
+  └─ SkillTreeManager
+
+Total Routes: 117
+  - Page Routes: 10
+  - API Routes: 107
+
+==============================================================================
+REFACTORING PROGRESS
+==============================================================================
+
+Phase 1: Database Layer Migration - COMPLETE
+  ✅ PostgreSQL schema design (13 tables)
+  ✅ Data migration scripts (JSON → PostgreSQL)
+  ✅ Repository pattern implementation
+  ✅ Unified database interface (db_interface.py)
+  ✅ SQLite fallback support
+  Migration Stats: 73 records
+
+Phase 2: Blueprint Architecture Refactoring - COMPLETE
+  Code Reduction:
+  - session_bp.py: 541 → 406 lines (-25%)
+  - graph_bp.py: 435 → 265 lines (-39%)
+  - creation_bp.py: 684 → 578 lines (-15%)
+
+Phase 3: Frontend Refactoring - COMPLETE
+  ✅ Unified API client (static/js/api.js)
+  ✅ 100+ API methods
+  ✅ 4 core templates updated
+
+Phase 4: Bug Fixes - COMPLETE
+  ✅ ProcessedContent serialization fix
+  ✅ Database schema fixes (tags column)
+  ✅ JSONB handling fixes
+  ✅ Template variable fixes
+  ✅ JSON response format fixes
+  ✅ Markdown and image support
+
+==============================================================================
+CONTENT PROCESSORS
+==============================================================================
+
+Stable (10):
+  ✅ WebPageProcessor       - Generic web pages
+  ✅ TwitterProcessor       - Twitter/X (Tavily API)
+  ✅ WeixinProcessor        - WeChat official accounts
+  ✅ DouyinProcessor        - Douyin (TikTok China)
+  ✅ VideoInfoProcessor    - YouTube/Bilibili (yt-dlp)
+  ✅ BookProcessor         - EPUB/PDF ebooks
+  ✅ AudioProcessor        - MP3/M4A/Podcasts
+  ✅ OCRProcessor          - Image text extraction
+  ✅ SocialMediaProcessor  - Generic social media
+  ✅ VideoProcessor        - Video analysis
+  ✅ TextMemoProcessor     - Text notes
+
+==============================================================================
+NEXT STEPS (Priority Order)
+==============================================================================
+
+P0 - Immediate:
+  ✅ Fix content detail page display
+  ✅ Add Markdown and image support
+  ⚠️ Add error page template
+  ⚠️ Test all API endpoints
+
+P1 - Near Term:
+  1. Complete Skill Tree System (20% remaining)
+     - Visualization UI
+     - Path recommendation algorithm
+     - Progress tracking
+
+  2. Implement Inbox UI
+  3. Implement PARA organization UI
+  4. Enhance Knowledge Graph visualization
+  5. Add batch operations
+
+P2 - Long Term:
+  1. Skill tree visualization
+  2. Learning path recommendation
+  3. Review reminder system
+  4. Data export functionality
+
+==============================================================================
+ENVIRONMENT CONFIGURATION
+==============================================================================
+
+Required API Keys:
+  - DEEPSEEK_API_KEY      - AI content analysis
+  - FIRECRAWL_API_KEY     - Web scraping
+  - TAVILY_API_KEY        - Twitter scraping (optional)
+
+Database Configuration:
+  # PostgreSQL (Production)
+  DB_TYPE=postgresql
+  PGHOST=117.72.207.52
+  PGPORT=5432
+  PGDATABASE=linker-mind
+  PGUSER=postgres
+  PGPASSWORD=your_password
+
+  # SQLite (Development/Fallback)
+  DB_TYPE=sqlite
+
+==============================================================================
+GIT STATUS
+==============================================================================
+
+Current Branch: main
+Status: Clean
+
+Recent Commits:
+  - be76b7a: "添加抖音视频解析"
+  - 1bdb20c: "添加前端页面和后端数据库"
+  - 9c22757: "添加识别代码"
+  - 680eacb: "init"
+
+==============================================================================
+DOCUMENTATION
+==============================================================================
+
+  - CLAUDE.md              - Product requirements document (PRD)
+  - PROJECT_STATUS.md      - Project status documentation
+  - POSTGRESQL_SETUP.md    - Database configuration guide
+  - MIGRATION_SUMMARY.md   - Data migration summary
+  - IMPLEMENTATION_COMPLETE.md - Implementation report
+
+==============================================================================
+STARTUP COMMANDS
+==============================================================================
+
+# Development
+python run.py
+./init.sh dev
+
+# Production
+python run.py --prod
+./init.sh prod
+
+# Database Operations
+python run.py --init    # Initialize database
+python run.py --migrate # Migrate from JSON
+./init.sh init
+./init.sh migrate
+
+# Environment Check
+./init.sh check
+./init.sh status
+
+==============================================================================
+PROJECT-DEV INTEGRATION
+==============================================================================
+
+This file is part of the project-dev dual-agent architecture:
+
+  feature_list.json    - Feature completion tracking (12/13 complete)
+  init.sh             - Enhanced environment management (replaces run.py)
+  claude-progress.txt - This file (external memory system)
+
+To resume development in a new session:
+  1. Read this file for current state
+  2. Check feature_list.json for feature status
+  3. Use init.sh for environment management
+  4. Reference CLAUDE.md for PRD requirements
+
+==============================================================================
+Last Updated: 2026-02-14
+Maintainer: Claude Code Assistant (project-dev architecture)
+==============================================================================

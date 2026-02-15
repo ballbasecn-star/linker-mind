@@ -22,7 +22,7 @@ from enum import Enum
 import logging
 
 from database.db_interface import get_connection
-from database.connection import json_list
+from database import json_list
 
 logger = logging.getLogger(__name__)
 
@@ -612,7 +612,7 @@ if __name__ == "__main__":
     print("Enhanced Search Service Module")
     print("=" * 50)
 
-    from database.connection import init_database
+    from database import init_database
     init_database(":memory:")
 
     # Create test data

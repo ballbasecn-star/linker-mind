@@ -21,7 +21,7 @@ from dataclasses import dataclass, asdict
 import logging
 
 from database.db_interface import get_connection
-from database.connection import json_dumps, json_list, json_dict
+from database import json_dumps, json_list, json_dict
 
 logger = logging.getLogger(__name__)
 
@@ -541,7 +541,7 @@ if __name__ == "__main__":
     print("AI Creation Assistant Service Module")
     print("=" * 50)
 
-    from database.connection import init_database
+    from database import init_database
     init_database(":memory:")
 
     assistant = AICreationAssistantService(":memory:")

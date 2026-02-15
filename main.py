@@ -34,7 +34,7 @@ from ai_analyzer import AIAnalyzer, StorageManager
 
 # Import new database services
 try:
-    from database.connection import init_database, get_db, DatabaseConnection
+    from database import init_database, get_db, DatabaseConnection
     from repositories.content_repository import ContentRepository, Content
     from services.inbox_service import InboxService, InboxStatus, ProcessAction
     from services.node_service import NodeService, NodeType, NodeStatus
@@ -423,7 +423,7 @@ class LinkerMind:
             print("❌ Database modules not available")
             return False
 
-        from database.connection import reset_database
+        from database import reset_database
 
         print("⚠️  This will delete all database data. Confirm? (y/N): ", end='')
         try:

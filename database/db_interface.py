@@ -1,30 +1,39 @@
 """
-Unified Database Interface - Supports both SQLite and PostgreSQL
+Unified Database Interface - PostgreSQL Only
 
-This module provides a unified interface that can work with either
-SQLite or PostgreSQL based on environment configuration.
+This module provides a unified interface for PostgreSQL database.
+The database type is automatically detected from environment configuration.
+
+Environment Variables:
+    DATABASE_URL - Full database URL (e.g., postgresql://user:pass@host:port/db)
+    DB_TYPE - Explicit database type (always 'postgresql')
+    PGHOST - PostgreSQL host (default: localhost)
+    PGPORT - PostgreSQL port (default: 5432)
+    PGDATABASE - PostgreSQL database name (default: linker_mind)
+    PGUSER - PostgreSQL user (default: postgres)
+    PGPASSWORD - PostgreSQL password
 
 Usage:
     from database.db_interface import get_connection
 
-    # Will auto-detect and use the correct database
+    # Get PostgreSQL connection
     db = get_connection()
 
-    # Or specify explicitly
+    # Initialize database
     from database.db_interface import init_database
-    init_database(db_type='postgresql')  # or 'sqlite'
+    init_database()
 """
 import os
 import logging
-from typing import Optional, Dict, List, Any, Tuple, Union
+from typing import Optional, Dict, List, Any, Tuple
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
+import json
 
 logger = logging.getLogger(__name__)
 
-# Database type enum
+# Database type constant
 class DatabaseType:
-    SQLITE = 'sqlite'
     POSTGRESQL = 'postgresql'
 
 
@@ -84,7 +93,7 @@ class DatabaseConnectionInterface(ABC):
 
     @abstractmethod
     def close(self) -> None:
-        """Close the database connection"""
+        """Close database connection"""
         pass
 
     @abstractmethod
@@ -98,67 +107,8 @@ class DatabaseConnectionInterface(ABC):
         pass
 
 
-class SQLiteAdapter(DatabaseConnectionInterface):
-    """Adapter for SQLite connection to match the unified interface"""
-
-    def __init__(self, sqlite_conn):
-        from database.connection import DatabaseConnection
-        if not isinstance(sqlite_conn, DatabaseConnection):
-            raise TypeError("Expected DatabaseConnection instance")
-        self._conn = sqlite_conn
-
-    def execute(self, sql: str, params: Optional[Tuple] = None, fetch: bool = False) -> Any:
-        """Execute a SQL query"""
-        return self._conn.execute(sql, params or ())
-
-    def fetchall(self, sql: str, params: Optional[Tuple] = None) -> List[Dict[str, Any]]:
-        """Fetch all results from a query"""
-        rows = self._conn.fetchall(sql, params or ())
-        return [dict(row) for row in rows]
-
-    def fetchone(self, sql: str, params: Optional[Tuple] = None) -> Optional[Dict[str, Any]]:
-        """Fetch one result from a query"""
-        row = self._conn.fetchone(sql, params or ())
-        return dict(row) if row else None
-
-    def fetchval(self, sql: str, params: Optional[Tuple] = None) -> Any:
-        """Fetch a single value from a query"""
-        return self._conn.fetchval(sql, params or ())
-
-    def insert(self, table: str, data: Dict[str, Any]) -> Any:
-        """Insert a row into a table"""
-        return self._conn.insert(table, data)
-
-    def update(self, table: str, data: Dict[str, Any],
-               where: str = None, where_params: Tuple = None) -> int:
-        """Update rows in a table"""
-        return self._conn.update(table, data, where, where_params)
-
-    def delete(self, table: str, where: str = None, params: Tuple = None) -> int:
-        """Delete rows from a table"""
-        return self._conn.delete(table, where, params)
-
-    def table_exists(self, table: str) -> bool:
-        """Check if a table exists"""
-        return self._conn.table_exists(table)
-
-    def get_tables(self) -> List[str]:
-        """Get list of all tables"""
-        return self._conn.get_tables()
-
-    def close(self) -> None:
-        """Close the database connection"""
-        self._conn.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-
 class PostgreSQLAdapter(DatabaseConnectionInterface):
-    """Adapter for PostgreSQL connection to match the unified interface"""
+    """Adapter for PostgreSQL connection to match unified interface"""
 
     def __init__(self, pg_conn):
         from database.pg_connection import PostgreSQLConnection
@@ -168,23 +118,18 @@ class PostgreSQLAdapter(DatabaseConnectionInterface):
 
     def execute(self, sql: str, params: Optional[Tuple] = None, fetch: bool = False) -> Any:
         """Execute a SQL query"""
-        # Convert SQLite syntax to PostgreSQL where needed
-        sql = self._convert_sql(sql)
         return self._conn.execute(sql, params, fetch)
 
     def fetchall(self, sql: str, params: Optional[Tuple] = None) -> List[Dict[str, Any]]:
         """Fetch all results from a query"""
-        sql = self._convert_sql(sql)
         return self._conn.fetchall(sql, params)
 
     def fetchone(self, sql: str, params: Optional[Tuple] = None) -> Optional[Dict[str, Any]]:
         """Fetch one result from a query"""
-        sql = self._convert_sql(sql)
         return self._conn.fetchone(sql, params)
 
     def fetchval(self, sql: str, params: Optional[Tuple] = None) -> Any:
         """Fetch a single value from a query"""
-        sql = self._convert_sql(sql)
         return self._conn.fetchval(sql, params)
 
     def insert(self, table: str, data: Dict[str, Any]) -> Any:
@@ -209,7 +154,7 @@ class PostgreSQLAdapter(DatabaseConnectionInterface):
         return self._conn.get_tables()
 
     def close(self) -> None:
-        """Close the database connection"""
+        """Close database connection"""
         self._conn.close()
 
     def __enter__(self):
@@ -217,22 +162,6 @@ class PostgreSQLAdapter(DatabaseConnectionInterface):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
-
-    def _convert_sql(self, sql: str) -> str:
-        """Convert SQLite-specific SQL to PostgreSQL"""
-        # Convert ? placeholders to %s (PostgreSQL style)
-        # But only if we detect ? placeholders
-        if '?' in sql and '%s' not in sql:
-            # Count placeholders to avoid replacing ? inside string literals
-            # Simple approach: replace ? with %s for parameters
-            import re
-            # This is a simple conversion - for complex queries, manual conversion may be needed
-            sql = sql.replace('?', '%s')
-
-        # Convert SQLite specific syntax if needed
-        # Add more conversions as needed
-
-        return sql
 
 
 # Global connection instance
@@ -242,15 +171,17 @@ _db_type: Optional[str] = None
 
 def detect_database_type() -> str:
     """
-    Auto-detect which database to use based on environment
+    Detect which database to use based on environment
+
+    Always returns 'postgresql' since SQLite has been removed.
 
     Checks in order:
     1. DATABASE_URL environment variable
     2. DB_TYPE environment variable
-    3. Defaults to 'sqlite'
+    3. PostgreSQL environment variables (PGHOST, PGDATABASE)
 
     Returns:
-        'postgresql' or 'sqlite'
+        'postgresql'
     """
     # Check for DATABASE_URL (standard PostgreSQL URL format)
     db_url = os.getenv('DATABASE_URL', '')
@@ -263,31 +194,27 @@ def detect_database_type() -> str:
     db_type = os.getenv('DB_TYPE', '').lower()
     if db_type == DatabaseType.POSTGRESQL:
         return DatabaseType.POSTGRESQL
-    elif db_type == DatabaseType.SQLITE:
-        return DatabaseType.SQLITE
 
     # Check for other PostgreSQL environment variables
     if os.getenv('PGHOST') or os.getenv('PGDATABASE'):
         return DatabaseType.POSTGRESQL
 
-    # Default to SQLite
-    return DatabaseType.SQLITE
+    # Default to PostgreSQL
+    return DatabaseType.POSTGRESQL
 
 
 def get_connection(
-    db_type: Optional[str] = None,
-    db_path: str = "linker_mind.db"
+    db_type: Optional[str] = None
 ) -> DatabaseConnectionInterface:
     """
     Get the global database connection
 
     Args:
-        db_type: Force specific database type ('sqlite' or 'postgresql')
+        db_type: Force specific database type (always 'postgresql')
                  If None, will auto-detect from environment
-        db_path: Path to SQLite database (only used for SQLite)
 
     Returns:
-        DatabaseConnectionInterface instance
+        DatabaseConnectionInterface instance (PostgreSQLAdapter)
     """
     global _connection, _db_type
 
@@ -305,24 +232,12 @@ def get_connection(
         _connection.close()
         _connection = None
 
-    # Create new connection based on type
-    if db_type == DatabaseType.POSTGRESQL:
-        _connection = _create_postgresql_connection()
-        _db_type = DatabaseType.POSTGRESQL
-        logger.info("Using PostgreSQL database")
-    else:
-        _connection = _create_sqlite_connection(db_path)
-        _db_type = DatabaseType.SQLITE
-        logger.info("Using SQLite database")
+    # Create new PostgreSQL connection
+    _connection = _create_postgresql_connection()
+    _db_type = DatabaseType.POSTGRESQL
+    logger.info("Using PostgreSQL database")
 
     return _connection
-
-
-def _create_sqlite_connection(db_path: str) -> SQLiteAdapter:
-    """Create SQLite connection adapter"""
-    from database.connection import get_db as get_sqlite_db
-    sqlite_conn = get_sqlite_db(db_path)
-    return SQLiteAdapter(sqlite_conn)
 
 
 def _create_postgresql_connection() -> PostgreSQLAdapter:
@@ -334,15 +249,13 @@ def _create_postgresql_connection() -> PostgreSQLAdapter:
 
 def init_database(
     db_type: Optional[str] = None,
-    db_path: str = "linker_mind.db",
     schema_file: Optional[str] = None
 ) -> bool:
     """
-    Initialize the database with schema
+    Initialize PostgreSQL database with schema
 
     Args:
-        db_type: Database type ('sqlite' or 'postgresql')
-        db_path: Path to SQLite database (only for SQLite)
+        db_type: Database type (always 'postgresql')
         schema_file: Optional schema file path
 
     Returns:
@@ -352,25 +265,16 @@ def init_database(
         db_type = detect_database_type()
 
     try:
-        if db_type == DatabaseType.POSTGRESQL:
-            return _init_postgresql(schema_file)
-        else:
-            return _init_sqlite(db_path, schema_file)
+        return _init_postgresql(schema_file)
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         return False
 
 
-def _init_sqlite(db_path: str, schema_file: Optional[str]) -> bool:
-    """Initialize SQLite database"""
-    from database.connection import init_database as init_sqlite_db
-    return init_sqlite_db(db_path, schema_file)
-
-
 def _init_postgresql(schema_file: Optional[str]) -> bool:
     """Initialize PostgreSQL database"""
     try:
-        from database.pg_connection import init_postgresql, PostgreSQLConfig, get_pg_connection
+        from database.pg_connection import init_postgresql, PostgreSQLConfig
         import os
 
         # Build configuration from environment
@@ -379,8 +283,8 @@ def _init_postgresql(schema_file: Optional[str]) -> bool:
 
         config = PostgreSQLConfig(
             host=os.getenv('PGHOST', 'localhost'),
-            port=int(os.getenv('PGPORT', 5432)),
-            database=os.getenv('PGDATABASE', 'linker_mind'),
+            port=int(os.getenv('PGPORT', '5432')),
+            database=os.getenv('PGDATABASE', 'linker-mind'),
             user=os.getenv('PGUSER', 'postgres'),
             password=os.getenv('PGPASSWORD', ''),
             min_connections=2,
@@ -395,7 +299,7 @@ def _init_postgresql(schema_file: Optional[str]) -> bool:
 
 
 def get_database_type() -> str:
-    """Get the current database type being used"""
+    """Get current database type being used"""
     global _db_type
     if _db_type is None:
         _db_type = detect_database_type()
@@ -403,17 +307,12 @@ def get_database_type() -> str:
 
 
 def is_postgresql() -> bool:
-    """Check if currently using PostgreSQL"""
+    """Check if currently using PostgreSQL (always True)"""
     return get_database_type() == DatabaseType.POSTGRESQL
 
 
-def is_sqlite() -> bool:
-    """Check if currently using SQLite"""
-    return get_database_type() == DatabaseType.SQLITE
-
-
 def reset_connection():
-    """Reset the global connection (for testing or switching databases)"""
+    """Reset global connection (for testing or switching databases)"""
     global _connection, _db_type
     if _connection:
         _connection.close()
@@ -422,8 +321,64 @@ def reset_connection():
     logger.info("Database connection reset")
 
 
+# JSON helper functions for PostgreSQL compatibility
+# These functions work with PostgreSQL's JSONB type which automatically
+# serializes/deserializes JSON data
+
+def json_dumps(obj: Any) -> str:
+    """
+    Convert object to JSON string for storage
+
+    Note: PostgreSQL JSONB handles JSON natively, but this function
+    is kept for backward compatibility with existing code.
+    """
+    return json.dumps(obj, ensure_ascii=False)
+
+
+def json_loads(value: Optional[str]) -> Any:
+    """
+    Parse JSON string from storage
+
+    Note: PostgreSQL JSONB returns Python dict/list directly,
+    but this function is kept for backward compatibility.
+    """
+    if value is None or value == '':
+        return None
+    if isinstance(value, (dict, list)):
+        return value
+    return json.loads(value)
+
+
+def json_list(value: Optional[str]) -> List[Any]:
+    """
+    Parse JSON to list (or return list if already a list)
+
+    Handles PostgreSQL JSONB (already deserialized) and strings.
+    """
+    if value is None or value == '':
+        return []
+    if isinstance(value, list):
+        return value
+    result = json_loads(value)
+    return result if isinstance(result, list) else []
+
+
+def json_dict(value: Optional[str]) -> Dict[str, Any]:
+    """
+    Parse JSON to dict (or return dict if already a dict)
+
+    Handles PostgreSQL JSONB (already deserialized) and strings.
+    """
+    if value is None or value == '':
+        return {}
+    if isinstance(value, dict):
+        return value
+    result = json_loads(value)
+    return result if isinstance(result, dict) else {}
+
+
 if __name__ == "__main__":
-    print("Unified Database Interface")
+    print("Unified Database Interface - PostgreSQL Only")
     print("=" * 50)
 
     # Test database detection
@@ -434,13 +389,15 @@ if __name__ == "__main__":
     db = get_connection()
     print(f"Active database: {get_database_type()}")
     print(f"Is PostgreSQL: {is_postgresql()}")
-    print(f"Is SQLite: {is_sqlite()}")
 
     # Test basic operations
     tables = db.get_tables()
     print(f"Tables: {tables}")
 
     print("\n✓ Database interface test complete!")
-    print("\nTo use PostgreSQL, set environment variable:")
-    print("  export DATABASE_URL=postgresql://user:pass@host:port/database")
-    print("  export DB_TYPE=postgresql")
+    print("\nPostgreSQL environment variables:")
+    print("  export PGHOST=your_host")
+    print("  export PGPORT=5432")
+    print("  export PGDATABASE=linker-mind")
+    print("  export PGUSER=postgres")
+    print("  export PGPASSWORD=your_password")

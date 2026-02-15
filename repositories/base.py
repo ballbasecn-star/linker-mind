@@ -12,7 +12,7 @@ from typing import Dict, List, Any, Optional, Tuple, TypeVar, Generic
 from dataclasses import dataclass, asdict
 import logging
 
-from database.connection import get_db, json_dumps, json_loads, json_list, json_dict
+from database import get_db, json_dumps, json_loads, json_list, json_dict
 
 logger = logging.getLogger(__name__)
 

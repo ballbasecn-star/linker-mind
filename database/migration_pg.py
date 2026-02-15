@@ -9,7 +9,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 import json
 
-from database.connection import get_db
+from database import get_db
 from database.pg_connection import PostgreSQLConnection, PostgreSQLConfig, get_pg_connection
 
 logger = logging.getLogger(__name__)

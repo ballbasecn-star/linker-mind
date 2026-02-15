@@ -18,7 +18,7 @@ from enum import Enum
 import logging
 
 from database.db_interface import get_connection
-from database.connection import json_dumps
+from database import json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -743,7 +743,7 @@ if __name__ == "__main__":
     print("Bidirectional Link Service Module")
     print("=" * 50)
 
-    from database.connection import init_database
+    from database import init_database
     init_database(":memory:")
 
     service = LinkService(":memory:")

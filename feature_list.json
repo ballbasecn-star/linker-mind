@@ -1,0 +1,256 @@
+{
+  "metadata": {
+    "project_name": "Linker Mind",
+    "project_type": "second-brain-creative-workspace",
+    "version": "2.0.0",
+    "created_at": "2026-02-14",
+    "updated_at": "2026-02-14",
+    "tech_stack": ["Flask 3.x", "Python 3.10+", "PostgreSQL", "SQLite", "D3.js"],
+    "total_features": 13,
+    "completed_features": 12,
+    "completion_rate": "92%"
+  },
+  "features": [
+    {
+      "id": "content-collection",
+      "title": "内容采集系统",
+      "priority": "P0",
+      "description": "支持12+平台URL内容采集，包括微信公众号、抖音、YouTube、Twitter等",
+      "status": "completed",
+      "passes": true,
+      "pr_sections": ["multi-platform-processors"],
+      "related_files": [
+        "services/content_service.py",
+        "database/db_interface.py"
+      ],
+      "processors": [
+        "WebPageProcessor",
+        "TwitterProcessor",
+        "WeixinProcessor",
+        "DouyinProcessor",
+        "VideoInfoProcessor",
+        "BookProcessor",
+        "AudioProcessor",
+        "OCRProcessor"
+      ]
+    },
+    {
+      "id": "para-organization",
+      "title": "PARA组织系统",
+      "priority": "P0",
+      "description": "Projects(项目)、Areas(领域)、Resources(资源)、Archive(归档)四层组织方法",
+      "status": "completed",
+      "passes": true,
+      "pr_sections": ["para-organization"],
+      "blueprint": "node_bp.py",
+      "service": "NodeService",
+      "endpoints": 13
+    },
+    {
+      "id": "progressive-notes",
+      "title": "笔记与渐进式总结",
+      "priority": "P0",
+      "description": "5层渐进式总结：Layer 1高亮 → Layer 2加粗 → Layer 3超级笔记 → Layer 4总结 → Layer 5新内容",
+      "status": "completed",
+      "passes": true,
+      "pr_sections": ["notes-and-inspiration"],
+      "blueprint": "note_bp.py",
+      "service": "NoteService",
+      "note_types": [
+        "learning_note",
+        "inspiration",
+        "highlight",
+        "actionable",
+        "question",
+        "related_thought",
+        "deep_dive"
+      ]
+    },
+    {
+      "id": "bidirectional-links",
+      "title": "双向链接系统",
+      "priority": "P0",
+      "description": "内容间相互关联，支持引用追踪和知识图谱构建",
+      "status": "completed",
+      "passes": true,
+      "pr_sections": ["citation-management"],
+      "blueprint": "link_bp.py",
+      "service": "LinkService",
+      "link_types": ["reference", "inspiration", "citation", "related"]
+    },
+    {
+      "id": "inbox-workflow",
+      "title": "收件箱系统(CODE)",
+      "priority": "P0",
+      "description": "Capture捕捉 → Organize组织 → Distill提炼 → Express表达的工作流",
+      "status": "completed",
+      "passes": true,
+      "pr_sections": ["learning-workflow"],
+      "blueprint": "inbox_bp.py",
+      "service": "InboxService",
+      "workflow": ["Capture", "Organize", "Distill", "Express"]
+    },
+    {
+      "id": "creation-workshop",
+      "title": "创作工作台",
+      "priority": "P1",
+      "description": "创作项目管理、素材看板、AI辅助创作、引用管理",
+      "status": "completed",
+      "passes": true,
+      "pr_sections": ["creation-workshop"],
+      "blueprint": "creation_bp.py",
+      "service": "CreationWorkshopService",
+      "features": ["projects", "materials_board", "ai_assistant", "citations"]
+    },
+    {
+      "id": "enhanced-search",
+      "title": "增强搜索系统",
+      "priority": "P1",
+      "description": "基于FTS5的全文搜索，支持标签、类型、时间范围筛选",
+      "status": "completed",
+      "passes": true,
+      "pr_sections": ["search-and-retrieval"],
+      "blueprint": "search_bp.py",
+      "service": "EnhancedSearchService",
+      "search_modes": ["content", "notes", "graph"]
+    },
+    {
+      "id": "knowledge-graph",
+      "title": "知识图谱可视化",
+      "priority": "P1",
+      "description": "D3.js可视化内容关联，支持力导向图、节点探索",
+      "status": "completed",
+      "passes": true,
+      "pr_sections": ["skill-tree-knowledge-graph"],
+      "blueprint": "graph_bp.py",
+      "service": "KnowledgeGraphService",
+      "visualization": "D3.js"
+    },
+    {
+      "id": "skill-tree",
+      "title": "技能树系统",
+      "priority": "P1",
+      "description": "技能依赖关系、学习路径、熟练度追踪",
+      "status": "in_progress",
+      "passes": false,
+      "pr_sections": ["skill-tree-knowledge-graph"],
+      "blueprint": "skill_bp.py",
+      "service": "SkillTreeManager",
+      "completion": "80%",
+      "remaining": ["visualization", "path_recommendation", "progress_tracking"]
+    },
+    {
+      "id": "learning-review",
+      "title": "学习与复习系统",
+      "priority": "P2",
+      "description": "基于艾宾浩斯曲线的复习提醒、学习会话追踪",
+      "status": "completed",
+      "passes": true,
+      "blueprint": "session_bp.py",
+      "service": "LearningSessionService",
+      "features": ["review_schedule", "comprehension_tracking", "review_reminders"]
+    },
+    {
+      "id": "statistics-analytics",
+      "title": "统计分析系统",
+      "priority": "P2",
+      "description": "学习热力图、技能雷达图、创作进度追踪",
+      "status": "completed",
+      "passes": true,
+      "endpoints": ["stats/learning", "stats/skills", "stats/creation"]
+    },
+    {
+      "id": "unified-api",
+      "title": "统一API客户端",
+      "priority": "P2",
+      "description": "前端统一API调用接口，100+个方法，自动错误处理",
+      "status": "completed",
+      "passes": true,
+      "file": "app/static/js/api.js",
+      "methods": "100+",
+      "size": "16,330 bytes"
+    },
+    {
+      "id": "multi-platform-processors",
+      "title": "多平台内容处理器",
+      "priority": "P2",
+      "description": "10+个平台专用处理器，统一ProcessedContent输出格式",
+      "status": "completed",
+      "passes": true,
+      "processors": [
+        "WebPageProcessor",
+        "TwitterProcessor",
+        "WeixinProcessor",
+        "DouyinProcessor",
+        "VideoInfoProcessor",
+        "BookProcessor",
+        "AudioProcessor",
+        "OCRProcessor",
+        "SocialMediaProcessor",
+        "VideoProcessor",
+        "TextMemoProcessor"
+      ]
+    }
+  ],
+  "database": {
+    "type": "PostgreSQL/SQLite",
+    "tables": 13,
+    "records": 73,
+    "table_list": [
+      "contents",
+      "nodes",
+      "node_contents",
+      "notes",
+      "links",
+      "learning_sessions",
+      "review_schedules",
+      "creation_projects",
+      "citations",
+      "skills",
+      "skill_contents",
+      "inbox",
+      "tags"
+    ]
+  },
+  "architecture": {
+    "blueprints": 11,
+    "services": 9,
+    "blueprint_list": [
+      "content_bp",
+      "node_bp",
+      "note_bp",
+      "inbox_bp",
+      "link_bp",
+      "creation_bp",
+      "session_bp",
+      "skill_bp",
+      "graph_bp",
+      "search_bp",
+      "api_bp"
+    ],
+    "service_list": [
+      "InboxService",
+      "NodeService",
+      "ContentService",
+      "NoteService",
+      "LinkService",
+      "CreationWorkshopService",
+      "CreationAssistant",
+      "EnhancedSearchService",
+      "LearningSessionService",
+      "KnowledgeGraphService",
+      "SkillTreeManager"
+    ]
+  },
+  "api_stats": {
+    "total_routes": 117,
+    "page_routes": 10,
+    "api_routes": 107
+  },
+  "next_steps": [
+    "完成技能树可视化界面",
+    "实现学习路径推荐算法",
+    "添加数据导出功能",
+    "实现单元测试覆盖"
+  ]
+}

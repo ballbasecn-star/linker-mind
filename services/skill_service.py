@@ -109,7 +109,7 @@ class SkillService:
             创建的技能
         """
         import time
-        from database.connection import json_dumps
+        from database import json_dumps
 
         skill_id = f"skill_{int(time.time() * 1000)}"
 
@@ -139,7 +139,7 @@ class SkillService:
     ) -> Optional[Dict[str, Any]]:
         """更新技能"""
         updates = {}
-        from database.connection import json_dumps
+        from database import json_dumps
 
         if skill_name is not None:
             updates['skill_name'] = skill_name
@@ -258,7 +258,7 @@ class SkillService:
         completed: bool = True
     ) -> bool:
         """更新学习资源的完成状态"""
-        from database.connection import json_dumps
+        from database import json_dumps
 
         updates = {
             'completed': 1 if completed else 0
@@ -404,7 +404,7 @@ class SkillService:
 
     def _parse_skill_row(self, row: Dict[str, Any]) -> Dict[str, Any]:
         """解析技能行数据"""
-        from database.connection import json_list
+        from database import json_list
 
         if row.get('parent_ids'):
             row['parent_ids'] = json_list(row['parent_ids'])

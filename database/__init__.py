@@ -1,12 +1,12 @@
 """
-Database Package - Unified database interface for Linker Mind
+Database Package - Unified PostgreSQL interface for Linker Mind
 
-This package provides a unified interface that supports both SQLite and PostgreSQL.
+This package provides a unified interface for PostgreSQL database.
 The database type is automatically detected from environment variables.
 
 Environment Variables:
     DATABASE_URL - Full database URL (e.g., postgresql://user:pass@host:port/db)
-    DB_TYPE - Explicit database type ('sqlite' or 'postgresql')
+    DB_TYPE - Explicit database type (always 'postgresql')
     PGHOST - PostgreSQL host (default: localhost)
     PGPORT - PostgreSQL port (default: 5432)
     PGDATABASE - PostgreSQL database name (default: linker_mind)
@@ -29,21 +29,16 @@ Usage:
 # Version info
 __version__ = "2.0.0"
 
-# Import the unified interface
+# Import unified interface
 from database.db_interface import (
     get_connection,
     init_database,
     get_database_type,
     is_postgresql,
-    is_sqlite,
     reset_connection,
     DatabaseConnectionInterface,
-    DatabaseType
-)
-
-# Import backward-compatible SQLite functions (for existing code)
-from database.connection import (
-    get_db,
+    DatabaseType,
+    # JSON helper functions for PostgreSQL compatibility
     json_dumps,
     json_loads,
     json_list,
@@ -52,18 +47,13 @@ from database.connection import (
 
 # Export main functions
 __all__ = [
-    # Unified interface
     'get_connection',
     'init_database',
     'get_database_type',
     'is_postgresql',
-    'is_sqlite',
     'reset_connection',
     'DatabaseConnectionInterface',
     'DatabaseType',
-
-    # Backward compatibility
-    'get_db',
     'json_dumps',
     'json_loads',
     'json_list',

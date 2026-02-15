@@ -243,7 +243,7 @@ class ContentService:
             创建的内容
         """
         import time
-        from database.connection import json_dumps
+        from database import json_dumps
 
         content_id = f"content_{int(time.time() * 1000)}"
 
@@ -293,7 +293,7 @@ class ContentService:
     ) -> Optional[Dict[str, Any]]:
         """更新内容"""
         updates = {}
-        from database.connection import json_dumps
+        from database import json_dumps
 
         if title is not None:
             updates['title'] = title
@@ -514,7 +514,7 @@ class ContentService:
         - PostgreSQL JSONB: already parsed as dict/list
         - PostgreSQL: datetime objects need ISO conversion
         """
-        from database.connection import json_loads
+        from database import json_loads
 
         # Convert datetime fields to ISO strings for PostgreSQL
         for key in ['created_at', 'updated_at']:

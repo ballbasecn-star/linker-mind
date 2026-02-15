@@ -13,7 +13,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 from repositories.base import BaseRepository, RepositoryResult, Filters
-from database.connection import get_db, json_dumps, json_loads, json_list, json_dict
+from database import get_db, json_dumps, json_loads, json_list, json_dict
 
 
 class SourceType(Enum):
@@ -627,7 +627,7 @@ if __name__ == "__main__":
     print("=" * 50)
 
     # Initialize database
-    from database.connection import init_database
+    from database import init_database
     init_database(":memory:")
 
     repo = ContentRepository(":memory:")
