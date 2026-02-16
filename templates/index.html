@@ -998,6 +998,8 @@
             const extractBtn = document.getElementById('extractBtn');
             const url = urlInput.value.trim();
 
+            console.log('提取参数:', { aiEnabled, deepEnabled });
+
             if (!url) {
                 alert('请输入 URL');
                 return;
