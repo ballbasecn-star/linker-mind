@@ -104,6 +104,29 @@
             background: var(--text-tertiary);
         }
 
+        .search-box button.loading {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .search-box button.loading::after {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-left: 8px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         .btn-project {
             padding: 10px 20px;
             background: var(--accent-color);
@@ -772,7 +795,7 @@
 
         <div class="search-box">
             <input type="text" id="urlInput" placeholder="输入 URL (网页、视频、Twitter、微信公众号...)">
-            <button onclick="processUrl()">提取内容</button>
+            <button onclick="processUrl()" id="extractBtn">提取内容</button>
             <button onclick="toggleAI()" id="aiBtn">AI: 开</button>
             <button onclick="openCookiesSettings()" class="settings-btn" title="Cookies 设置">🍪</button>
         </div>
@@ -957,6 +980,7 @@
 
         async function processUrl() {
             const urlInput = document.getElementById('urlInput');
+            const extractBtn = document.getElementById('extractBtn');
             const url = urlInput.value.trim();
 
             if (!url) {
@@ -964,6 +988,13 @@
                 return;
             }
 
+            // 按钮 loading 状态
+            const originalText = extractBtn.textContent;
+            extractBtn.textContent = '提取中';
+            extractBtn.classList.add('loading');
+            extractBtn.disabled = true;
+
+            // 显示 loading 动画
             const loading = document.getElementById('loading');
             loading.style.display = 'block';
 
@@ -979,10 +1010,18 @@
                     }, 1000);
                 } else {
                     alert('处理失败: 未知错误');
+                    // 恢复按钮
+                    extractBtn.textContent = originalText;
+                    extractBtn.classList.remove('loading');
+                    extractBtn.disabled = false;
                 }
             } catch (error) {
                 console.error('Process error:', error);
                 showMessage('处理失败: ' + error.message, 'error');
+                // 恢复按钮
+                extractBtn.textContent = originalText;
+                extractBtn.classList.remove('loading');
+                extractBtn.disabled = false;
             } finally {
                 loading.style.display = 'none';
             }
