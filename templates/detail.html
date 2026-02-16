@@ -8,393 +8,580 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg-primary: #fafafa;
+            /* Base colors */
+            --bg-primary: #f8f9fa;
             --bg-secondary: #ffffff;
-            --bg-tertiary: #f5f5f5;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-            --text-tertiary: #999999;
-            --border-color: #e5e5e5;
-            --border-hover: #d1d1d1;
-            --accent-color: #000000;
-            --accent-hover: #333333;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+            --bg-tertiary: #f1f3f5;
+            --bg-elevated: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #495057;
+            --text-tertiary: #868e96;
+            --border-color: #e9ecef;
+            --border-light: #f1f3f5;
+
+            /* Platform colors */
+            --douyin-color: #FE2C55;
+            --bilibili-color: #00A1D6;
+            --youtube-color: #FF0000;
+            --twitter-color: #1DA1F2;
+            --wechat-color: #07C160;
+
+            /* Platform color variable (dynamic) */
+            --platform-color: var(--bilibili-color);
+
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+
+            /* Border radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Inter', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 32px 20px;
-            display: grid;
-            grid-template-columns: 1fr 280px;
-            gap: 24px;
+            padding: var(--space-xl) var(--space-lg);
         }
 
-        .main-content {
-            min-width: 0;
-        }
-
-        .sidebar {
-            min-width: 0;
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-lg);
         }
 
         .back-link {
             display: inline-flex;
             align-items: center;
+            gap: var(--space-sm);
             color: var(--text-secondary);
             text-decoration: none;
-            padding: 8px 0;
-            margin-bottom: 24px;
-            font-size: 0.875rem;
-            transition: color 0.15s ease;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
         }
 
         .back-link:hover {
             color: var(--text-primary);
+            background: var(--bg-tertiary);
+            transform: translateX(-2px);
         }
 
-        .back-link::before {
-            content: '←';
-            margin-right: 8px;
+        .header-actions {
+            display: flex;
+            gap: var(--space-sm);
         }
 
-        .card {
-            background: var(--bg-secondary);
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
         }
 
-        .card-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--border-color);
+        .action-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Main Card */
+        .main-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Cover Section */
+        .cover-section {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            max-height: 480px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .cover-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cover-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: var(--space-xl);
+        }
+
+        .play-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.95);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .play-button::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 16px 0 16px 28px;
+            border-color: transparent transparent transparent var(--douyin-color);
+            margin-left: 6px;
+        }
+
+        .play-button:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+
+        /* Content Header */
+        .content-header {
+            padding: var(--space-xl);
+            padding-bottom: var(--space-lg);
         }
 
         .platform-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 12px;
+            margin-bottom: var(--space-md);
+            color: white;
+            background: var(--platform-color);
         }
 
-        .platform-web, .platform-webpage { background: var(--bg-tertiary); color: var(--text-secondary); }
-        .platform-bilibili { background: #fce7f3; color: #be185d; }
-        .platform-youtube { background: #fee2e2; color: #dc2626; }
-        .platform-twitter, .platform-x { background: #dcfce7; color: #16a34a; }
-        .platform-douyin { background: #f3e8ff; color: #7c3aed; }
-        .platform-wechat { background: #ffedd5; color: #ea580c; }
-        .platform-video, .platform-direct_video { background: #ccfbf1; color: #0d9488; }
-
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 600;
+        .content-title {
+            font-size: 1.75rem;
+            font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 12px;
             line-height: 1.3;
+            margin-bottom: var(--space-md);
         }
 
-        .card-meta {
+        .content-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 16px;
-            font-size: 0.8125rem;
+            align-items: center;
+            gap: var(--space-md);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .meta-author {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .meta-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+        }
+
+        /* Statistics */
+        .stats-bar {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            min-width: 90px;
+        }
+
+        .stat-icon {
+            font-size: 1.1rem;
+        }
+
+        .stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
             color: var(--text-tertiary);
         }
 
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        /* Content Body */
+        .content-body {
+            padding: var(--space-xl);
         }
 
-        .card-body {
-            padding: 24px;
-        }
-
+        /* Section styles */
         .section {
-            margin-bottom: 32px;
+            margin-bottom: var(--space-xl);
         }
 
         .section:last-child {
             margin-bottom: 0;
         }
 
-        .section-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .content-text {
-            color: var(--text-secondary);
-            line-height: 1.7;
-        }
-
-        /* Markdown rendered content */
-        .markdown-content.rendered {
-            padding: 16px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            max-height: none;
-            overflow-y: visible;
-        }
-
-        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-            margin: 24px 0 12px 0;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .markdown-content h1 { font-size: 1.75em; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
-        .markdown-content h2 { font-size: 1.5em; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-        .markdown-content h3 { font-size: 1.25em; }
-        .markdown-content h4 { font-size: 1.125em; }
-        .markdown-content p { margin: 12px 0; line-height: 1.7; }
-        .markdown-content ul, .markdown-content ol { margin: 12px 0; padding-left: 24px; }
-        .markdown-content li { margin: 6px 0; line-height: 1.6; }
-        .markdown-content code {
-            background: var(--bg-tertiary);
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-size: 0.875em;
-        }
-        .markdown-content pre {
-            background: var(--bg-tertiary);
-            padding: 16px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 16px 0;
-        }
-        .markdown-content pre code {
-            background: none;
-            padding: 0;
-        }
-        .markdown-content blockquote {
-            border-left: 2px solid var(--border-color);
-            margin: 16px 0;
-            padding: 12px 0 12px 16px;
-            background: var(--bg-tertiary);
-            border-radius: 0 8px 8px 0;
-        }
-        .markdown-content a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-        .markdown-content a:hover {
-            text-decoration: underline;
-        }
-        .markdown-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin: 16px 0;
-        }
-
-        .metadata-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
-
-        .metadata-item {
-            padding: 12px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-        }
-
-        .metadata-label {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .metadata-value {
-            font-weight: 500;
-            color: var(--text-primary);
-            font-size: 0.9375rem;
-        }
-
-        .media-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 12px;
-        }
-
-        .media-item {
-            border-radius: 8px;
-            overflow: hidden;
-            background: var(--bg-tertiary);
-        }
-
-        .media-item img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .ai-section {
-            background: var(--bg-tertiary);
-            padding: 24px;
-            border-radius: 12px;
-        }
-
-        .key-points {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .key-points li {
-            padding: 8px 0;
-            padding-left: 20px;
-            position: relative;
-            font-size: 0.9375rem;
-            color: var(--text-secondary);
-        }
-
-        .key-points li:before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: var(--accent-color);
-        }
-
-        .topics {
+        .section-header {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .topic-tag {
-            padding: 6px 12px;
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            border-radius: 6px;
-            font-size: 0.8125rem;
-        }
-
-        .sentiment {
-            display: inline-flex;
             align-items: center;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
+            justify-content: space-between;
+            margin-bottom: var(--space-md);
         }
 
-        .sentiment-positive { background: #dcfce7; color: #16a34a; }
-        .sentiment-negative { background: #fee2e2; color: #dc2626; }
-        .sentiment-neutral { background: #ffedd5; color: #ea580c; }
-        .sentiment-unknown { background: var(--bg-tertiary); color: var(--text-tertiary); }
-
-        .processing-info {
-            padding: 20px 32px;
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
-            border-radius: 0 0 12px 12px;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-        }
-
-        .info-item {
-            text-align: center;
-        }
-
-        .info-label {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .info-value {
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
             font-size: 1rem;
             font-weight: 600;
             color: var(--text-primary);
         }
 
-        /* Sidebar styles */
-        .sidebar-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .sidebar-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-            transition: all 0.15s ease;
-            width: 100%;
-            text-align: center;
-        }
-
-        .btn:hover {
-            border-color: var(--border-hover);
-        }
-
-        .btn-primary {
-            background: var(--accent-color);
+        /* AI Analysis Card */
+        .ai-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
             color: white;
-            border-color: var(--accent-color);
         }
 
-        .btn-primary:hover {
-            background: var(--accent-hover);
+        .ai-card .section-title {
+            color: white;
         }
 
-        .notes-list {
+        .ai-summary {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: var(--space-md);
+            opacity: 0.95;
+        }
+
+        .ai-key-points {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+
+        .ai-key-point {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+
+        .ai-key-point::before {
+            content: '→';
+            flex-shrink: 0;
+        }
+
+        .ai-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+
+        .ai-topic {
+            padding: 4px 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* Key Frames */
+        .keyframes-grid {
             display: grid;
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .keyframe-item {
+            position: relative;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .keyframe-item:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .keyframe-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .keyframe-time {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Transcript */
+        .transcript-container {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
             max-height: 400px;
             overflow-y: auto;
         }
 
-        .note-item {
-            padding: 12px;
+        .transcript-text {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+        }
+
+        .expand-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
             background: var(--bg-tertiary);
-            border-radius: 8px;
-            font-size: 0.875rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .expand-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Content Text */
+        .content-text {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        /* Metadata Grid */
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .metadata-item {
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+        }
+
+        .metadata-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .metadata-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Media Gallery */
+        .media-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .media-item {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            background: var(--bg-tertiary);
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .media-item:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+        }
+
+        .sidebar-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--platform-color) 0%, color-mix(in srgb, var(--platform-color) 80%, black) 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-stack {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        /* Notes */
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .note-item {
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
         }
 
         .note-header {
@@ -405,14 +592,16 @@
         }
 
         .note-type {
-            font-size: 0.75rem;
-            font-weight: 500;
-            padding: 2px 6px;
-            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
             background: var(--bg-secondary);
+            border-radius: 4px;
+            color: var(--text-secondary);
         }
 
         .note-content {
+            font-size: 0.85rem;
             color: var(--text-secondary);
             line-height: 1.5;
         }
@@ -423,54 +612,17 @@
             margin-top: 6px;
         }
 
-        .project-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .project-item {
-            padding: 10px 12px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            font-size: 0.875rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .project-name {
-            color: var(--text-primary);
-            font-weight: 500;
-            text-decoration: none;
-        }
-
-        .project-name:hover {
-            color: var(--accent-color);
-        }
-
-        .project-remove {
-            color: var(--text-tertiary);
-            cursor: pointer;
-            font-size: 0.875rem;
-        }
-
-        .project-remove:hover {
-            color: #ef4444;
-        }
-
-        /* Modal styles */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: var(--space-lg);
         }
 
         .modal.active {
@@ -479,19 +631,20 @@
 
         .modal-content {
             background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 24px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
             overflow-y: auto;
+            box-shadow: var(--shadow-lg);
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: var(--space-lg);
         }
 
         .modal-header h2 {
@@ -504,11 +657,22 @@
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-            color: var(--text-secondary);
+            color: var(--text-tertiary);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+        }
+
+        .close-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: var(--space-md);
         }
 
         .form-group label {
@@ -522,11 +686,19 @@
         .form-group textarea,
         .form-group select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 12px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             font-size: 0.9rem;
             background: var(--bg-tertiary);
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--platform-color);
         }
 
         .form-group textarea {
@@ -534,656 +706,424 @@
             resize: vertical;
         }
 
-        @media (max-width: 640px) {
-            .container {
-                grid-template-columns: 1fr;
-                padding: 20px 16px;
-            }
+        /* Two column layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: var(--space-xl);
+            align-items: start;
+        }
 
-            .sidebar {
-                order: -1;
-            }
-
-            .card-header {
-                padding: 20px;
-            }
-
-            .card-body {
-                padding: 20px;
-            }
-
-            .card-title {
-                font-size: 1.25rem;
-            }
-
-            .metadata-grid {
+        /* Responsive */
+        @media (max-width: 900px) {
+            .layout {
                 grid-template-columns: 1fr;
             }
 
-            .media-gallery {
-                grid-template-columns: repeat(2, 1fr);
+            .content-title {
+                font-size: 1.4rem;
             }
 
-            .card-meta {
-                flex-direction: column;
-                gap: 8px;
+            .stats-bar {
+                flex-wrap: wrap;
+            }
+
+            .stat-item {
+                flex: 1;
+                min-width: calc(50% - var(--space-sm));
             }
         }
 
-        @media (min-width: 1024px) {
+        @media (max-width: 640px) {
             .container {
-                padding: 48px 20px;
+                padding: var(--space-md);
             }
+
+            .content-header {
+                padding: var(--space-lg);
+            }
+
+            .content-body {
+                padding: var(--space-lg);
+            }
+
+            .cover-section {
+                aspect-ratio: 4/3;
+            }
+
+            .play-button {
+                width: 60px;
+                height: 60px;
+            }
+
+            .play-button::before {
+                border-width: 12px 0 12px 20px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main-card {
+            animation: fadeIn 0.4s ease;
+        }
+
+        .sidebar-card {
+            animation: fadeIn 0.4s ease 0.1s both;
         }
     </style>
 </head>
 <body>
     {% set content_id = item.get('id', '') %}
+    {% set ai = item.get('ai_analysis', {}) or {} %}
+    {% set platform = item.get('source_type', 'web') %}
+    {% set metadata = item.get('metadata', {}) or {} %}
+    {% set media = item.get('media', {}) or {} %}
+    {% set content_data = item.get('content', {}) or {} %}
+
+    {# Set platform color #}
+    {% if platform == 'douyin' %}
+        {% set platform_color = '#FE2C55' %}
+    {% elif platform in ['bilibili', 'bili'] %}
+        {% set platform_color = '#00A1D6' %}
+    {% elif platform == 'youtube' %}
+        {% set platform_color = '#FF0000' %}
+    {% elif platform in ['twitter', 'x'] %}
+        {% set platform_color = '#1DA1F2' %}
+    {% elif platform == 'wechat' %}
+        {% set platform_color = '#07C160' %}
+    {% else %}
+        {% set platform_color = '#495057' %}
+    {% endif %}
+
     <div class="container">
-        <div class="main-content">
-            <a href="/" class="back-link">← 返回列表</a>
-
-            {% set ai = item.get('ai_analysis', {}) %}
-            {% set platform = item.get('source_type', 'web') %}
-            {% set metadata = item.get('metadata', {}) or {} %}
-            {% set media = item.get('media', {}) or {} %}
-            {% set cover_image = media.get('cover') or metadata.get('cover_image') %}
-
-            <div class="card">
-            <!-- Cover Image -->
-            {% if cover_image %}
-            <div style="width: 100%; height: 300px; overflow: hidden; border-radius: 12px 12px 0 0;">
-                <img src="{{ cover_image }}" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            {% endif %}
-
-            <div class="card-header" style="{% if cover_image %}border-top: 1px solid var(--border-color); border-bottom: none; padding-top: 20px;{% endif %}">
-                <span class="platform-badge platform-{{ platform }}">
-                    {% if platform == 'web' or platform == 'webpage' %}网页
-                    {% elif platform == 'bilibili' %}B站
-                    {% elif platform == 'youtube' %}YouTube
-                    {% elif platform == 'twitter' or platform == 'x' %}Twitter/X
-                    {% elif platform == 'douyin' %}抖音
-                    {% elif platform == 'wechat' %}微信公众号
-                    {% elif platform == 'direct_video' or platform == 'video' %}视频
-                    {% else %}{{ platform }}
-                    {% endif %}
-                </span>
-                <h1 class="card-title">{{ item.get('title', '无标题') }}</h1>
-
-                <!-- Subtitle / Author -->
-                {% if metadata.get('subtitle_text') or metadata.get('display_name') %}
-                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
-                    {{ metadata.get('subtitle_text') or (metadata.get('display_name') + ' (@' + (metadata.get('author', '').replace('@', '')) + ')') }}
-                </div>
-                {% endif %}
-
-                <!-- Metrics for Twitter/X -->
-                {% if metadata.get('metrics') %}
-                <div style="display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap;">
-                    {% if metadata.metrics.get('replies') %}
-                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
-                        <span>💬</span>
-                        <span>{{ "{:,}".format(metadata.metrics.replies) }}</span>
-                    </div>
-                    {% endif %}
-                    {% if metadata.metrics.get('retweets') %}
-                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
-                        <span>🔄</span>
-                        <span>{{ "{:,}".format(metadata.metrics.retweets) }}</span>
-                    </div>
-                    {% endif %}
-                    {% if metadata.metrics.get('quotes') %}
-                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
-                        <span>🔁</span>
-                        <span>{{ "{:,}".format(metadata.metrics.quotes) }}</span>
-                    </div>
-                    {% endif %}
-                    {% if metadata.metrics.get('likes') %}
-                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
-                        <span>❤️</span>
-                        <span>{{ "{:,}".format(metadata.metrics.likes) }}</span>
-                    </div>
-                    {% endif %}
-                    {% if metadata.metrics.get('views') %}
-                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
-                        <span>👁️</span>
-                        <span>{{ "{:,}".format(metadata.metrics.views) }}</span>
-                    </div>
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <div class="card-meta">
-                    <div class="meta-item">🆔 {{ item.get('id', 'N/A')[:8] }}...</div>
-                    <div class="meta-item">📅 {{ (item.get('created_at') or item.get('timestamp') or 'N/A')[:19].replace('T', ' ') }}</div>
-                    {% if metadata.get('url') %}
-                    <div class="meta-item">
-                        <a href="{{ metadata.url }}" target="_blank" style="color: var(--accent-color); text-decoration: none;">🔗 原文</a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="card-body">
-                <!-- AI 分析 (移到顶部) -->
-                {% if ai and ai|length > 0 %}
-                <div class="section ai-section">
-                    <div class="section-title">🤖 AI 分析</div>
-
-                    {% if ai.get('key_points') %}
-                    <div style="margin-bottom: 20px;">
-                        <strong>💡 关键点：</strong>
-                        <ul class="key-points">
-                            {% for point in ai.key_points[:5] %}
-                            <li>{{ point }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-
-                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                        {% if ai.get('sentiment') and ai.get('sentiment') != 'unknown' %}
-                        <div class="sentiment sentiment-{{ ai.get('sentiment') }}">
-                            😊 情感:
-                            {% if ai.get('sentiment') == 'positive' %}正面
-                            {% elif ai.get('sentiment') == 'negative' %}负面
-                            {% else %}中性
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
-                        {% if ai.get('topics') %}
-                        <div class="topics">
-                            🏷️
-                            {% for topic in ai.topics[:8] %}
-                            <span class="topic-tag">{{ topic }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- 内容正文 -->
-                <div class="section">
-                    <div class="section-title">📝 内容</div>
-                    <div class="content-text markdown-content rendered" style="white-space: pre-wrap;">
-                        {# For Twitter, use raw_content directly since _embed_images_in_content already processed it #}
-                        {# Don't apply clean_twitter_content - the TwitterProcessor already cleaned the content #}
-                        {% set raw = item.get('raw_content') or item.get('main_content') or item.get('summary', '') or '无内容' %}
-                        {{ raw }}
-                    </div>
-                </div>
-
-                <!-- 元数据 -->
-                {% if metadata and metadata|length > 0 and not metadata.get('metrics') %}
-                <div class="section">
-                    <div class="section-title">📊 元数据</div>
-                    <div class="metadata-grid">
-                        {% if metadata.get('author') and not metadata.get('metrics') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">作者</div>
-                            <div class="metadata-value">{{ metadata.get('author') }}</div>
-                        </div>
-                        {% endif %}
-                        {% if metadata.get('duration') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">时长</div>
-                            <div class="metadata-value">{{ metadata.get('duration') }}</div>
-                        </div>
-                        {% endif %}
-                        {% if metadata.get('view_count') and not metadata.get('metrics') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">观看数</div>
-                            <div class="metadata-value">{{ "{:,}".format(metadata.get('view_count', 0)) }}</div>
-                        </div>
-                        {% endif %}
-                        {% if metadata.get('publish_date') %}
-                        <div class="metadata-item">
-                            <div class="metadata-label">发布时间</div>
-                            <div class="metadata-value">{{ metadata.get('publish_date') }}</div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- 媒体 (excluding cover image) -->
-                {# Try to get images from media dict first, fallback to metadata #}
-                {% set media_images = media.get('images', []) if media else [] %}
-                {% if not media_images and metadata %}
-                    {% set media_images = metadata.get('images', []) %}
-                {% endif %}
-                {% set content_images = media_images or [] %}
-                {% if cover_image and content_images and cover_image in content_images %}
-                    {% set content_images = content_images[1:] %}
-                {% endif %}
-                {% if content_images or (media.get('screenshots') if media else false) %}
-                <div class="section">
-                    <div class="section-title">
-                        🖼️ 媒体
-                        {% if content_images %}({{ content_images|length }} 图片){% endif %}
-                    </div>
-                    <div class="media-gallery">
-                        {% for img in content_images[:8] %}
-                        <div class="media-item">
-                            {% if img.startswith('data:') %}
-                            <img src="{{ img }}" alt="Media">
-                            {% else %}
-                            <img src="{{ img }}" alt="Media" onerror="this.parentElement.style.display='none'">
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+        <!-- Header -->
+        <div class="header">
+            <a href="/" class="back-link">
+                ← 返回
+            </a>
+            <div class="header-actions">
+                <button class="action-btn" title="分享">↗</button>
+                <button class="action-btn" title="更多">⋮</button>
             </div>
         </div>
-        </div>
 
-        <div class="sidebar">
-            <!-- Quick Actions -->
-            <div class="sidebar-card">
-                <div class="sidebar-title">快捷操作</div>
-                <button class="btn btn-primary" style="margin-bottom: 8px;" onclick="showAddNoteModal()">📝 添加笔记</button>
-                <button class="btn" onclick="showAddToProjectModal()">📁 加入项目</button>
-                <button class="btn" style="margin-top: 8px;" onclick="reprocessContent()">🔄 重新处理</button>
-            </div>
+        <div class="layout">
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="main-card" style="--platform-color: {{ platform_color }}">
+                    <!-- Cover -->
+                    {% set cover_image = media.get('cover') or metadata.get('cover_image') or content_data.get('cover_url') %}
+                    {% if cover_image %}
+                    <div class="cover-section">
+                        <img src="{{ cover_image }}" alt="Cover">
+                        {% if platform in ['douyin', 'bilibili', 'youtube', 'video'] %}
+                        <div class="cover-overlay">
+                            <button class="play-button" onclick="playVideo()"></button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
 
-            <!-- Notes -->
-            <div class="sidebar-card">
-                <div class="sidebar-title">📝 笔记</div>
-                <div class="notes-list" id="notesList">
-                    <div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载中...</div>
+                    <!-- Header -->
+                    <div class="content-header">
+                        <span class="platform-badge" style="background: {{ platform_color }}">
+                            {% if platform == 'douyin' %}抖音
+                            {% elif platform in ['bilibili', 'bili'] %}B站
+                            {% elif platform == 'youtube' %}YouTube
+                            {% elif platform in ['twitter', 'x'] %}X / Twitter
+                            {% elif platform == 'wechat' %}微信公众号
+                            {% else %}网页{% endif %}
+                        </span>
+
+                        <h1 class="content-title">{{ item.get('title', '无标题') }}</h1>
+
+                        <div class="content-meta">
+                            {% if metadata.get('author') %}
+                            <span class="meta-author">👤 {{ metadata.get('author') }}</span>
+                            <span class="meta-dot"></span>
+                            {% endif %}
+                            <span>{{ (item.get('created_at') or item.get('timestamp') or '')[:10] }}</span>
+                            {% if metadata.get('url') %}
+                            <a href="{{ metadata.url }}" target="_blank" style="color: {{ platform_color }}; text-decoration: none;">🔗 原文</a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    {% set stats = {} %}
+                    {% if platform == 'douyin' %}
+                        {% set stats = {'play': content_data.get('play_count', 0), 'like': content_data.get('like_count', 0), 'comment': content_data.get('comment_count', 0), 'collect': content_data.get('collect_count', 0)} %}
+                    {% elif platform in ['bilibili', 'bili'] %}
+                        {% set stats = {'play': metadata.get('view_count', 0), 'danmaku': metadata.get('danmaku', 0), 'like': metadata.get('like_count', 0), 'coin': metadata.get('coin', 0)} %}
+                    {% elif platform == 'youtube' %}
+                        {% set stats = {'view': metadata.get('view_count', 0), 'like': metadata.get('like_count', 0), 'comment': metadata.get('comment_count', 0)} %}
+                    {% elif platform in ['twitter', 'x'] %}
+                        {% set stats = {'like': metadata.get('likes', 0), 'retweet': metadata.get('retweets', 0), 'reply': metadata.get('replies', 0), 'view': metadata.get('views', 0)} %}
+                    {% endif %}
+
+                    {% if stats %}
+                    <div class="stats-bar">
+                        {% if stats.play %}
+                        <div class="stat-item">
+                            <span class="stat-icon">👁️</span>
+                            <div>
+                                <div class="stat-value">{{ "{:,}".format(stats.play) }}</div>
+                                <div class="stat-label">播放</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.like %}
+                        <div class="stat-item">
+                            <span class="stat-icon">❤️</span>
+                            <div>
+                                <div class="stat-value">{{ "{:,}".format(stats.like) }}</div>
+                                <div class="stat-label">点赞</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.comment %}
+                        <div class="stat-item">
+                            <span class="stat-icon">💬</span>
+                            <div>
+                                <div class="stat-value">{{ "{:,}".format(stats.comment) }}</div>
+                                <div class="stat-label">评论</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.collect %}
+                        <div class="stat-item">
+                            <span class="stat-icon">⭐</span>
+                            <div>
+                                <div class="stat-value">{{ "{:,}".format(stats.collect) }}</div>
+                                <div class="stat-label">收藏</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.retweet %}
+                        <div class="stat-item">
+                            <span class="stat-icon">🔄</span>
+                            <div>
+                                <div class="stat-value">{{ "{:,}".format(stats.retweet) }}</div>
+                                <div class="stat-label">转发</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.danmaku %}
+                        <div class="stat-item">
+                            <span class="stat-icon">📺</span>
+                            <div>
+                                <div class="stat-value">{{ "{:,}".format(stats.danmaku) }}</div>
+                                <div class="stat-label">弹幕</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if stats.view %}
+                        <div class="stat-item">
+                            <span class="stat-icon">📊</span>
+                            <div>
+                                <div class="stat-value">{{ "{:,}".format(stats.view) }}</div>
+                                <div class="stat-label">观看</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Content Body -->
+                    <div class="content-body">
+                        <!-- AI Analysis -->
+                        {% if ai and ai|length > 0 %}
+                        <div class="section">
+                            <div class="ai-card">
+                                <div class="section-header">
+                                    <div class="section-title">🤖 AI 智能分析</div>
+                                </div>
+
+                                {% if ai.get('summary') %}
+                                <div class="ai-summary">{{ ai.summary }}</div>
+                                {% endif %}
+
+                                {% if ai.get('key_points') %}
+                                <div class="ai-key-points">
+                                    {% for point in ai.key_points[:5] %}
+                                    <div class="ai-key-point">{{ point }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                {% if ai.get('topics') %}
+                                <div class="ai-topics">
+                                    {% for topic in ai.topics[:6] %}
+                                    <span class="ai-topic">#{{ topic }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Deep Analysis (Video) -->
+                        {% set transcript = content_data.get('transcript', '') %}
+                        {% set key_frames = content_data.get('key_frames', []) or item.get('processing_info', {}).get('video_analysis', {}).get('key_frames', []) %}
+                        {% if platform in ['douyin', 'bilibili', 'youtube', 'video'] and (transcript or key_frames) %}
+                        <div class="section">
+                            <div class="section-header">
+                                <div class="section-title">🎬 深度分析</div>
+                                <button class="expand-btn" onclick="toggleDeepAnalysis()">
+                                    <span id="deepAnalysisToggleText">展开</span> ▾
+                                </button>
+                            </div>
+
+                            <div id="deepAnalysisContent" style="display: none;">
+                                <!-- Key Frames -->
+                                {% if key_frames %}
+                                <div style="margin-bottom: var(--space-lg);">
+                                    <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: var(--space-sm); color: var(--text-secondary);">关键帧</div>
+                                    <div class="keyframes-grid">
+                                        {% for frame in key_frames[:6] %}
+                                        <div class="keyframe-item">
+                                            {% if frame.get('image_path') %}
+                                            <img src="{{ frame.image_path }}" alt="Keyframe">
+                                            {% elif frame.get('url') %}
+                                            <img src="{{ frame.url }}" alt="Keyframe">
+                                            {% endif %}
+                                            {% if frame.get('timestamp_formatted') %}
+                                            <span class="keyframe-time">{{ frame.timestamp_formatted }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Transcript -->
+                                {% if transcript %}
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 500; margin-bottom: var(--space-sm); color: var(--text-secondary);">语音转录</div>
+                                    <div class="transcript-container">
+                                        <div class="transcript-text">{{ transcript }}</div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Content Preview -->
+                        {% set raw = item.get('raw_content') or item.get('main_content') or content_data.get('description', '') or '' %}
+                        {% if raw and raw != '无内容' %}
+                        <div class="section">
+                            <div class="section-header">
+                                <div class="section-title">📝 内容</div>
+                            </div>
+                            <div class="content-text">{{ raw[:2000] }}{% if raw|length > 2000 %}...{% endif %}</div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Metadata -->
+                        {% if metadata and metadata|length > 0 %}
+                        {% set show_meta = ['author', 'duration', 'publish_date', 'source']|filter(f => metadata.get(f)) %}
+                        {% if show_meta %}
+                        <div class="section">
+                            <div class="section-header">
+                                <div class="section-title">📋 信息</div>
+                            </div>
+                            <div class="metadata-grid">
+                                {% if metadata.get('author') and platform != 'douyin' %}
+                                <div class="metadata-item">
+                                    <div class="metadata-label">作者</div>
+                                    <div class="metadata-value">{{ metadata.get('author') }}</div>
+                                </div>
+                                {% endif %}
+                                {% if metadata.get('duration') %}
+                                <div class="metadata-item">
+                                    <div class="metadata-label">时长</div>
+                                    <div class="metadata-value">{{ metadata.get('duration') }}</div>
+                                </div>
+                                {% endif %}
+                                {% if metadata.get('publish_date') %}
+                                <div class="metadata-item">
+                                    <div class="metadata-label">发布时间</div>
+                                    <div class="metadata-value">{{ metadata.get('publish_date') }}</div>
+                                </div>
+                                {% endif %}
+                                {% if metadata.get('source') %}
+                                <div class="metadata-item">
+                                    <div class="metadata-label">来源</div>
+                                    <div class="metadata-value">{{ metadata.get('source') }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <!-- Media -->
+                        {% set media_images = media.get('images', []) or metadata.get('images', []) or [] %}
+                        {% if cover_image and media_images %}
+                            {% set media_images = media_images[1:] if cover_image in media_images else media_images %}
+                        {% endif %}
+                        {% if media_images %}
+                        <div class="section">
+                            <div class="section-header">
+                                <div class="section-title">🖼️ 媒体 ({{ media_images|length }})</div>
+                            </div>
+                            <div class="media-gallery">
+                                {% for img in media_images[:8] %}
+                                <div class="media-item">
+                                    <img src="{{ img }}" alt="Media" onerror="this.parentElement.style.display='none'">
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
-            <!-- Projects -->
-            <div class="sidebar-card">
-                <div class="sidebar-title">📁 所属项目/领域</div>
-                <div class="project-list" id="projectsList">
-                    <div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载中...</div>
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Actions -->
+                <div class="sidebar-card">
+                    <div class="sidebar-title">快捷操作</div>
+                    <div class="btn-stack">
+                        <button class="btn btn-primary" onclick="showAddNoteModal()">📝 添加笔记</button>
+                        <button class="btn" onclick="showAddToProjectModal()">📁 加入项目</button>
+                        <button class="btn" onclick="reprocessContent()">🔄 重新处理</button>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="sidebar-card">
+                    <div class="sidebar-title">📝 笔记</div>
+                    <div class="notes-list" id="notesList">
+                        <div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载中...</div>
+                    </div>
+                </div>
+
+                <!-- Projects -->
+                <div class="sidebar-card">
+                    <div class="sidebar-title">📁 所属项目</div>
+                    <div id="projectsList">
+                        <div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载中...</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
-    <script>
-        // Content ID
-        const contentId = '{{ content_id }}';
-
-        // Configure marked for better rendering
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            headerIds: true,
-            mangle: false,
-            smartLists: true,
-            smartypants: false
-        });
-
-        // Sanitization options
-        const sanitizationOptions = {
-            ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'div', 'span', 'del', 's', 'sub', 'sup', 'kbd'],
-            ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel', 'style', 'width', 'height'],
-            ALLOW_DATA_URI: true
-        };
-
-        // Convert image URLs to img tags
-        function convertImageUrls(content) {
-            const imagePatterns = [
-                /(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg|bmp))(?![^\s]*<\/a>)/gi,
-                /(https?:\/\/(?:i\.imgur\.com|imgur\.com|cdn\.discordapp\.com|github\.com|raw\.githubusercontent\.com|pbs\.twimg\.com)[^\s]*\.(?:png|jpg|jpeg|gif|webp|svg))/gi,
-                /data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/gi,
-            ];
-
-            let processed = content;
-            imagePatterns.forEach(pattern => {
-                processed = processed.replace(pattern, (match, url) => {
-                    return `<img src="${url}" alt="Embedded image" style="max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0;" loading="lazy" />`;
-                });
-            });
-            return processed;
-        }
-
-        // Check if content looks like markdown
-        function looksLikeMarkdown(content) {
-            const patterns = [/^#{1,6}\s/m, /^\*{3,}$/m, /^\s*[-*+]\s/m, /^\s*\d+\.\s/m, /\*\*.*\*\*/, /\[.*\]\(.*\)/, /^\s*>\s/m];
-            return patterns.some(p => p.test(content));
-        }
-
-        // Render markdown content
-        function renderMarkdownContent() {
-            document.querySelectorAll('.markdown-content.rendered').forEach(el => {
-                // Use innerHTML to preserve nested link structure like [![Image](url)](link)
-                let content = el.innerHTML || el.textContent || '';
-                // Clean up any pre-converted img tags to avoid double conversion
-                content = content.replace(/<img[^>]*>/gi, (match) => {
-                    // Keep existing img tags but mark them
-                    return match;
-                });
-
-                if (!content || content.trim() === '无内容' || content.trim() === 'None') {
-                    el.innerHTML = '<p style="color: var(--text-tertiary);">无内容</p>';
-                    return;
-                }
-
-                if (looksLikeMarkdown(content)) {
-                    try {
-                        // First: render markdown with marked (preserves nested link structure)
-                        let rawHtml = marked.parse(content);
-
-                        // Then: sanitize
-                        let sanitized = DOMPurify.sanitize(rawHtml, sanitizationOptions);
-
-                        // Finally: enhance images with styling
-                        sanitized = sanitized.replace(/<img\s+([^>]*)>/gi, (match, attrs) => {
-                            // Add loading="lazy" if not present
-                            if (!attrs.includes('loading=')) {
-                                attrs = 'loading="lazy" ' + attrs;
-                            }
-                            // Ensure max-width
-                            if (!attrs.includes('style=')) {
-                                attrs += ' style="max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0;"';
-                            }
-                            return `<img ${attrs}>`;
-                        });
-
-                        el.innerHTML = sanitized;
-
-                        if (typeof hljs !== 'undefined') {
-                            el.querySelectorAll('pre code').forEach((block) => {
-                                hljs.highlightElement(block);
-                            });
-                        }
-                    } catch (e) {
-                        console.error('Markdown error:', e);
-                        el.innerHTML = `<p style="white-space: pre-wrap;">${content}</p>`;
-                    }
-                } else {
-                    el.innerHTML = `<p style="white-space: pre-wrap;">${content}</p>`;
-                }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', renderMarkdownContent);
-
-        // ==================== Notes and Projects ====================
-
-        async function loadNotes() {
-            try {
-                const response = await fetch(`/api/contents/${contentId}/notes`);
-                const data = await response.json();
-                const notes = data.success ? data.data : [];
-                const notesList = document.getElementById('notesList');
-
-                if (!notes || notes.length === 0) {
-                    notesList.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">暂无笔记</div>';
-                    return;
-                }
-
-                notesList.innerHTML = notes.map(note => `
-                    <div class="note-item">
-                        <div class="note-header">
-                            <span class="note-type">${getNoteTypeLabel(note.note_type)}</span>
-                        </div>
-                        <div class="note-content">${note.content || ''}</div>
-                        <div class="note-time">${note.created_at ? new Date(note.created_at).toLocaleString('zh-CN') : '未知时间'}</div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Failed to load notes:', error);
-                document.getElementById('notesList').innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载失败</div>';
-            }
-        }
-
-        async function loadProjects() {
-            try {
-                // Fetch both PROJECT and AREA nodes
-                const [projectResp, areaResp] = await Promise.all([
-                    fetch(`/api/nodes?type=PROJECT&limit=100`),
-                    fetch(`/api/nodes?type=AREA&limit=100`)
-                ]);
-
-                const projectData = await projectResp.json();
-                const areaData = await areaResp.json();
-
-                const projects = projectData.success ? projectData.data : [];
-                const areas = areaData.success ? areaData.data : [];
-
-                // Combine both types
-                const allNodes = [...projects, ...areas];
-
-                // Get nodes that contain this content
-                const nodesWithContent = await Promise.all(allNodes.map(async node => {
-                    try {
-                        const resp = await fetch(`/api/nodes/${node.id}/contents`);
-                        const contentsData = await resp.json();
-                        const contents = contentsData.success ? contentsData.data : [];
-                        return contents.some(c => c.id === contentId) ? node : null;
-                    } catch {
-                        return null;
-                    }
-                }));
-
-                const nodes = nodesWithContent.filter(n => n !== null);
-                const projectsList = document.getElementById('projectsList');
-
-                if (!nodes || nodes.length === 0) {
-                    projectsList.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">暂未加入项目或领域</div>';
-                    return;
-                }
-
-                projectsList.innerHTML = nodes.map(node => `
-                    <div class="project-item">
-                        <a href="/nodes/${node.id}" class="project-name">${node.name}</a>
-                        <span class="project-remove" onclick="removeFromProject('${node.id}')">×</span>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Failed to load projects:', error);
-                document.getElementById('projectsList').innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载失败</div>';
-            }
-        }
-
-        function getNoteTypeLabel(type) {
-            const labels = {
-                'learning': '📝 学习',
-                'inspiration': '💡 灵感',
-                'quote': '⭐ 金句',
-                'actionable': '🎯 可执行',
-                'question': '❓ 疑问',
-                'connection': '🔗 关联',
-                'todig': '📌 待深入',
-                'NOTE': '📝 笔记'
-            };
-            return labels[type] || '📝 笔记';
-        }
-
-        function showAddNoteModal() {
-            document.getElementById('addNoteModal').classList.add('active');
-        }
-
-        function hideAddNoteModal() {
-            document.getElementById('addNoteModal').classList.remove('active');
-        }
-
-        async function addNote(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-
-            const data = {
-                content_id: contentId,
-                note_type: formData.get('type'),
-                content: formData.get('content')
-            };
-
-            try {
-                const response = await fetch('/api/notes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    hideAddNoteModal();
-                    form.reset();
-                    loadNotes();
-                    showMessage('笔记添加成功', 'success');
-                } else {
-                    showMessage('添加失败: ' + (result.error || '未知错误'), 'error');
-                }
-            } catch (error) {
-                console.error('Error adding note:', error);
-                showMessage('请求失败: ' + error, 'error');
-            }
-        }
-
-        let allNodes = [];
-
-        async function showAddToProjectModal() {
-            const modal = document.getElementById('addToProjectModal');
-            const select = document.getElementById('projectSelect');
-
-            try {
-                // Fetch both PROJECT and AREA nodes
-                const [projectResp, areaResp] = await Promise.all([
-                    fetch('/api/nodes?type=PROJECT&limit=100'),
-                    fetch('/api/nodes?type=AREA&limit=100')
-                ]);
-
-                const projectData = await projectResp.json();
-                const areaData = await areaResp.json();
-
-                const projects = projectData.success ? projectData.data : [];
-                const areas = areaData.success ? areaData.data : [];
-
-                // Combine both types
-                allNodes = [...projects, ...areas];
-
-                if (allNodes.length === 0) {
-                    select.innerHTML = '<option value="">暂无项目或领域，请先创建</option>';
-                } else {
-                    // Group by type for better UX
-                    const projectOptions = projects.map(n => `<option value="${n.id}">🎯 ${n.name}</option>`).join('');
-                    const areaOptions = areas.map(n => `<option value="${n.id}">📁 ${n.name}</option>`).join('');
-
-                    select.innerHTML = '<option value="">选择项目或领域...</option>' +
-                        (projectOptions ? '<optgroup label="项目 (Projects)">' + projectOptions + '</optgroup>' : '') +
-                        (areaOptions ? '<optgroup label="领域 (Areas)">' + areaOptions + '</optgroup>' : '');
-                }
-
-                modal.classList.add('active');
-            } catch (error) {
-                console.error('Error loading nodes:', error);
-                showMessage('加载项目列表失败', 'error');
-            }
-        }
-
-        function hideAddToProjectModal() {
-            document.getElementById('addToProjectModal').classList.remove('active');
-        }
-
-        async function addToProject(event) {
-            event.preventDefault();
-            const form = event.target;
-            const nodeId = form.project.value;
-
-            if (!nodeId) {
-                showMessage('请选择项目', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/nodes/${nodeId}/contents`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content_id: contentId })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    hideAddToProjectModal();
-                    loadProjects();
-                    showMessage('已添加到项目', 'success');
-                } else {
-                    showMessage('添加失败: ' + (result.error || '未知错误'), 'error');
-                }
-            } catch (error) {
-                console.error('Error adding to project:', error);
-                showMessage('请求失败: ' + error, 'error');
-            }
-        }
-
-        async function removeFromProject(nodeId) {
-            if (!confirm('确定要从项目中移除吗？')) return;
-
-            try {
-                const response = await fetch(`/api/nodes/${nodeId}/contents/${contentId}`, {
-                    method: 'DELETE'
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    loadProjects();
-                    showMessage('已从项目中移除', 'success');
-                } else {
-                    showMessage('移除失败: ' + (result.error || '未知错误'), 'error');
-                }
-            } catch (error) {
-                console.error('Error removing from project:', error);
-                showMessage('请求失败: ' + error, 'error');
-            }
-        }
-
-        function showMessage(message, type = 'info') {
-            const div = document.createElement('div');
-            div.textContent = message;
-            div.style.cssText = `
-                position: fixed; top: 20px; right: 20px;
-                padding: 12px 20px;
-                background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#6c757d'};
-                color: white; border-radius: 4px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                z-index: 10000;
-            `;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3000);
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadNotes();
-            loadProjects();
-        });
-
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-        });
-    </script>
-
-    <!-- Add Note Modal -->
+    <!-- Modals -->
     <div class="modal" id="addNoteModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>添加笔记</h2>
                 <button class="close-btn" onclick="hideAddNoteModal()">&times;</button>
             </div>
-            <form id="addNoteForm" onsubmit="addNote(event)">
+            <form onsubmit="addNote(event)">
                 <div class="form-group">
                     <label>笔记类型</label>
                     <select name="type">
@@ -1205,16 +1145,15 @@
         </div>
     </div>
 
-    <!-- Add to Project Modal -->
     <div class="modal" id="addToProjectModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>加入项目或领域</h2>
+                <h2>加入项目</h2>
                 <button class="close-btn" onclick="hideAddToProjectModal()">&times;</button>
             </div>
-            <form id="addToProjectForm" onsubmit="addToProject(event)">
+            <form onsubmit="addToProject(event)">
                 <div class="form-group">
-                    <label>选择项目或领域</label>
+                    <label>选择项目</label>
                     <select name="project" id="projectSelect" required>
                         <option value="">加载中...</option>
                     </select>
@@ -1223,5 +1162,210 @@
             </form>
         </div>
     </div>
+
+    <script>
+        const contentId = '{{ content_id }}';
+        let deepAnalysisExpanded = false;
+
+        function toggleDeepAnalysis() {
+            const content = document.getElementById('deepAnalysisContent');
+            const toggleText = document.getElementById('deepAnalysisToggleText');
+            deepAnalysisExpanded = !deepAnalysisExpanded;
+            content.style.display = deepAnalysisExpanded ? 'block' : 'none';
+            toggleText.textContent = deepAnalysisExpanded ? '收起' : '展开';
+        }
+
+        function playVideo() {
+            const coverImage = document.querySelector('.cover-section img');
+            if (coverImage) {
+                // In a real implementation, this would open a video player
+                alert('视频播放功能 - 将打开原始链接');
+                {% if metadata.get('url') %}
+                window.open('{{ metadata.url }}', '_blank');
+                {% endif %}
+            }
+        }
+
+        // Notes and Projects functions (same as before, simplified)
+        async function loadNotes() {
+            try {
+                const response = await fetch(`/api/contents/${contentId}/notes`);
+                const data = await response.json();
+                const notes = data.success ? data.data : [];
+                const notesList = document.getElementById('notesList');
+
+                if (!notes || notes.length === 0) {
+                    notesList.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">暂无笔记</div>';
+                    return;
+                }
+
+                notesList.innerHTML = notes.map(note => `
+                    <div class="note-item">
+                        <div class="note-header">
+                            <span class="note-type">${getNoteTypeLabel(note.note_type)}</span>
+                        </div>
+                        <div class="note-content">${note.content || ''}</div>
+                        <div class="note-time">${note.created_at ? new Date(note.created_at).toLocaleString('zh-CN') : ''}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('notesList').innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载失败</div>';
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                const [projectResp, areaResp] = await Promise.all([
+                    fetch('/api/nodes?type=PROJECT&limit=100'),
+                    fetch('/api/nodes?type=AREA&limit=100')
+                ]);
+
+                const projectData = await projectResp.json();
+                const areaData = await areaResp.json();
+
+                const projects = projectData.success ? projectData.data : [];
+                const areas = areaData.success ? areaData.data : [];
+                const allNodes = [...projects, ...areas];
+
+                const nodesWithContent = await Promise.all(allNodes.map(async node => {
+                    try {
+                        const resp = await fetch(`/api/nodes/${node.id}/contents`);
+                        const contentsData = await resp.json();
+                        const contents = contentsData.success ? contentsData.data : [];
+                        return contents.some(c => c.id === contentId) ? node : null;
+                    } catch {
+                        return null;
+                    }
+                }));
+
+                const nodes = nodesWithContent.filter(n => n !== null);
+                const projectsList = document.getElementById('projectsList');
+
+                if (!nodes || nodes.length === 0) {
+                    projectsList.innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">暂未加入项目</div>';
+                    return;
+                }
+
+                projectsList.innerHTML = nodes.map(node => `
+                    <div style="padding: 8px 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <a href="/nodes/${node.id}" style="color: var(--text-primary); text-decoration: none; font-size: 0.9rem;">${node.name}</a>
+                        <span onclick="removeFromProject('${node.id}')" style="cursor: pointer; color: var(--text-tertiary);">×</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('projectsList').innerHTML = '<div style="text-align: center; color: var(--text-tertiary); padding: 20px;">加载失败</div>';
+            }
+        }
+
+        function getNoteTypeLabel(type) {
+            const labels = {
+                'learning': '📝 学习', 'inspiration': '💡 灵感', 'quote': '⭐ 金句',
+                'actionable': '🎯 可执行', 'question': '❓ 疑问', 'connection': '🔗 关联',
+                'todig': '📌 待深入', 'NOTE': '📝 笔记'
+            };
+            return labels[type] || '📝 笔记';
+        }
+
+        function showAddNoteModal() { document.getElementById('addNoteModal').classList.add('active'); }
+        function hideAddNoteModal() { document.getElementById('addNoteModal').classList.remove('active'); }
+        function showAddToProjectModal() {
+            document.getElementById('addToProjectModal').classList.add('active');
+            loadProjectOptions();
+        }
+        function hideAddToProjectModal() { document.getElementById('addToProjectModal').classList.remove('active'); }
+
+        async function loadProjectOptions() {
+            try {
+                const [projectResp, areaResp] = await Promise.all([
+                    fetch('/api/nodes?type=PROJECT&limit=100'),
+                    fetch('/api/nodes?type=AREA&limit=100')
+                ]);
+                const projects = (await projectResp.json()).success ? (await projectResp.json()).data : [];
+                const areas = (await areaResp.json()).success ? (await areaResp.json()).data : [];
+                const allNodes = [...projects, ...areas];
+
+                const select = document.getElementById('projectSelect');
+                if (allNodes.length === 0) {
+                    select.innerHTML = '<option value="">暂无项目</option>';
+                } else {
+                    select.innerHTML = '<option value="">选择项目...</option>' +
+                        allNodes.map(n => `<option value="${n.id}">${n.name}</option>`).join('');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function addNote(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            try {
+                const response = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content_id: contentId,
+                        note_type: formData.get('type'),
+                        content: formData.get('content')
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    hideAddNoteModal();
+                    event.target.reset();
+                    loadNotes();
+                    alert('笔记添加成功');
+                }
+            } catch (e) {
+                alert('添加失败');
+            }
+        }
+
+        async function addToProject(event) {
+            event.preventDefault();
+            const nodeId = new FormData(event.target).get('project');
+            if (!nodeId) return;
+
+            try {
+                const response = await fetch(`/api/nodes/${nodeId}/contents`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content_id: contentId })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    hideAddToProjectModal();
+                    loadProjects();
+                    alert('已添加到项目');
+                }
+            } catch (e) {
+                alert('添加失败');
+            }
+        }
+
+        async function removeFromProject(nodeId) {
+            if (!confirm('确定要移除吗？')) return;
+            try {
+                await fetch(`/api/nodes/${nodeId}/contents/${contentId}`, { method: 'DELETE' });
+                loadProjects();
+            } catch (e) {
+                alert('移除失败');
+            }
+        }
+
+        function reprocessContent() {
+            alert('重新处理功能 - 待实现');
+        }
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('active');
+            });
+        });
+
+        // Initialize
+        loadNotes();
+        loadProjects();
+    </script>
 </body>
 </html>
