@@ -1026,14 +1026,14 @@
 
                         <!-- Metadata -->
                         {% if metadata and metadata|length > 0 %}
-                        {% set show_meta = ['author', 'duration', 'publish_date', 'source']|filter(f => metadata.get(f)) %}
+                        {% set show_meta = metadata.get('duration') or metadata.get('publish_date') or metadata.get('source') %}
                         {% if show_meta %}
                         <div class="section">
                             <div class="section-header">
                                 <div class="section-title">📋 信息</div>
                             </div>
                             <div class="metadata-grid">
-                                {% if metadata.get('author') and platform != 'douyin' %}
+                                {% if metadata.get('author') %}
                                 <div class="metadata-item">
                                     <div class="metadata-label">作者</div>
                                     <div class="metadata-value">{{ metadata.get('author') }}</div>
