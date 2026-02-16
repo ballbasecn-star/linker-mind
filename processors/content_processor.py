@@ -340,6 +340,12 @@ class ProcessorFactory:
             except ImportError as e:
                 logger.warning(f"Failed to load WeixinProcessorEnhanced: {e}")
 
+            try:
+                from processors.platforms.twitter_processor import TwitterProcessor
+                cls._additional_processors.append(TwitterProcessor)
+            except (ImportError, ValueError) as e:
+                logger.warning(f"TwitterProcessor not available: {e}")
+
         return cls._additional_processors
 
     _processors = [
@@ -360,15 +366,23 @@ class ProcessorFactory:
         """Get appropriate processor for URL"""
         # 先检查专用处理器（优先级更高）
         for processor_class in self._additional_processors:
-            processor = processor_class()
-            if processor.can_process(url_info):
-                return processor
+            try:
+                processor = processor_class()
+                if processor.can_process(url_info):
+                    return processor
+            except (ImportError, ValueError) as e:
+                logger.warning(f"Cannot instantiate {processor_class.__name__}: {e}")
+                continue
 
         # 再检查通用处理器
         for processor_class in self._processors:
-            processor = processor_class()
-            if processor.can_process(url_info):
-                return processor
+            try:
+                processor = processor_class()
+                if processor.can_process(url_info):
+                    return processor
+            except (ImportError, ValueError) as e:
+                logger.warning(f"Cannot instantiate {processor_class.__name__}: {e}")
+                continue
         return None
 
     def get_all_processors(self) -> List[ContentProcessor]:
