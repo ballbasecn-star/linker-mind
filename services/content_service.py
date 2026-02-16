@@ -238,10 +238,12 @@ class ContentService:
         if 'deep_analysis' in sig.parameters:
             # 现在已解决 cookies 问题，可以启用抖音深度分析
             use_deep_analysis = deep_analysis
+            logger.info(f"deep_analysis 参数: {deep_analysis}, 处理器: {processor_class_name}")
             if deep_analysis and "DouyinProcessor" in processor_class_name:
                 logger.info("启用抖音视频深度分析（转录 + 关键帧 + LLM分析）")
         else:
             use_deep_analysis = False
+            logger.warning(f"处理器 {processor_class_name} 不支持 deep_analysis 参数")
 
         if processor_class_name == "TwitterProcessor" and self._web_reader_func:
             processor.web_reader_func = self._web_reader_func
