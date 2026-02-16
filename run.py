@@ -133,8 +133,7 @@ def run_dev_server(host='127.0.0.1', port=5000):
         port=port,
         debug=True,
         use_reloader=True,
-        threaded=True,
-        request_timeout=600  # 10分钟超时，用于视频深度分析
+        threaded=True
     )
 
 
