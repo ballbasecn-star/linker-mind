@@ -10,7 +10,7 @@ import logging
 
 from database.db_interface import get_connection
 from url_detector import URLDetector, URLInfo
-from content_processor import ProcessorFactory, ProcessedContent
+from processors.content_processor import ProcessorFactory, ProcessedContent
 from ai_analyzer import AIAnalyzer
 
 logger = logging.getLogger(__name__)

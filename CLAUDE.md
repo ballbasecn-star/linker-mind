@@ -86,7 +86,7 @@ client = get_unified_client()
 result = client.scrape_with_priority(url, [TAVILY, FIRECRAWL])
 
 # ✅ 正确：处理器中调用
-from content_processor import WebPageProcessor
+from processors.content_processor import WebPageProcessor
 processor = WebPageProcessor()  # 自动选择最优API
 ```
 
@@ -1003,7 +1003,52 @@ via @作者名
 - 模板中 `transcript` 数据读取路径
 - 视频数据指标保存到metadata
 
+### 9.5 处理器代码结构重组
+
+**功能**：统一管理处理器代码
+
+**实现**：
+- 创建 `processors/` 目录，统一存放所有处理器
+- 子目录分类：`platforms/`（平台处理器）、`media/`（媒体处理器）
+- 修复 `can_process` 方法缺失问题
+- 修复微信处理器 URL 类型匹配问题
+
+**代码结构**：
+```
+processors/
+├── __init__.py
+├── content_processor.py          # 基础内容处理器
+├── webpage_processor_enhanced.py # 增强版网页处理器
+├── processor_factory_updated.py   # 处理器工厂
+├── platforms/                    # 平台特定处理器
+│   ├── __init__.py
+│   ├── weixin_processor.py       # 微信
+│   ├── douyin_processor.py       # 抖音
+│   ├── douyin_processor_enhanced.py
+│   └── twitter_processor.py     # Twitter/X
+└── media/                       # 媒体处理器
+    ├── __init__.py
+    ├── audio_processor.py
+    ├── video_processor.py
+    ├── book_processor.py
+    └── ocr_processor.py
+```
+
+**导入方式**：
+```python
+from processors.content_processor import ContentProcessor
+from processors.platforms.weixin_processor import WeixinProcessorEnhanced
+from processors.platforms.douyin_processor import DouyinProcessorEnhanced
+from processors.media.video_processor import VideoInfoProcessor
+```
+
+**相关文件**：
+- `processors/content_processor.py`
+- `processors/platforms/*.py`
+- `processors/media/*.py`
+- `tests/*.py`
+
 ---
 
-*文档版本: v1.4*
+*文档版本: v1.5*
 *最后更新: 2026-02-16*

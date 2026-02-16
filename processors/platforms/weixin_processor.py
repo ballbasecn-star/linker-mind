@@ -14,7 +14,7 @@ import logging
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
-from content_processor import ContentProcessor, ProcessedContent
+from processors.content_processor import ContentProcessor, ProcessedContent
 from url_detector import URLInfo
 
 logger = logging.getLogger(__name__)
@@ -80,7 +80,7 @@ class WeixinProcessorEnhanced(ContentProcessor):
 
     def can_process(self, url_info: URLInfo) -> bool:
         """判断是否可以处理微信URL"""
-        return url_info.url_type.value == "weixin"
+        return url_info.url_type.value in ("weixin", "wechat")
 
     def extract(self, url_info: URLInfo, max_retries: int = 3) -> ProcessedContent:
         """

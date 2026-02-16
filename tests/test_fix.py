@@ -1,7 +1,7 @@
 
     def test_normalize_douyin_data(self):
         """Test data normalization"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
 
         processor = DouyinProcessorEnhanced()
 

@@ -20,7 +20,7 @@ class TestMCPWebReaderSupport(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         self.processor = WeixinProcessorEnhanced()
 
     def test_set_mcp_tools_enables_mcp(self):
@@ -35,7 +35,7 @@ class TestMCPWebReaderSupport(unittest.TestCase):
     def test_mcp_is_first_priority(self, mock_mcp):
         """Test that MCP WebReader is tried first when available"""
         from url_detector import URLInfo
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         mock_result = ProcessedContent()
         mock_result.content = {'title': 'MCP Result'}
@@ -58,7 +58,7 @@ class TestMCPWebReaderSupport(unittest.TestCase):
     def test_fallback_to_firecrawl_on_mcp_failure(self, mock_mcp, mock_firecrawl):
         """Test fallback to Firecrawl when MCP fails"""
         from url_detector import URLInfo
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         mock_mcp.side_effect = Exception("MCP failed")
         mock_result = ProcessedContent()
@@ -85,7 +85,7 @@ class TestScriptDataExtraction(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         self.processor = WeixinProcessorEnhanced()
         self.processor.requests_available = True
 
@@ -169,7 +169,7 @@ class TestEnhancedRequestMethod(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         self.processor = WeixinProcessorEnhanced()
         self.processor.requests_available = True
 
@@ -246,7 +246,7 @@ class TestMediaInfoBuilding(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         self.processor = WeixinProcessorEnhanced()
 
     def test_extract_images_from_markdown(self):
@@ -290,7 +290,7 @@ class TestRetryMechanism(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         self.processor = WeixinProcessorEnhanced()
 
     @patch('weixin_processor_enhanced.WeixinProcessorEnhanced._extract_with_mcp')
@@ -299,7 +299,7 @@ class TestRetryMechanism(unittest.TestCase):
     def test_retry_on_exception(self, mock_requests, mock_firecrawl, mock_mcp):
         """Test that exceptions trigger retry"""
         from url_detector import URLInfo
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         # First two attempts fail
         mock_mcp.side_effect = [Exception("Error 1"), Exception("Error 2")]
@@ -328,14 +328,14 @@ class TestContentValidation(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         self.processor = WeixinProcessorEnhanced()
 
     @patch('weixin_processor_enhanced.WeixinProcessorEnhanced._validate_weixin_content')
     def test_validation_happens_before_return(self, mock_validate):
         """Test that validation happens before returning"""
         from url_detector import URLInfo
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         mock_validate.return_value = False
 
@@ -363,7 +363,7 @@ class TestFieldExtraction(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         self.processor = WeixinProcessorEnhanced()
 
     def test_extract_author_from_markdown(self):
@@ -405,7 +405,7 @@ class TestExtractWithMCP(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         self.processor = WeixinProcessorEnhanced()
 
     @patch('weixin_processor_enhanced.WeixinProcessorEnhanced._extract_description')

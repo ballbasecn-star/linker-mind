@@ -43,7 +43,7 @@ class TestProcessorIntegration(unittest.TestCase):
 
     def test_douyin_processor_initialization(self):
         """Test DouyinProcessorEnhanced initialization"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
 
         processor = DouyinProcessorEnhanced()
 
@@ -52,7 +52,7 @@ class TestProcessorIntegration(unittest.TestCase):
 
     def test_weixin_processor_initialization(self):
         """Test WeixinProcessorEnhanced initialization"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
 
         processor = WeixinProcessorEnhanced()
 
@@ -81,7 +81,7 @@ class TestErrorRecovery(unittest.TestCase):
 
     def test_douyin_rate_limit_recovery(self):
         """Test that Douyin processor recovers from rate limits"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced, RateLimitError
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced, RateLimitError
         from url_detector import URLInfo
         from unittest.mock import patch
 
@@ -95,7 +95,7 @@ class TestErrorRecovery(unittest.TestCase):
         # Mock to raise rate limit on first call, succeed on second
         with patch.object(processor, '_extract_with_mcp') as mock_mcp:
             with patch.object(processor, '_extract_with_requests_enhanced') as mock_requests:
-                from content_processor import ProcessedContent
+                from processors.content_processor import ProcessedContent
 
                 # First call: rate limit
                 mock_mcp.side_effect = RateLimitError(retry_after=1)
@@ -113,7 +113,7 @@ class TestErrorRecovery(unittest.TestCase):
 
     def test_weixin_fallback_chain(self):
         """Test that Weixin processor falls back through all methods"""
-        from weixin_processor_enhanced import WeixinProcessorEnhanced
+        from processors.platforms.weixin_processor import WeixinProcessorEnhanced
         from url_detector import URLInfo
         from unittest.mock import patch
 
@@ -128,7 +128,7 @@ class TestErrorRecovery(unittest.TestCase):
         with patch.object(processor, '_extract_with_mcp') as mock_mcp:
             with patch.object(processor, '_extract_with_firecrawl') as mock_firecrawl:
                 with patch.object(processor, '_extract_with_requests_enhanced') as mock_requests:
-                    from content_processor import ProcessedContent
+                    from processors.content_processor import ProcessedContent
 
                     mock_mcp.side_effect = Exception("MCP failed")
                     mock_firecrawl.side_effect = Exception("Firecrawl failed")
@@ -150,7 +150,7 @@ class TestPerformanceMetrics(unittest.TestCase):
 
     def test_processing_time_is_recorded(self):
         """Test that processing time is recorded"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         from url_detector import URLInfo
 
         processor = DouyinProcessorEnhanced()
@@ -161,7 +161,7 @@ class TestPerformanceMetrics(unittest.TestCase):
         )
 
         with patch.object(processor, '_extract_with_mcp') as mock_extract:
-            from content_processor import ProcessedContent
+            from processors.content_processor import ProcessedContent
 
             mock_result = ProcessedContent()
             mock_result.content = {'title': 'Test'}
@@ -175,7 +175,7 @@ class TestPerformanceMetrics(unittest.TestCase):
 
     def test_extraction_method_is_recorded(self):
         """Test that extraction method is recorded"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         from url_detector import URLInfo
 
         processor = DouyinProcessorEnhanced()
@@ -186,7 +186,7 @@ class TestPerformanceMetrics(unittest.TestCase):
         )
 
         with patch.object(processor, '_extract_with_mcp') as mock_extract:
-            from content_processor import ProcessedContent
+            from processors.content_processor import ProcessedContent
 
             mock_result = ProcessedContent()
             mock_result.content = {'title': 'Test'}
@@ -203,7 +203,7 @@ class TestDataConsistency(unittest.TestCase):
 
     def test_processed_content_structure(self):
         """Test that ProcessedContent has consistent structure"""
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         content = ProcessedContent()
         content.content = {'title': 'Test'}

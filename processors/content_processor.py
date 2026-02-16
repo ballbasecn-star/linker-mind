@@ -329,16 +329,16 @@ class ProcessorFactory:
         """动态加载专用处理器"""
         if not cls._additional_processors:
             try:
-                from douyin_processor import DouyinProcessorEnhanced
+                from processors.platforms.douyin_processor import DouyinProcessorEnhanced
                 cls._additional_processors.append(DouyinProcessorEnhanced)
-            except ImportError:
-                pass
+            except ImportError as e:
+                logger.warning(f"Failed to load DouyinProcessorEnhanced: {e}")
 
             try:
-                from weixin_processor import WeixinProcessor
-                cls._additional_processors.append(WeixinProcessor)
-            except ImportError:
-                pass
+                from processors.platforms.weixin_processor import WeixinProcessorEnhanced
+                cls._additional_processors.append(WeixinProcessorEnhanced)
+            except ImportError as e:
+                logger.warning(f"Failed to load WeixinProcessorEnhanced: {e}")
 
         return cls._additional_processors
 

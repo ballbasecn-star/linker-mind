@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from url_detector import URLInfo, URLType
-from content_processor import ContentProcessor, ProcessedContent
+from processors.content_processor import ContentProcessor, ProcessedContent
 
 
 @dataclass

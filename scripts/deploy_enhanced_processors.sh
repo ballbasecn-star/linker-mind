@@ -66,8 +66,8 @@ fi
 # Step 5: Run smoke tests
 log_info "Running smoke tests..."
 python3 -c "
-from douyin_processor import DouyinProcessor
-from weixin_processor import WeixinProcessor
+from processors.platforms.douyin_processor import DouyinProcessorEnhanced
+from processors.platforms.weixin_processor import WeixinProcessorEnhanced
 print('Import test: OK')
 " 2>&1
 

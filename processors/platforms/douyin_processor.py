@@ -15,7 +15,7 @@ import logging
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
-from content_processor import ContentProcessor, ProcessedContent
+from processors.content_processor import ContentProcessor, ProcessedContent
 from url_detector import URLInfo
 
 logger = logging.getLogger(__name__)

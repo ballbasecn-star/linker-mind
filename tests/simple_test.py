@@ -2,19 +2,24 @@
 """Simple test of enhanced processors"""
 import sys
 import json
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 print(f"Python {sys.version}")
 
 # Test 1: Import test
 print("\n=== Test 1: Import Enhanced Processors ===")
 try:
-    import douyin_processor_enhanced as douyin_enhanced
+    from processors.platforms.douyin_processor import DouyinProcessorEnhanced
     print("  DouyinProcessorEnhanced: OK")
 except Exception as e:
     print(f"  DouyinProcessorEnhanced: FAILED - {e}")
 
 try:
-    import weixin_processor_enhanced as weixin_enhanced
+    from processors.platforms.weixin_processor import WeixinProcessorEnhanced
     print("  WeixinProcessorEnhanced: OK")
 except Exception as e:
     print(f"  WeixinProcessorEnhanced: FAILED - {e}")
@@ -22,14 +27,14 @@ except Exception as e:
 # Test 2: Create instances
 print("\n=== Test 2: Create Processor Instances ===")
 try:
-    from douyin_processor_enhanced import DouyinProcessorEnhanced
+    from processors.platforms.douyin_processor import DouyinProcessorEnhanced
     processor = DouyinProcessorEnhanced()
     print(f"  Douyin instance: {type(processor).__name__}")
 except Exception as e:
     print(f"  Douyin instance creation: FAILED - {e}")
 
 try:
-    from weixin_processor_enhanced import WeixinProcessorEnhanced
+    from processors.platforms.weixin_processor import WeixinProcessorEnhanced
     processor = WeixinProcessorEnhanced()
     print(f"  Weixin instance: {type(processor).__name__}")
 except Exception as e:
@@ -54,7 +59,7 @@ except Exception as e:
 # Test 4: Test ProcessorFactory
 print("\n=== Test 4: ProcessorFactory ===")
 try:
-    from content_processor import ProcessorFactory
+    from processors.content_processor import ProcessorFactory
     factory = ProcessorFactory.create_default()
     print(f"  Factory created: {type(factory).__name__}")
 except Exception as e:

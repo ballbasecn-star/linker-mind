@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from content_processor import ProcessedContent
+from processors.content_processor import ProcessedContent
 
 load_dotenv()
 

@@ -15,7 +15,7 @@ from datetime import datetime
 from base64 import b64encode
 
 from url_detector import URLInfo, URLType
-from content_processor import ContentProcessor, ProcessedContent
+from processors.content_processor import ContentProcessor, ProcessedContent
 
 
 @dataclass

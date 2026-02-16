@@ -10,7 +10,7 @@ import os
 import logging
 import requests
 from bs4 import BeautifulSoup
-from content_processor import ContentProcessor, ProcessedContent, URLInfo
+from processors.content_processor import ContentProcessor, ProcessedContent, URLInfo
 from typing import Optional
 
 logger = logging.getLogger(__name__)

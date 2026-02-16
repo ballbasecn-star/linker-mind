@@ -346,7 +346,7 @@ def main():
         print("\n测试结果验证:")
 
         # 创建测试结果
-        from content_processor import ProcessedContent, URLInfo
+        from processors.content_processor import ProcessedContent, URLInfo
 
         valid_result = ProcessedContent(
             id="test",

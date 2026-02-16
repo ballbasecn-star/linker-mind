@@ -21,7 +21,7 @@ class TestExtractionErrors(unittest.TestCase):
 
     def test_rate_limit_error(self):
         """Test RateLimitError initialization"""
-        from douyin_processor_enhanced import RateLimitError
+        from processors.platforms.douyin_processor import RateLimitError
 
         error = RateLimitError(retry_after=60)
         self.assertEqual(error.error_code, "RATE_LIMIT")
@@ -30,7 +30,7 @@ class TestExtractionErrors(unittest.TestCase):
 
     def test_content_not_found_error(self):
         """Test ContentNotFoundError initialization"""
-        from douyin_processor_enhanced import ContentNotFoundError
+        from processors.platforms.douyin_processor import ContentNotFoundError
 
         error = ContentNotFoundError(url="https://www.douyin.com/video/123")
         self.assertEqual(error.error_code, "CONTENT_NOT_FOUND")
@@ -38,7 +38,7 @@ class TestExtractionErrors(unittest.TestCase):
 
     def test_extraction_error_base_class(self):
         """Test ExtractionError is an Exception"""
-        from douyin_processor_enhanced import ExtractionError
+        from processors.platforms.douyin_processor import ExtractionError
 
         error = ExtractionError(
             error_code="TEST_ERROR",
@@ -53,7 +53,7 @@ class TestCookieManagement(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         self.processor = DouyinProcessorEnhanced()
 
     def test_get_cookies_generates_default_cookies(self):
@@ -97,7 +97,7 @@ class TestScriptDataExtraction(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         self.processor = DouyinProcessorEnhanced()
 
     def test_extract_video_id_direct(self):
@@ -189,7 +189,7 @@ class TestRetryMechanism(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         self.processor = DouyinProcessorEnhanced()
 
     @patch('douyin_processor_enhanced.DouyinProcessorEnhanced._extract_with_mcp')
@@ -197,7 +197,7 @@ class TestRetryMechanism(unittest.TestCase):
     @patch('douyin_processor_enhanced.DouyinProcessorEnhanced._extract_with_firecrawl')
     def test_retry_on_recoverable_error(self, mock_firecrawl, mock_requests, mock_mcp):
         """Test that retry happens on recoverable errors"""
-        from douyin_processor_enhanced import RateLimitError
+        from processors.platforms.douyin_processor import RateLimitError
         from url_detector import URLInfo
 
         # First two attempts fail with rate limit
@@ -205,7 +205,7 @@ class TestRetryMechanism(unittest.TestCase):
         mock_requests.side_effect = RateLimitError(retry_after=1)
 
         # Third attempt succeeds
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
         mock_result = ProcessedContent()
         mock_result.content = {'title': 'Test', 'main_content': 'Content'}
         mock_result.processing_info = {'success': True}
@@ -227,7 +227,7 @@ class TestRetryMechanism(unittest.TestCase):
     @patch('douyin_processor_enhanced.DouyinProcessorEnhanced._extract_with_mcp')
     def test_no_retry_on_non_recoverable_error(self, mock_mcp):
         """Test that non-recoverable errors don't retry"""
-        from douyin_processor_enhanced import ContentNotFoundError
+        from processors.platforms.douyin_processor import ContentNotFoundError
         from url_detector import URLInfo
 
         mock_mcp.side_effect = ContentNotFoundError(url="test")
@@ -250,7 +250,7 @@ class TestFallbackPriority(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         self.processor = DouyinProcessorEnhanced()
 
     @patch('douyin_processor_enhanced.DouyinProcessorEnhanced._extract_with_mcp')
@@ -259,7 +259,7 @@ class TestFallbackPriority(unittest.TestCase):
     def test_mcp_first_priority(self, mock_firecrawl, mock_requests, mock_mcp):
         """Test that MCP is tried first when available"""
         from url_detector import URLInfo
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         # MCP succeeds
         mock_result = ProcessedContent()
@@ -286,7 +286,7 @@ class TestFallbackPriority(unittest.TestCase):
     def test_fallback_to_requests_on_mcp_failure(self, mock_firecrawl, mock_requests, mock_mcp):
         """Test fallback to requests when MCP fails"""
         from url_detector import URLInfo
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         # MCP fails, requests succeeds
         mock_mcp.side_effect = Exception("MCP failed")
@@ -315,7 +315,7 @@ class TestEnhancedRequestMethod(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         self.processor = DouyinProcessorEnhanced()
         self.processor.requests_available = True
 
@@ -323,7 +323,7 @@ class TestEnhancedRequestMethod(unittest.TestCase):
     @patch('douyin_processor_enhanced.DouyinProcessorEnhanced._extract_script_data_robust')
     def test_enhanced_headers(self, mock_extract, mock_session):
         """Test that enhanced headers are used"""
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         mock_response = Mock()
         mock_response.headers = {}
@@ -352,7 +352,7 @@ class TestEnhancedRequestMethod(unittest.TestCase):
     @patch('douyin_processor_enhanced.DouyinProcessorEnhanced._extract_script_data_robust')
     def test_cookie_update_on_first_request(self, mock_extract, mock_session):
         """Test that cookies are updated from first request"""
-        from content_processor import ProcessedContent
+        from processors.content_processor import ProcessedContent
 
         mock_response = Mock()
         mock_response.headers = {'Set-Cookie': 'ttwid=new_value'}
@@ -375,7 +375,7 @@ class TestDeepAnalysis(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         self.processor = DouyinProcessorEnhanced()
 
     @patch('douyin_processor_enhanced.DouyinProcessorEnhanced._get_video_analysis_service')
@@ -391,7 +391,7 @@ class TestDeepAnalysis(unittest.TestCase):
 
         # Mock basic extraction
         with patch.object(self.processor, '_extract_with_mcp') as mock_extract:
-            from content_processor import ProcessedContent
+            from processors.content_processor import ProcessedContent
             mock_result = ProcessedContent()
             mock_result.content = {'title': 'Test'}
             mock_result.processing_info = {'success': True}
@@ -428,7 +428,7 @@ class TestDeepAnalysis(unittest.TestCase):
 
         # Mock basic extraction
         with patch.object(self.processor, '_extract_with_mcp') as mock_extract:
-            from content_processor import ProcessedContent
+            from processors.content_processor import ProcessedContent
             mock_result = ProcessedContent()
             mock_result.content = {'title': 'Test'}
             mock_result.processing_info = {'success': True}
@@ -446,7 +446,7 @@ class TestBuildMediaInfo(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        from douyin_processor_enhanced import DouyinProcessorEnhanced
+        from processors.platforms.douyin_processor import DouyinProcessorEnhanced
         self.processor = DouyinProcessorEnhanced()
 
     def test_build_media_with_cover_image(self):

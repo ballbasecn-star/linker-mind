@@ -152,7 +152,7 @@ class MultiPlatformTester:
             platform = url_info.url_type.value
 
             # 获取处理器
-            from content_processor import ProcessorFactory
+            from processors.content_processor import ProcessorFactory
             factory = ProcessorFactory.create_default()
             processor = factory.get_processor(url_info)
 

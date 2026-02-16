@@ -82,7 +82,7 @@ class TestRateLimiting(unittest.TestCase):
 
     def test_rapid_api_calls(self):
         """Test that rapid API calls are rate limited"""
-        from content_processor import WebPageProcessor
+        from processors.content_processor import WebPageProcessor
 
         processor = WebPageProcessor()
 
@@ -141,11 +141,9 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_standardized_error_codes(self):
         """Test that all processors use same error format"""
-        from content_processor import (
-            WebPageProcessor,
-            TwitterProcessor,
-            VideoInfoProcessor
-        )
+        from processors.content_processor import WebPageProcessor
+        from processors.platforms.twitter_processor import TwitterProcessor
+        from processors.media.video_processor import VideoInfoProcessor
 
         # Test that missing API keys return same error format
         expected_error_codes = [
@@ -242,7 +240,7 @@ class TestPlatformSpecificIssues(unittest.TestCase):
         test_url = "https://www.douyin.com/video/123456789"
 
         try:
-            from douyin_processor import DouyinProcessor
+            from processors.platforms.douyin_processor import DouyinProcessorEnhanced as DouyinProcessor
             processor = DouyinProcessor()
 
             from url_detector import detect_url
