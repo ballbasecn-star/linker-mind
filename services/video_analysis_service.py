@@ -13,6 +13,7 @@ import json
 import time
 import tempfile
 import subprocess
+import requests
 from typing import Optional, Dict, Any, List, Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -44,6 +45,88 @@ class VideoDownloader:
     def __init__(self):
         self.temp_dir = tempfile.mkdtemp()
 
+    def _get_douyin_video_url(self, url: str) -> Optional[str]:
+        """
+        尝试使用 douyin_downloader 获取抖音视频 URL
+
+        Returns:
+            视频 URL 或 None
+        """
+        try:
+            # 检查是否是抖音链接
+            if 'douyin.com' not in url.lower():
+                return None
+
+            # 尝试使用 douyin_downloader 获取视频 URL
+            from services.douyin_downloader import get_douyin_info
+            from services.douyin_remote_client import get_remote_cookie_client
+
+            # 优先从远程服务获取 cookies
+            cookies = None
+            try:
+                remote_client = get_remote_cookie_client()
+                logger.info("尝试从远程服务获取 cookies...")
+                cookies = remote_client.get_cookies(url)
+            except Exception as e:
+                logger.warning(f"远程服务获取失败: {e}")
+
+            # 如果远程服务失败，尝试本地保存的 cookies
+            if not cookies:
+                from services.settings_service import get_settings_service
+                settings = get_settings_service()
+                cookies = settings.get_douyin_cookies_string()
+
+            result = get_douyin_info(url, cookies)
+            if result.get('success') and result.get('video_url'):
+                logger.info(f"通过 douyin_downloader 获取到视频URL")
+                return result['video_url']
+
+            # 如果没有 cookies，尝试不使用 cookies
+            if not cookies:
+                result = get_douyin_info(url, None)
+                if result.get('success') and result.get('video_url'):
+                    logger.info(f"通过 douyin_downloader(无cookie) 获取到视频URL")
+                    return result['video_url']
+
+        except Exception as e:
+            logger.warning(f"douyin_downloader 获取视频URL失败: {e}")
+
+        return None
+
+    def _get_douyin_video_url_v2(self, url: str) -> Optional[str]:
+        """
+        使用新架构（远程API）获取抖音视频URL
+
+        Returns:
+            视频 URL 或 None
+        """
+        try:
+            # 检查是否是抖音链接
+            if 'douyin.com' not in url.lower():
+                return None
+
+            # 使用新的远程客户端获取下载链接
+            from services.douyin_remote_client import get_douyin_remote_client
+
+            client = get_douyin_remote_client()
+            logger.info("使用新架构从远程API获取视频下载链接...")
+
+            # 获取无水印下载链接
+            result = client.get_download_url(url, with_watermark=False)
+
+            if result and result.get("success"):
+                video_url = result.get("video_url")
+                if video_url:
+                    logger.info("通过远程API获取到视频URL")
+                    return video_url
+            else:
+                logger.warning(f"获取下载链接失败: {result}")
+
+        except Exception as e:
+            logger.warning(f"远程API获取视频URL失败: {e}")
+
+        return None
+
     def download(self, url: str, progress_callback: Optional[Callable] = None) -> Optional[str]:
         """
         Download video from URL
@@ -55,13 +138,58 @@ class VideoDownloader:
         Returns:
             Path to downloaded video or None
         """
+        # 优先使用新架构（远程API）
+        video_url = self._get_douyin_video_url_v2(url)
+        if video_url:
+            try:
+                output_path = os.path.join(self.temp_dir, f"video_{int(time.time())}.mp4")
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                    'Referer': 'https://www.douyin.com/'
+                }
+                response = requests.get(video_url, headers=headers, stream=True, timeout=60)
+
+                if response.status_code == 200:
+                    with open(output_path, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+                        logger.info(f"视频下载成功(新架构): {output_path}")
+                        return output_path
+            except Exception as e:
+                logger.warning(f"使用远程API URL 下载失败: {e}")
+
+        # 备选：使用旧版 douyin_downloader
+        video_url = self._get_douyin_video_url(url)
+        if video_url:
+            try:
+                output_path = os.path.join(self.temp_dir, f"video_{int(time.time())}.mp4")
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                    'Referer': 'https://www.douyin.com/'
+                }
+                response = requests.get(video_url, headers=headers, stream=True, timeout=60)
+
+                if response.status_code == 200:
+                    with open(output_path, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+                        logger.info(f"视频下载成功: {output_path}")
+                        return output_path
+            except Exception as e:
+                logger.warning(f"使用 douyin_downloader URL 下载失败: {e}")
+
+        # 如果上面的方法失败，尝试 yt_dlp
         try:
             import yt_dlp
 
             # Generate output path
             output_path = os.path.join(self.temp_dir, f"video_{int(time.time())}.mp4")
 
-            # yt-dlp options for Douyin
+            # 检查是否是抖音链接，如果是则尝试添加 cookies
             ydl_opts = {
                 'format': 'best[height<=1080][ext=mp4]',
                 'outtmpl': output_path,
@@ -75,6 +203,51 @@ class VideoDownloader:
                 'skip_unavailable_fragments': False,
                 'geo_bypass': True,
             }
+
+            # 如果是抖音链接，尝试添加 cookies
+            if 'douyin.com' in url.lower():
+                cookies = None
+                cookies_dict = {}
+
+                # 优先从远程服务获取 cookies
+                try:
+                    from services.douyin_remote_client import get_remote_cookie_client
+                    remote_client = get_remote_cookie_client()
+                    logger.info("尝试从远程服务获取 cookies...")
+                    cookies = remote_client.get_cookies(url)
+                except Exception as e:
+                    logger.warning(f"远程服务获取失败: {e}")
+
+                # 如果远程服务失败，尝试本地保存的 cookies
+                if not cookies:
+                    from services.settings_service import get_settings_service
+                    settings = get_settings_service()
+                    cookies = settings.get_douyin_cookies_string()
+
+                if cookies:
+                    # 将 cookies 转换为 dict 格式（支持 Netscape 格式）
+                    # 检查是否是 Netscape 格式
+                    if cookies.strip().startswith('# Netscape'):
+                        for line in cookies.strip().split('\n'):
+                            line = line.strip()
+                            if not line or line.startswith('#'):
+                                continue
+                            parts = line.split('\t')
+                            if len(parts) >= 7:
+                                name = parts[5]
+                                value = parts[6]
+                                cookies_dict[name] = value
+                    else:
+                        # 简单格式
+                        for item in cookies.split(';'):
+                            item = item.strip()
+                            if '=' in item:
+                                key, value = item.split('=', 1)
+                                cookies_dict[key.strip()] = value.strip()
+
+                    if cookies_dict:
+                        ydl_opts['cookies'] = cookies_dict
+                        logger.info(f"已加载 {len(cookies_dict)} 个 cookies")
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
@@ -281,24 +454,65 @@ class TranscriptAnalyzer:
             }
 
         try:
-            # Create prompt for video analysis
+            # 直接调用 DeepSeek API
+            from openai import OpenAI
+            import os
+            from dotenv import load_dotenv
+
+            load_dotenv()
+            api_key = os.environ.get('DEEPSEEK_API_KEY')
+
+            if not api_key:
+                logger.warning("DEEPSEEK_API_KEY not found")
+                return {
+                    'summary': transcript[:500] if transcript else '',
+                    'key_points': [],
+                    'topics': [],
+                    'action_items': []
+                }
+
+            client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+
+            # 构建提示词
             prompt = self._create_analysis_prompt(transcript, video_metadata)
 
-            # Use AI analyzer
-            result = self.analyzer.analyze_content(
-                content=transcript,
-                context="这是一个视频的完整字幕内容，请分析并提取关键信息："
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {"role": "system", "content": "你是一位专业的内容分析师，擅长从视频字幕中提取关键信息。请用中文分析并返回JSON格式结果。"},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=2000
             )
 
-            # Parse result
-            if hasattr(result, 'ai_analysis'):
-                result = result.ai_analysis if isinstance(result.ai_analysis, dict) else result
+            result_text = response.choices[0].message.content
 
+            # 尝试解析JSON
+            import json
+            import re
+
+            # 提取JSON部分
+            json_match = re.search(r'\{[^{}]*\}', result_text, re.DOTALL)
+            if json_match:
+                try:
+                    result = json.loads(json_match.group())
+                    return {
+                        'summary': result.get('summary', ''),
+                        'key_points': result.get('key_points', []),
+                        'topics': result.get('topics', []),
+                        'action_items': result.get('action_items', []),
+                        'full_transcript': transcript
+                    }
+                except:
+                    pass
+
+            # 如果无法解析JSON，返回原始文本作为摘要
             return {
-                'summary': result.get('summary', ''),
-                'key_points': result.get('key_points', []),
-                'topics': result.get('topics', []),
-                'action_items': result.get('action_items', []),
+                'summary': result_text[:500] if result_text else transcript[:500],
+                'key_points': [],
+                'topics': [],
+                'action_items': [],
                 'full_transcript': transcript
             }
 

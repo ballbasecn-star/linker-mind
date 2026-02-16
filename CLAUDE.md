@@ -6,6 +6,370 @@
 
 ---
 
+## 📐 架构决策与规范
+
+### 数据库使用规范
+
+**🔴 强制规则：数据库统一使用PostgreSQL**
+
+```
+项目数据库规范：PostgreSQL Only
+├─ 禁止：任何新代码使用SQLite
+├─ 禁止：直接导入sqlite3模块
+├─ 禁止：创建本地.db文件作为数据库
+└─ 要求：所有数据库操作必须通过 database/db_interface.py
+```
+
+**实施要求**：
+1. **数据库连接** - 必须使用 `from database.db_interface import get_connection`
+2. **SQL语法** - 所有SQL必须使用PostgreSQL语法
+   - 主键：`SERIAL` 而非 `INTEGER PRIMARY KEY AUTOINCREMENT`
+   - 自增：`DEFAULT nextval('table_name_id_seq')`
+   - 时间类型：`TIMESTAMP` 而非 `TEXT`
+   - 布尔值：`BOOLEAN` 而非 `INTEGER`
+
+3. **禁止操作**：
+   - ❌ `import sqlite3` - 禁止直接导入SQLite
+   - ❌ `sqlite3.connect()` - 禁止直接创建SQLite连接
+   - ❌ `sqlite_db_path` - 禁止硬编码SQLite路径
+
+4. **监控模块** - metrics系统也必须使用PostgreSQL
+   - 通过 `get_connection()` 获取连接
+   - 使用统一接口方法：`insert()`, `fetchone()`, `fetchall()`
+
+**检查清单**：
+```python
+# ✅ 正确示例
+from database.db_interface import get_connection, DatabaseConnectionInterface
+
+def my_function():
+    db = get_connection()  # 统一接口
+    result = db.fetchone("SELECT * FROM contents WHERE id = %s", (content_id,))
+    return result
+
+# ❌ 禁止示例
+import sqlite3  # ❌ 禁止直接使用SQLite
+conn = sqlite3.connect('local.db')  # ❌ 禁止硬编码SQLite路径
+```
+
+**违规处理**：
+- 代码审查时必须检查数据库导入
+- 新代码必须通过配置验证
+- 违反代码将被拒绝合并
+
+---
+
+### 内容提取API规范
+
+**🔴 强制规则：使用统一API客户端**
+
+```
+项目内容提取API规范：统一接口
+├─ 禁止：直接导入firecrawl模块（除非作为降级方案）
+├─ 禁止：硬编码特定API的调用
+├─ 要求：所有内容提取必须通过 services.unified_api_client
+└─ 要求：优先使用Tavily，其次Firecrawl，最后降级方案
+```
+
+**实施要求**：
+1. **统一入口** - 使用 `from services.unified_api_client import get_unified_client`
+2. **API优先级** - Tavily > Firecrawl > Playwright > BeautifulSoup
+3. **降级机制** - 主API失败时自动切换到备用API
+4. **配置方式** - 通过环境变量控制使用哪个API
+
+**正确示例**：
+```python
+# ✅ 正确：使用统一客户端
+from services.unified_api_client import get_unified_client
+
+client = get_unified_client()
+result = client.scrape_with_priority(url, [TAVILY, FIRECRAWL])
+
+# ✅ 正确：处理器中调用
+from content_processor import WebPageProcessor
+processor = WebPageProcessor()  # 自动选择最优API
+```
+
+**禁止示例**：
+```python
+# ❌ 禁止：直接使用特定API
+from firecrawl import Firecrawl
+firecrawl = Firecrawl(api_key=key)
+```
+
+**环境变量**：
+```bash
+TAVILY_API_KEY=tvly-xxx    # 优先使用
+FIRECRAWL_API_KEY=fc-xxx   # 备用
+```
+
+---
+
+### 抖音远程Cookie服务规范
+
+**🔴 强制规则：抖音内容提取必须使用远程服务**
+
+```
+抖音反爬机制严格，本地环境无法直接访问。必须使用远程服务器获取cookies。
+├─ 远程服务：部署在可访问抖音的服务器上
+├─ 本地调用：通过 douyin_remote_client 调用远程API
+└─ 用途：获取登录cookies用于视频提取和下载
+```
+
+**架构设计**：
+
+```
+┌─────────────────┐         ┌─────────────────────────────────────────────┐
+│   本地 Linker   │         │           远程服务器                      │
+│   (本地 Mac)    │         │      (117.72.207.52:8080)                  │
+├─────────────────┤         ├─────────────────────────────────────────────┤
+│                 │   API   │                                             │
+│ content_service │────────▶│  Douyin_TikTok_Download_API               │
+│                 │  HTTP   │  (开源抖音API解决方案)                      │
+│ douyin_processor│◀────────│  - 登录Cookies认证                        │
+│                 │  JSON   │  - X-Bogus/A-Bogus签名生成                 │
+│                 │         │  - 视频数据API: /api/hybrid/video_data    │
+└─────────────────┘         │  - 视频下载API: /api/download              │
+                            └─────────────────────────────────────────────┘
+```
+
+**工作流程**：
+
+```
+用户添加抖音链接
+       ↓
+content_service.create_from_url()
+       ↓
+检测为抖音视频 → 调用 douyin_remote_client
+       ↓
+远程服务使用登录Cookies调用API
+       ↓
+返回视频数据:
+  - video_id, title, description
+  - author info, statistics
+  - download_url (无水印)
+       ↓
+douyin_processor.extract()
+  - 完善元数据
+  - 下载视频/深度分析
+       ↓
+返回提取的内容
+```
+
+**关键文件**：
+
+| 文件 | 说明 |
+|------|------|
+| `services/douyin_remote_client.py` | 本地客户端，调用远程API |
+| `scripts/douyin_signature.py` | 签名生成模块（同步到服务器） |
+| `/root/Douyin_TikTok_Download_API/` | 服务器上的开源API解决方案 |
+
+**远程服务API**：
+
+```bash
+# 视频数据API（需要登录Cookies）
+GET http://117.72.207.52:8080/api/hybrid/video_data?url=https://v.douyin.com/xxx&minimal=false
+
+# 视频下载API（无水印）
+GET http://117.72.207.52:8080/api/download?url=https://v.douyin.com/xxx&with_watermark=false
+
+# 响应示例（视频数据）
+{
+  "code": 200,
+  "data": {
+    "id": "7601828854176517410",
+    "title": "视频标题",
+    "desc": "视频描述",
+    "author": {"nickname": "作者名称"},
+    "statistics": {
+      "play_count": 100000,
+      "like_count": 5000,
+      "comment_count": 100,
+      "share_count": 50
+    },
+    "cover": {"url_list": ["https://..."]}
+  }
+}
+
+# 响应示例（视频下载）
+{
+  "code": 200,
+  "data": {
+    "video_url": "https://aweme..."
+  }
+}
+```
+
+**Cookies配置**：
+
+1. 从浏览器导出抖音登录Cookies（Netscape格式）
+2. 配置到服务器配置文件：
+   ```
+   /root/Douyin_TikTok_Download_API/crawlers/douyin/web/config.yaml
+   ```
+3. Cookies会定期刷新，需配置自动更新机制
+
+**自动刷新Cookies**：
+
+```bash
+# 脚本位置
+scripts/auto_refresh_cookies.py
+
+# 配置定时任务（每6小时执行一次）
+0 */6 * * * cd /path/to/linker-mind && python3 scripts/auto_refresh_cookies.py >> /var/log/douyin_cookie_refresh.log 2>&1
+```
+
+**环境变量**：
+
+```bash
+# 远程服务地址
+DOUYIN_API=http://117.72.207.52:8080
+```
+
+**部署远程服务**：
+
+```bash
+# 在服务器上克隆并运行
+git clone https://github.com/Evil0ctal/Douyin_TikTok_Download_API.git /root/Douyin_TikTok_Download_API
+cd /root/Douyin_TikTok_Download_API
+pip install -r requirements.txt
+
+# 配置登录Cookies
+vim crawlers/douyin/web/config.yaml
+
+# 启动服务
+cd /root/Douyin_TikTok_Download_API
+nohup python3 start.py > douyin_api.log 2>&1 &
+
+# 检查服务状态
+curl "http://117.72.207.52:8080/api/hybrid/video_data?url=https://v.douyin.com/jkwHntr5qxw/&minimal=false"
+```
+
+**注意事项**：
+
+1. **Cookies时效性**：抖音登录Cookies约7天有效，需定期刷新
+2. **签名算法**：API请求需要X-Bogus和A-Bogus签名，由服务器自动生成
+3. **登录状态**：必须使用已登录账号的Cookies，访客Cookies无法获取完整数据
+4. **请求限制**：避免短时间内大量请求，可能触发限流
+
+---
+
+## 实施状态
+
+### ✅ 已完成
+
+1. **Douyin_TikTok_Download_API 部署**
+   - 部署位置：服务器 117.72.207.52:8080
+   - 开源抖音API解决方案，支持登录Cookies认证
+   - 自动生成X-Bogus/A-Bogus签名
+   - 源码位置：`/root/Douyin_TikTok_Download_API/`
+
+2. **登录Cookies配置**
+   - 从浏览器导出抖音登录Cookies
+   - 配置到服务器 `config.yaml` 文件
+   - 支持完整的视频数据访问
+
+3. **视频数据API**
+   - 端点：`GET /api/hybrid/video_data?url=...&minimal=false`
+   - 返回：标题、描述、作者、统计数据、封面等
+   - 本地客户端：`services/douyin_remote_client.py`
+
+4. **视频下载**
+   - 服务器端：`GET /api/download?url=...&with_watermark=false`
+   - 本地端：`DouyinRemoteClient.download_video()` 直接下载到本地
+
+5. **Cookies自动刷新**
+   - 脚本：`scripts/auto_refresh_cookies.py`
+   - 定时任务：每6小时检查并刷新
+   - 使用Playwright从浏览器获取新Cookies
+
+6. **Cookies缓存优化**
+   - 本地缓存cookies，默认6小时有效
+   - 减少远程服务调用次数
+
+7. **本地深度分析流程** ✅ 新增
+   - 视频下载 → Whisper转录 → LLM分析 → 关键帧提取
+   - 组件：`services/video_analysis_service.py`
+   - Whisper模型：base（可切换为small/medium/large）
+   - LLM：DeepSeek API
+
+### ⚠️ 已知限制
+
+1. **Cookies有效期**
+   - 抖音登录Cookies约7天有效
+   - 需要定期导出新Cookies并更新到服务器
+
+2. **请求频率**
+   - 避免短时间内大量请求
+   - 建议添加请求间隔（>3秒）
+
+3. **当前功能状态**
+   - ✅ 获取登录Cookies
+   - ✅ 提取视频基本信息（标题、描述、作者）
+   - ✅ 视频统计数据（播放、点赞、评论、分享）
+   - ✅ 视频封面获取
+   - ✅ 无水印视频下载到本地
+   - ✅ Whisper语音转录（中文）
+   - ✅ LLM内容分析（摘要、关键点、话题）
+   - ✅ 关键帧提取
+
+---
+
+### 本地深度分析使用说明
+
+```python
+from services.video_analysis_service import VideoAnalysisService
+
+service = VideoAnalysisService()
+
+# 完整分析流程
+result = service.analyze(
+    url='https://v.douyin.com/xxx/',
+    enable_transcription=True,   # Whisper转录
+    enable_keyframes=True,       # 关键帧提取
+    num_keyframes=5,            # 提取5个关键帧
+    video_metadata={
+        'title': '视频标题',
+        'author': '作者'
+    }
+)
+
+# 结果
+result.success        # 是否成功
+result.transcript     # 转录文本
+result.summary        # LLM摘要
+result.key_points     # 关键点
+result.key_frames    # 关键帧列表
+result.duration       # 视频时长
+```
+
+### 本地依赖
+
+```bash
+# Mac安装
+brew install ffmpeg
+pip install openai-whisper yt-dlp pillow
+```
+
+### 架构说明
+
+```
+┌─────────────┐         ┌──────────────────────────────┐
+│   本地       │         │       服务器                  │
+│ linker-mind  │         │  117.72.207.52:8080         │
+├─────────────┤         ├──────────────────────────────┤
+│ 获取Cookies │  ──▶    │  仅提供API代理               │
+│ 视频信息    │  ◀──    │  (Cookies认证)              │
+│ 视频下载    │  ◀──    │                              │
+│ 深度分析    │  ✅     │                              │
+│  - Whisper  │         │                              │
+│  - LLM      │         │                              │
+│  - 关键帧   │         │                              │
+└─────────────┘         └──────────────────────────────┘
+```
+
+---
+
 ## 一、核心场景
 
 ### 场景 1：学习知识库 📚
@@ -581,5 +945,5 @@ via @作者名
 
 ---
 
-*文档版本: v1.0*
-*最后更新: 2026-02-08*
+*文档版本: v1.3*
+*最后更新: 2026-02-16*
