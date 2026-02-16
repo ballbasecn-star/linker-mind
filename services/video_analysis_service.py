@@ -775,10 +775,16 @@ class VideoAnalysisService:
 
                 return result
 
+            logger.info(f"视频下载完成，开始处理: {video_path}")
             result.video_path = video_path
 
             # Get video duration
-            result.duration = self.frame_extractor._get_duration(video_path)
+            try:
+                logger.info("获取视频时长...")
+                result.duration = self.frame_extractor._get_duration(video_path)
+                logger.info(f"视频时长: {result.duration}")
+            except Exception as e:
+                logger.error(f"获取视频时长失败: {e}")
 
             # Step 2: Transcribe audio (if enabled)
             if enable_transcription:
