@@ -309,7 +309,7 @@ class VideoDownloader:
 class AudioTranscriber:
     """Transcribe audio to text using Whisper"""
 
-    def __init__(self, model: str = "base"):
+    def __init__(self, model: str = "large"):
         """
         Initialize transcriber
 
@@ -752,7 +752,7 @@ class VideoAnalysisService:
 
     def __init__(self):
         self.downloader = VideoDownloader()
-        self.transcriber = AudioTranscriber(model="base")
+        self.transcriber = AudioTranscriber(model="large")
         self.analyzer = TranscriptAnalyzer()
         self.frame_extractor = KeyFrameExtractor()
 

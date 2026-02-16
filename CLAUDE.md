@@ -290,7 +290,7 @@ curl "http://117.72.207.52:8080/api/hybrid/video_data?url=https://v.douyin.com/j
 7. **本地深度分析流程** ✅ 新增
    - 视频下载 → Whisper转录 → LLM分析 → 关键帧提取
    - 组件：`services/video_analysis_service.py`
-   - Whisper模型：base（可切换为small/medium/large）
+   - Whisper模型：large（最高准确性）
    - LLM：DeepSeek API
 
 ### ⚠️ 已知限制
