@@ -132,7 +132,9 @@ def run_dev_server(host='127.0.0.1', port=5000):
         host=host,
         port=port,
         debug=True,
-        use_reloader=True
+        use_reloader=True,
+        threaded=True,
+        request_timeout=600  # 10分钟超时，用于视频深度分析
     )
 
 
@@ -162,7 +164,7 @@ def run_production_server(host='0.0.0.0', port=5000, workers=4):
             'workers': workers,
             'worker_class': 'sync',
             'worker_connections': 1000,
-            'timeout': 30,
+            'timeout': 600,  # 10分钟超时，用于视频深度分析
             'keepalive': 2,
             'max_requests': 1000,
             'max_requests_jitter': 50,
