@@ -115,6 +115,16 @@ class VideoDownloader:
             result = client.get_download_url(url, with_watermark=False)
 
             if result and result.get("success"):
+                # 检查是否有直接的视频流
+                if result.get("stream"):
+                    # 直接保存流到文件
+                    import tempfile
+                    output_path = os.path.join(self.temp_dir, f"video_{int(time.time())}.mp4")
+                    with open(output_path, 'wb') as f:
+                        f.write(result["stream"])
+                    logger.info(f"通过远程API直接获取视频流，保存到: {output_path}")
+                    return output_path
+
                 video_url = result.get("video_url")
                 if video_url:
                     logger.info("通过远程API获取到视频URL")
