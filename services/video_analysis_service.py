@@ -148,51 +148,22 @@ class VideoDownloader:
         Returns:
             Path to downloaded video or None
         """
-        # 优先使用新架构（远程API）
-        video_url = self._get_douyin_video_url_v2(url)
-        if video_url:
-            try:
-                output_path = os.path.join(self.temp_dir, f"video_{int(time.time())}.mp4")
-                headers = {
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-                    'Referer': 'https://www.douyin.com/'
-                }
-                response = requests.get(video_url, headers=headers, stream=True, timeout=60)
+        # 直接使用远程客户端下载（参考测试流程）
+        try:
+            from services.douyin_remote_client import get_douyin_remote_client
+            client = get_douyin_remote_client()
+            logger.info("使用远程客户端下载视频...")
 
-                if response.status_code == 200:
-                    with open(output_path, 'wb') as f:
-                        for chunk in response.iter_content(chunk_size=8192):
-                            f.write(chunk)
+            video_path = client.download_video(url)
+            if video_path:
+                logger.info(f"视频下载成功: {video_path}")
+                return video_path
+        except Exception as e:
+            logger.error(f"远程客户端下载失败: {e}")
 
-                    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
-                        logger.info(f"视频下载成功(新架构): {output_path}")
-                        return output_path
-            except Exception as e:
-                logger.warning(f"使用远程API URL 下载失败: {e}")
+        return None
 
-        # 备选：使用旧版 douyin_downloader
-        video_url = self._get_douyin_video_url(url)
-        if video_url:
-            try:
-                output_path = os.path.join(self.temp_dir, f"video_{int(time.time())}.mp4")
-                headers = {
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-                    'Referer': 'https://www.douyin.com/'
-                }
-                response = requests.get(video_url, headers=headers, stream=True, timeout=60)
-
-                if response.status_code == 200:
-                    with open(output_path, 'wb') as f:
-                        for chunk in response.iter_content(chunk_size=8192):
-                            f.write(chunk)
-
-                    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
-                        logger.info(f"视频下载成功: {output_path}")
-                        return output_path
-            except Exception as e:
-                logger.warning(f"使用 douyin_downloader URL 下载失败: {e}")
-
-        # 如果上面的方法失败，尝试 yt_dlp
+        # 备选：尝试 yt_dlp
         try:
             import yt_dlp
 
