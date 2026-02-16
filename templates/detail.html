@@ -320,21 +320,22 @@
 
         /* AI Analysis Card */
         .ai-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
             padding: var(--space-lg);
-            color: white;
+            color: var(--text-primary);
         }
 
         .ai-card .section-title {
-            color: white;
+            color: var(--text-primary);
         }
 
         .ai-summary {
             font-size: 0.95rem;
             line-height: 1.7;
             margin-bottom: var(--space-md);
-            opacity: 0.95;
+            color: var(--text-secondary);
         }
 
         .ai-key-points {
@@ -349,12 +350,13 @@
             align-items: flex-start;
             gap: var(--space-sm);
             font-size: 0.9rem;
-            opacity: 0.95;
+            color: var(--text-secondary);
         }
 
         .ai-key-point::before {
             content: '→';
             flex-shrink: 0;
+            color: var(--platform-color);
         }
 
         .ai-topics {
@@ -365,9 +367,10 @@
 
         .ai-topic {
             padding: 4px 12px;
-            background: rgba(255,255,255,0.2);
+            background: var(--bg-tertiary);
             border-radius: 20px;
             font-size: 0.8rem;
+            color: var(--text-secondary);
         }
 
         /* Key Frames */
@@ -861,7 +864,8 @@
                     {% elif platform == 'youtube' %}
                         {% set stats = {'view': metadata.get('view_count', 0), 'like': metadata.get('like_count', 0), 'comment': metadata.get('comment_count', 0)} %}
                     {% elif platform in ['twitter', 'x'] %}
-                        {% set stats = {'like': metadata.get('likes', 0), 'retweet': metadata.get('retweets', 0), 'reply': metadata.get('replies', 0), 'view': metadata.get('views', 0)} %}
+                        {% set metrics_data = metadata.get('metrics', {}) or {} %}
+                        {% set stats = {'like': metrics_data.get('likes', 0) or metadata.get('likes', 0), 'retweet': metrics_data.get('retweets', 0) or metadata.get('retweets', 0), 'reply': metrics_data.get('replies', 0) or metadata.get('replies', 0), 'view': metrics_data.get('views', 0) or metadata.get('views', 0)} %}
                     {% endif %}
 
                     {% if stats %}
@@ -1020,7 +1024,12 @@
                             <div class="section-header">
                                 <div class="section-title">📝 内容</div>
                             </div>
+                            {% if platform in ['twitter', 'x'] %}
+                            {# X/Twitter: show full content with images rendered #}
+                            <div class="content-text">{{ raw|markdown_images|nl2br|safe }}</div>
+                            {% else %}
                             <div class="content-text">{{ raw[:2000] }}{% if raw|length > 2000 %}...{% endif %}</div>
+                            {% endif %}
                         </div>
                         {% endif %}
 

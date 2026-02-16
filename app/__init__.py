@@ -7,6 +7,7 @@ A Second Brain + Creative Workspace system
 
 from flask import Flask
 import os
+import re
 
 
 def create_app(config=None):
@@ -44,6 +45,9 @@ def create_app(config=None):
     # Register error handlers
     register_error_handlers(app)
 
+    # Register custom Jinja filters
+    register_jinja_filters(app)
+
     # Register blueprints
     register_blueprints(app)
 
@@ -51,6 +55,90 @@ def create_app(config=None):
     register_context_processors(app)
 
     return app
+
+
+def register_jinja_filters(app):
+    """Register custom Jinja filters."""
+
+    @app.template_filter('markdown_images')
+    def markdown_images(text):
+        """Convert Markdown image syntax to HTML img tags.
+
+        Handles various formats:
+        - ![alt](url) - basic markdown image
+        - [Image N: Image](url) - Twitter's format
+        - [![Image N: Image](pbs.twimg.com)](x.com link) - nested format
+        - [Image: source: /path/to/file.jpg] - local file format
+        """
+        if not text:
+            return text
+
+        # Strategy: Process patterns from most complex to simplest
+
+        # First: Remove or convert local file paths (not accessible in browser)
+        # Pattern: [Image: source: /path/to/file.jpg] or similar
+        def replace_local_image(match):
+            content = match.group(1)
+            # Try to find a URL in the content
+            url_match = re.search(r'(https?://[^\s\]]+|/[\w\-./]+)', content)
+            if url_match:
+                url = url_match.group(1)
+                if url.startswith('http'):
+                    return f'<img src="{url}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+                # Local file - hide it or show a placeholder
+                return f'<div style="display:none;"></div>'
+            return ''
+
+        text = re.sub(r'\[Image:\s*source:\s*([^\]]+)\]', replace_local_image, text)
+
+        # Pattern 1: Nested format - [![Image N: Image](pbs.twimg.com)](x.com/...)
+        # This is the main format causing issues
+        def replace_nested(match):
+            full = match.group(0)
+            # Extract the inner pbs.twimg.com URL from inside ![...](...)
+            inner_match = re.search(r'!\[[^\]]*\]\(([^)]+)\)', full)
+            if inner_match:
+                url = inner_match.group(1)
+                if 'pbs.twimg.com' in url:
+                    return f'<img src="{url}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+            # If not a pbs.twimg.com URL, try to find any URL in the text
+            url_match = re.search(r'https?://[^\s\)\]]+', full)
+            if url_match:
+                return f'<img src="{url_match.group(0)}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+            return full
+
+        # Match nested images: [![Image...](pbs...)](x.com...)
+        text = re.sub(r'!\[[^\]]+\]\(https?://[^\)]+\)\([^)]+\)', replace_nested, text)
+
+        # Pattern 2: Twitter format [Image N: Image](url) - url contains pbs.twimg.com
+        def replace_twitter_image(match):
+            text_content = match.group(1)
+            url = match.group(2)
+            # Check if URL is pbs.twimg.com
+            if 'pbs.twimg.com' in url:
+                return f'<img src="{url}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+            # Otherwise make it a link
+            return f'<a href="{url}" target="_blank" style="color: #1DA1F2;">{text_content}</a>'
+
+        text = re.sub(r'\[(Image[^\]]*)\]\((https?://[^\)]+)\)', replace_twitter_image, text)
+
+        # Pattern 3: Basic markdown image ![alt](url)
+        def replace_basic_image(match):
+            alt_text = match.group(1) or 'Image'
+            url = match.group(2)
+            return f'<img src="{url}" alt="{alt_text}" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+
+        text = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', replace_basic_image, text)
+
+        return text
+
+    # Also add a filter to convert newlines to <br>
+    @app.template_filter('nl2br')
+    def nl2br(text):
+        """Convert newlines to <br> tags."""
+        if not text:
+            return text
+        return text.replace('\n', '<br>')
 
 
 def register_blueprints(app):

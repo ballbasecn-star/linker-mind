@@ -110,13 +110,13 @@ class TwitterProcessor(ContentProcessor):
             # Extract article title from content (for long-form articles)
             article_title = self._extract_article_title(tweet_info.content)
 
-            # Embed images into content at appropriate positions
+            # For X platform: raw_content contains text + embedded images at original positions
+            # Images will be displayed inline in the content area
+            # But we need to embed them properly
             content_with_images = self._embed_images_in_content(
                 tweet_info.content,
                 tweet_info.images
             )
-
-            # Save complete raw content with embedded images (for template display)
             result.raw_content = content_with_images
 
             # Build processing_info with all the rich data
@@ -142,10 +142,10 @@ class TwitterProcessor(ContentProcessor):
             }
 
             # Build content structure for display
-            # Use full content with embedded images
+            # Use content with embedded images
             result.content = {
                 "title": article_title or tweet_info.display_name or f"@{tweet_info.username}",
-                "main_content": content_with_images,  # Full content with images embedded
+                "main_content": content_with_images,  # Content with images embedded
                 "summary": tweet_info.content[:200] + "..." if len(tweet_info.content) > 200 else tweet_info.content
             }
 
@@ -376,8 +376,8 @@ class TwitterProcessor(ContentProcessor):
         """Extract tweet text from raw HTML/markdown content
 
         Handles both regular tweets and long-form Articles
-        Preserves inline images for proper display
-        Skips title and metrics that are displayed separately
+        Returns ONLY plain text (no image markdown, no metadata)
+        Images and metadata are handled separately in media and metadata
         """
         if not raw_content:
             return ""
@@ -385,29 +385,30 @@ class TwitterProcessor(ContentProcessor):
         lines = raw_content.split('\n')
         content_lines = []
 
-        # Pattern: header noise -> author links -> title -> metrics -> ACTUAL CONTENT -> footer
-        content_started = False
-        seen_author_links = False
-        title_candidates = []
-
-        # Header noise to skip
-        header_noise = [
-            "Don't miss what's happening",
-            'People on X are the first to know',
-            '[Log in]',
-            '[Sign up]',
-            'Create account',
-            'Article',
-            'See new posts',
-            'Conversation',
-            '==========',
-            '---------------',
-        ]
+        # Track state
+        in_content = False
+        skipped_author = False
 
         for i, line in enumerate(lines):
             stripped = line.strip()
 
-            # Always skip header noise
+            # Skip empty lines at the very beginning
+            if not in_content and not stripped:
+                continue
+
+            # ===== SKIP HEADER NOISE =====
+            header_noise = [
+                "Don't miss what's happening",
+                'People on X are the first to know',
+                '[Log in]',
+                '[Sign up]',
+                'Create account',
+                'Article',
+                'See new posts',
+                'Conversation',
+                '==========',
+                '---------------',
+            ]
             if any(noise in line for noise in header_noise):
                 continue
 
@@ -417,88 +418,108 @@ class TwitterProcessor(ContentProcessor):
             if '/article/' in stripped and '[](https://' in stripped:
                 continue
 
-            # Skip profile images (only at the beginning)
-            if not content_started and 'pbs.twimg.com/profile_images' in line:
+            # Skip profile images
+            if 'pbs.twimg.com/profile_images' in line:
                 continue
 
-            # Check for author links (indicates we're past the header)
-            is_author_link = bool(re.search(r'\[.*?\]\(https://x\.com/[^)]+\)', stripped)) and '@' in stripped
-            if is_author_link:
-                seen_author_links = True
+            # ===== SKIP AUTHOR SECTION =====
+            # Skip author display name (usually short, appears after profile image)
+            # Pattern: line with Chinese or English name, followed by @username
+            if not skipped_author and stripped:
+                # Check if this looks like a display name (short, no special chars)
+                is_display_name = (
+                    len(stripped) < 30 and
+                    not stripped.startswith('[') and
+                    not stripped.startswith('!') and
+                    not stripped.startswith('http') and
+                    not re.search(r'\d', stripped)  # no numbers
+                )
+                if is_display_name:
+                    skipped_author = True
+                    continue
+
+            # Skip @username links
+            if re.match(r'^@[\w_]+$', stripped):
                 continue
 
-            # Skip engagement count links (e.g., "[37K](https://...)")
+            # Skip author link: [username](https://x.com/username)
+            if re.search(r'^\[.+\]\(https://x\.com/', stripped) and '@' in stripped:
+                skipped_author = True
+                continue
+
+            # Skip time link: [Feb 10](https://x.com/...)
+            if re.search(r'^\[\w+\s+\d+(?:,?\s+\d+)?\]\(https://x\.com/', stripped):
+                continue
+
+            # Skip Show more / Show less
+            if stripped in ['Show more', 'Show less', 'Show more…', 'Show less…']:
+                continue
+
+            # Skip [Image N: Image](url) links from Twitter (these are handled by media.images)
+            if re.match(r'^\[Image\s*\d+:\s*Image\]\(https?://', stripped):
+                continue
+
+            # Also skip [Image N: Image](url) that has additional text like "Image 2: Image"
+            if re.search(r'^\[Image\s*\d+:\s*Image\]\(https?://', stripped):
+                continue
+
+            # ===== SKIP METRICS =====
+            # Skip engagement count links: [37K](https://...)
             if re.match(r'^\[[\d\.]+[KM]?\]\(https://', stripped):
+                continue
+
+            # Skip standalone numbers (likes, retweets, etc.)
+            if stripped.isdigit() and len(stripped) <= 5:
+                continue
+
+            # Skip lines that are just numbers with optional K/M suffix
+            if re.match(r'^[\d,\.\sKM]+$', stripped):
+                continue
+
+            # Skip metrics in a row (like "32 208 869")
+            if re.match(r'^[\d]+\s+[\d]+\s+[\d]+$', stripped):
                 continue
 
             # Skip separator lines
             if re.match(r'^[-_]{3,}$', stripped):
                 continue
 
-            # After author links, identify and skip title/metrics
-            if seen_author_links and not content_started:
-                # Skip metrics (4 numbers separated by spaces like "30 56 258 37K")
-                if re.match(r'^[\d\.]+[KM]?\s+[\d\.]+[KM]?\s+[\d\.]+[KM]?\s+[\d\.]+[KM]?$', stripped):
-                    continue
+            # ===== SKIP FOOTER =====
+            footer_markers = [
+                '**Posted:**',
+                'Translate post',
+                'New to X?',
+                'Trending now',
+                '© 202',
+                'Terms of Service',
+                'Privacy Policy',
+                'Cookie Policy',
+                'Want to publish',
+                'Upgrade to Premium',
+                'More · · ·'
+            ]
+            if any(marker in line for marker in footer_markers):
+                break
 
-                # Skip standalone numbers (engagement counts)
-                if stripped.isdigit() and len(stripped) <= 4:
-                    continue
+            # ===== KEEP IMAGES (inline in content) =====
+            # Keep image markdown: ![Image](url) or [![Image](url)](link)
+            if stripped.startswith('![') or '[![Image' in stripped:
+                content_lines.append(line)
+                continue
 
-                # Skip lines that are just numbers or metrics
-                if re.match(r'^[\d\s,\.KMB]+$', stripped):
-                    continue
+            # Skip raw image URLs
+            if re.match(r'^https?://pbs\.twimg\.com/media/', stripped):
+                continue
 
-                # Collect potential title candidates
-                if stripped and len(stripped) < 100:
-                    title_candidates.append(stripped)
-                    continue
+            # ===== COLLECT CONTENT =====
+            in_content = True
+            # Preserve paragraph breaks
+            if not stripped:
+                if content_lines and content_lines[-1] != '\n\n':
+                    content_lines.append('\n\n')
+                continue
 
-                # If we have multiple title candidates, skip the first few lines
-                # and start content after that
-                if len(title_candidates) >= 1 and len(stripped) >= 20:
-                    # Skip the title lines we collected
-                    title_candidates = []
-                    content_started = True
-                elif stripped:
-                    # Start content if we have substantial text
-                    content_started = True
-
-            if content_started:
-                # Stop at footer markers
-                footer_markers = [
-                    '**Posted:**',
-                    'Translate post',
-                    'New to X?',
-                    'Trending now',
-                    '© 202',
-                    'Terms of Service',
-                    'Privacy Policy',
-                    'Cookie Policy',
-                    'Want to publish',
-                    'Upgrade to Premium',
-                    'More · · ·'
-                ]
-                if any(marker in line for marker in footer_markers):
-                    break
-
-                # Preserve image markdown links (don't skip them!)
-                # These are like: ![Image](url) or [![Image](url)](link)
-                if stripped.startswith('![') or '[![Image' in stripped:
-                    content_lines.append(line)
-                    continue
-
-                # Skip lines that are just image URLs (not markdown format)
-                if re.match(r'^https?://pbs\.twimg\.com/media/', stripped):
-                    continue
-
-                # Preserve paragraph breaks
-                if not stripped:
-                    if content_lines and content_lines[-1] != '\n\n':
-                        content_lines.append('\n\n')
-                    continue
-
-                content_lines.append(stripped + '\n')
+            content_lines.append(stripped + '\n')
 
         # Join content
         content = ''.join(content_lines)

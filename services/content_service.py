@@ -713,6 +713,12 @@ class ContentService:
                 row['metadata'] = json_loads(row['metadata']) or {}
             # If already a dict, keep as-is
 
+        # Parse media - could be JSON string (SQLite) or already a dict (PostgreSQL JSONB)
+        if row.get('media'):
+            if isinstance(row['media'], str):
+                row['media'] = json_loads(row['media']) or {}
+            # If already a dict, keep as-is
+
         return row
 
 
