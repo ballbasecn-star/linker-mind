@@ -653,7 +653,7 @@ class DouyinProcessorEnhanced(ContentProcessor):
                 'topics': result.topics or [],
                 'duration': result.duration,
                 'duration_formatted': self._format_duration(result.duration * 1000) if result.duration else '',
-                'key_frames': [],
+                'key_frames': result.key_frames or [],
                 'processing_time': result.processing_time
             }
 
