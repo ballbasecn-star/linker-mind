@@ -782,7 +782,6 @@
     {% set platform = item.get('source_type', 'web') %}
     {% set metadata = item.get('metadata', {}) or {} %}
     {% set media = item.get('media', {}) or {} %}
-    {% set content_data = item.get('content', {}) or {} %}
 
     {# Set platform color #}
     {% if platform == 'douyin' %}
@@ -816,7 +815,7 @@
             <div class="main-content">
                 <div class="main-card" style="--platform-color: {{ platform_color }}">
                     <!-- Cover -->
-                    {% set cover_image = media.get('cover') or metadata.get('cover_image') or content_data.get('cover_url') %}
+                    {% set cover_image = media.get('cover') or media.get('cover_image') or metadata.get('cover_image') %}
                     {% if cover_image %}
                     <div class="cover-section">
                         <img src="{{ cover_image }}" alt="Cover">
@@ -856,7 +855,7 @@
                     <!-- Statistics -->
                     {% set stats = {} %}
                     {% if platform == 'douyin' %}
-                        {% set stats = {'play': content_data.get('play_count', 0), 'like': content_data.get('like_count', 0), 'comment': content_data.get('comment_count', 0), 'collect': content_data.get('collect_count', 0)} %}
+                        {% set stats = {'play': metadata.get('play_count', 0), 'like': metadata.get('likes', 0), 'comment': metadata.get('comments', 0), 'collect': metadata.get('collects', 0)} %}
                     {% elif platform in ['bilibili', 'bili'] %}
                         {% set stats = {'play': metadata.get('view_count', 0), 'danmaku': metadata.get('danmaku', 0), 'like': metadata.get('like_count', 0), 'coin': metadata.get('coin', 0)} %}
                     {% elif platform == 'youtube' %}
@@ -967,8 +966,9 @@
                         {% endif %}
 
                         <!-- Deep Analysis (Video) -->
-                        {% set transcript = content_data.get('transcript', '') %}
-                        {% set key_frames = content_data.get('key_frames', []) or item.get('processing_info', {}).get('video_analysis', {}).get('key_frames', []) %}
+                        {% set video_analysis = metadata.get('video_analysis', {}) %}
+                        {% set transcript = video_analysis.get('transcript', '') %}
+                        {% set key_frames = video_analysis.get('key_frames', []) %}
                         {% if platform in ['douyin', 'bilibili', 'youtube', 'video'] and (transcript or key_frames) %}
                         <div class="section">
                             <div class="section-header">
@@ -1014,7 +1014,7 @@
                         {% endif %}
 
                         <!-- Content Preview -->
-                        {% set raw = item.get('raw_content') or item.get('main_content') or content_data.get('description', '') or '' %}
+                        {% set raw = item.get('raw_content') or item.get('main_content') or metadata.get('description', '') or '' %}
                         {% if raw and raw != '无内容' %}
                         <div class="section">
                             <div class="section-header">

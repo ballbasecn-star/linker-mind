@@ -80,6 +80,22 @@ class LinkerMindAPI {
     }
 
     /**
+     * 获取任务状态
+     * @param {string} taskId - 任务ID
+     */
+    async getTaskStatus(taskId) {
+        return this.get(`/api/task/${taskId}`);
+    }
+
+    /**
+     * 获取任务结果
+     * @param {string} taskId - 任务ID
+     */
+    async getTaskResult(taskId) {
+        return this.get(`/api/task/${taskId}/result`);
+    }
+
+    /**
      * 获取内容列表
      */
     async getContents(filters = {}) {

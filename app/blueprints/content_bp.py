@@ -136,6 +136,41 @@ def process_url():
         if not url:
             return json_error_response('URL is required', status_code=400)
 
+        # 判断是否需要异步处理（深度分析需要较长时间）
+        needs_async = deep_analysis
+
+        if needs_async:
+            # 异步处理模式
+            from services.task_service import get_task_runner, TaskStatus
+            from services.inbox_service import InboxService
+            from services.background_tasks import start_async_task
+
+            task_runner = get_task_runner()
+
+            # 创建任务
+            task_id = task_runner.task_service.create_task(
+                task_type='video_deep_analysis',
+                url=url,
+                metadata={'enable_ai': enable_ai, 'deep_analysis': deep_analysis}
+            )
+
+            # 启动后台任务
+            start_async_task(
+                task_id,
+                'video_deep_analysis',
+                url=url,
+                enable_ai=enable_ai,
+                deep_analysis=deep_analysis
+            )
+
+            # 立即返回任务ID，不等待处理完成
+            return json_success_response({
+                'task_id': task_id,
+                'message': 'Task started. Use /api/task/{task_id} to check status.',
+                'async': True
+            }, status_code=202)
+
+        # 同步处理（快速任务）
         content = service.create_from_url(url, enable_ai=enable_ai, deep_analysis=deep_analysis)
 
         if not content:
@@ -158,6 +193,69 @@ def process_url():
 
     except Exception as e:
         logger.error(f"Error processing URL: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@content_bp.route('/api/task/<task_id>', methods=['GET'])
+def get_task_status(task_id):
+    """Get task status"""
+    try:
+        from services.task_service import get_task_runner, TaskStatus
+
+        task_runner = get_task_runner()
+        task = task_runner.task_service.get_task(task_id)
+
+        if not task:
+            return json_error_response('Task not found', status_code=404)
+
+        return json_success_response({
+            'task_id': task['id'],
+            'status': task['status'],
+            'progress': task.get('progress', 0),
+            'error': task.get('error'),
+            'created_at': task.get('created_at'),
+            'started_at': task.get('started_at'),
+            'completed_at': task.get('completed_at')
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting task status: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@content_bp.route('/api/task/<task_id>/result', methods=['GET'])
+def get_task_result(task_id):
+    """Get task result"""
+    try:
+        from services.task_service import get_task_runner, TaskStatus
+
+        task_runner = get_task_runner()
+        task = task_runner.task_service.get_task(task_id)
+
+        if not task:
+            return json_error_response('Task not found', status_code=404)
+
+        if task['status'] == TaskStatus.PROCESSING.value:
+            return json_success_response({
+                'status': 'processing',
+                'progress': task.get('progress', 0),
+                'message': 'Task is still processing'
+            })
+
+        if task['status'] == TaskStatus.FAILED.value:
+            return json_error_response(task.get('error', 'Task failed'), status_code=500)
+
+        if task['status'] == TaskStatus.COMPLETED.value:
+            result = task.get('result', {})
+            return json_success_response({
+                'status': 'completed',
+                'result': result
+            })
+
+        return json_error_response('Unknown task status', status_code=500)
+
+    except Exception as e:
+        logger.error(f"Error getting task result: {e}")
         return json_error_response(str(e), status_code=500)
 
 

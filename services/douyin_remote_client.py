@@ -380,7 +380,7 @@ class DouyinRemoteClient:
 
         return None
 
-    def download_video(self, video_url: str, output_path: str = None, with_watermark: bool = False) -> Optional[str]:
+    def download_video(self, video_url: str, output_path: str = None, with_watermark: bool = False, quality: str = "360p") -> Optional[str]:
         """
         下载视频到本地（新架构）
 
@@ -388,13 +388,46 @@ class DouyinRemoteClient:
             video_url: 抖音视频链接
             output_path: 保存路径，默认临时文件
             with_watermark: 是否带水印
+            quality: 视频质量 (480p, 720p, 1080p)
 
         Returns:
             下载后的文件路径
         """
         import tempfile
 
-        # 获取下载结果
+        # 优先尝试使用远程API下载（支持质量参数）
+        try:
+            remote_result = self.download_video_remote(video_url, quality=quality)
+            if remote_result and remote_result.get("success"):
+                # 直接返回视频流
+                if remote_result.get("stream"):
+                    if not output_path:
+                        output_path = os.path.join(tempfile.gettempdir(), f"douyin_{int(datetime.now().timestamp())}.mp4")
+                    with open(output_path, 'wb') as f:
+                        f.write(remote_result["stream"])
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+                        logger.info(f"视频下载成功(远程API, {quality}): {output_path}")
+                        return output_path
+                # 返回了视频URL
+                elif remote_result.get("video_url"):
+                    video_url_direct = remote_result["video_url"]
+                    if not output_path:
+                        output_path = os.path.join(tempfile.gettempdir(), f"douyin_{int(datetime.now().timestamp())}.mp4")
+                    headers = {
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                        'Referer': 'https://www.douyin.com/'
+                    }
+                    response = requests.get(video_url_direct, headers=headers, stream=True, timeout=300)
+                    if response.status_code == 200:
+                        with open(output_path, 'wb') as f:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                f.write(chunk)
+                        logger.info(f"视频下载成功(远程API, {quality}): {output_path}")
+                        return output_path
+        except Exception as e:
+            logger.warning(f"远程API下载失败，回退到原有方式: {e}")
+
+        # 原有方式：获取下载结果
         download_result = self.get_download_url(video_url, with_watermark)
         if not download_result or not download_result.get("success"):
             logger.error("无法获取下载链接")

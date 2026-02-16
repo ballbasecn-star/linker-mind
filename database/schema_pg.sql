@@ -442,6 +442,26 @@ CREATE TABLE IF NOT EXISTS citations (
     CONSTRAINT fk_citations_content FOREIGN KEY (source_content_id) REFERENCES contents(id)
 );
 
+-- ============================================================================
+-- TASKS TABLE (for async processing)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS tasks (
+    id VARCHAR(64) PRIMARY KEY,
+    task_type VARCHAR(50) NOT NULL,
+    url TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    progress INTEGER DEFAULT 0,
+    metadata JSONB,
+    result JSONB,
+    error TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);
+
 CREATE INDEX idx_citations_project_id ON citations(project_id);
 CREATE INDEX idx_citations_source_content_id ON citations(source_content_id);
 

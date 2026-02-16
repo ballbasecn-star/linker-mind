@@ -143,13 +143,57 @@ class DouyinProcessorEnhanced(ContentProcessor):
             if remote_video_info.get('video_id'):
                 result.content['video_id'] = remote_video_info.get('video_id')
 
+            # 提取视频数据指标
+            video_stats = {}
+            if remote_video_info.get('play_count'):
+                video_stats['play_count'] = remote_video_info.get('play_count')
+            if remote_video_info.get('like_count'):
+                video_stats['likes'] = remote_video_info.get('like_count')
+            if remote_video_info.get('comment_count'):
+                video_stats['comments'] = remote_video_info.get('comment_count')
+            if remote_video_info.get('share_count'):
+                video_stats['shares'] = remote_video_info.get('share_count')
+            if remote_video_info.get('collect_count'):
+                video_stats['collects'] = remote_video_info.get('collect_count')
+            if remote_video_info.get('duration'):
+                video_stats['duration'] = remote_video_info.get('duration')
+            if remote_video_info.get('author'):
+                video_stats['author'] = remote_video_info.get('author')
+
+            if video_stats:
+                result.content['video_stats'] = video_stats
+                logger.info(f"提取视频数据指标: {video_stats}")
+
         # 展开短链接
         expanded_url = self._expand_short_url(url_info.url)
         if expanded_url != url_info.url:
             result.processing_info["url_expanded"] = True
             result.processing_info["original_url"] = url_info.url
 
+        # 如果有远程视频信息且包含足够数据，跳过URL提取
+        has_remote_data = bool(remote_video_info and remote_video_info.get('title'))
+
         last_error = None
+
+        # 如果有远程数据，直接完成，跳过提取
+        if has_remote_data:
+            logger.info("使用远程数据，跳过URL提取")
+            result.processing_info["extraction_method"] = "remote_api"
+            result.processing_info.update({
+                "processing_time": self._end_timer(),
+                "success": True,
+                "errors": []
+            })
+            # 如果需要深度分析，继续执行
+            if deep_analysis:
+                video_analysis = self._perform_deep_analysis(expanded_url, result.content)
+                if video_analysis:
+                    result.content['transcript'] = video_analysis.get('transcript', '')
+                    result.content['transcript_summary'] = video_analysis.get('summary', '')
+                    result.content['key_points'] = video_analysis.get('key_points', [])
+                    result.processing_info['video_analysis'] = video_analysis
+                    result.processing_info['deep_analysis'] = True
+            return result
 
         # 尝试提取（带重试）
         for attempt in range(max_retries):
@@ -637,8 +681,9 @@ class DouyinProcessorEnhanced(ContentProcessor):
             result = video_service.analyze(
                 url=url,
                 enable_transcription=True,
-                enable_keyframes=True,
+                enable_keyframes=False,  # 不需要关键帧
                 num_keyframes=5,
+                audio_only=True,  # 只用于转录，不需要视频
                 video_metadata=metadata
             )
 

@@ -137,29 +137,98 @@ class VideoDownloader:
 
         return None
 
-    def download(self, url: str, progress_callback: Optional[Callable] = None) -> Optional[str]:
+    def download(self, url: str, progress_callback: Optional[Callable] = None,
+                quality: str = "480p", audio_only: bool = True) -> Optional[str]:
         """
         Download video from URL
 
         Args:
             url: Video URL
             progress_callback: Optional progress callback
+            quality: Video quality (480p, 720p, 1080p) - lower = smaller file
+            audio_only: If True, extract audio only (much faster)
 
         Returns:
-            Path to downloaded video or None
+            Path to downloaded video/audio or None
         """
+        # 如果只需要音频，使用yt-dlp提取音频
+        if audio_only:
+            return self._download_audio_only(url)
+
         # 直接使用远程客户端下载（参考测试流程）
         try:
             from services.douyin_remote_client import get_douyin_remote_client
             client = get_douyin_remote_client()
-            logger.info("使用远程客户端下载视频...")
+            logger.info(f"使用远程客户端下载视频 (质量: {quality})...")
 
-            video_path = client.download_video(url)
+            video_path = client.download_video(url, quality=quality)
             if video_path:
                 logger.info(f"视频下载成功: {video_path}")
                 return video_path
         except Exception as e:
             logger.error(f"远程客户端下载失败: {e}")
+
+        return None
+
+    def _download_audio_only(self, url: str) -> Optional[str]:
+        """
+        使用远程API下载视频，然后提取音频
+
+        Args:
+            url: Video URL
+
+        Returns:
+            Path to extracted audio file or None
+        """
+        # 直接使用远程API下载视频
+        logger.info("使用远程API下载视频...")
+
+        try:
+            from services.douyin_remote_client import get_douyin_remote_client
+            client = get_douyin_remote_client()
+
+            # 下载视频（480p）
+            video_path = client.download_video(url, quality="360p")
+            if not video_path:
+                logger.error("视频下载失败")
+                return None
+
+            logger.info(f"视频下载成功: {video_path}")
+
+            # 转换为音频
+            audio_path = self._convert_video_to_audio(video_path)
+            if audio_path:
+                logger.info(f"音频转换成功: {audio_path}")
+                return audio_path
+            return video_path
+
+        except Exception as e:
+            logger.error(f"下载视频失败: {e}")
+
+        return None
+
+    def _convert_video_to_audio(self, video_path: str) -> Optional[str]:
+        """使用 ffmpeg 将视频转换为音频"""
+        import subprocess
+
+        audio_path = video_path.replace('.mp4', '.mp3')
+
+        try:
+            cmd = [
+                'ffmpeg', '-i', video_path,
+                '-vn', '-acodec', 'libmp3lame', '-q:a', '2',
+                '-y', audio_path
+            ]
+            subprocess.run(cmd, check=True, capture_output=True)
+
+            if os.path.exists(audio_path):
+                logger.info(f"视频转换为音频成功: {audio_path}")
+                # 删除原视频
+                if os.path.exists(video_path):
+                    os.remove(video_path)
+                return audio_path
+        except Exception as e:
+            logger.error(f"视频转音频失败: {e}")
 
         return None
 
@@ -290,7 +359,7 @@ class VideoDownloader:
 class AudioTranscriber:
     """Transcribe audio to text using Whisper"""
 
-    def __init__(self, model: str = "large"):
+    def __init__(self, model: str = "small"):
         """
         Initialize transcriber
 
@@ -733,22 +802,24 @@ class VideoAnalysisService:
 
     def __init__(self):
         self.downloader = VideoDownloader()
-        self.transcriber = AudioTranscriber(model="large")
+        self.transcriber = AudioTranscriber(model="small")
         self.analyzer = TranscriptAnalyzer()
         self.frame_extractor = KeyFrameExtractor()
 
     def analyze(self, url: str, enable_transcription: bool = True,
-                enable_keyframes: bool = True, num_keyframes: int = 5,
-                video_metadata: Optional[Dict] = None) -> VideoAnalysisResult:
+                enable_keyframes: bool = False, num_keyframes: int = 5,
+                video_metadata: Optional[Dict] = None,
+                audio_only: bool = True) -> VideoAnalysisResult:
         """
         Complete video analysis pipeline
 
         Args:
             url: Video URL
             enable_transcription: Whether to transcribe audio
-            enable_keyframes: Whether to extract key frames
+            enable_keyframes: Whether to extract key frames (default: False)
             num_keyframes: Number of key frames to extract
             video_metadata: Optional video metadata
+            audio_only: If True, only need audio for transcription, skip keyframes (default: True)
 
         Returns:
             VideoAnalysisResult with all analysis data
@@ -756,10 +827,14 @@ class VideoAnalysisService:
         start_time = time.time()
         result = VideoAnalysisResult(success=False)
 
+        # Set audio_only mode - no keyframes needed
+        if audio_only:
+            enable_keyframes = False
+
         try:
-            # Step 1: Download video
-            logger.info("Downloading video...")
-            video_path = self.downloader.download(url)
+            # Step 1: Download video or extract audio
+            logger.info(f"Downloading video... (audio_only={audio_only})")
+            video_path = self.downloader.download(url, quality="360p" if audio_only else "720p", audio_only=audio_only)
 
             if not video_path:
                 # Fallback: Generate analysis from basic metadata if download fails
@@ -775,24 +850,30 @@ class VideoAnalysisService:
 
                 return result
 
-            logger.info(f"视频下载完成，开始处理: {video_path}")
+            logger.info(f"视频/音频下载完成: {video_path}")
             result.video_path = video_path
 
-            # Get video duration
+            # Get duration (works for both audio and video)
             try:
-                logger.info("获取视频时长...")
+                logger.info("获取媒体时长...")
                 result.duration = self.frame_extractor._get_duration(video_path)
-                logger.info(f"视频时长: {result.duration}")
+                logger.info(f"媒体时长: {result.duration}")
             except Exception as e:
-                logger.error(f"获取视频时长失败: {e}")
+                logger.error(f"获取时长失败: {e}")
 
             # Step 2: Transcribe audio (if enabled)
             if enable_transcription:
                 logger.info("Transcribing audio...")
-                transcript_result = self.transcriber.transcribe_video(
-                    video_path,
-                    progress_callback=lambda p: logger.info(f"Transcription progress: {p:.0%}")
-                )
+
+                # 如果已经是音频文件(.mp3)，直接转录，不需要再提取
+                if video_path.endswith('.mp3'):
+                    transcript_result = self.transcriber.transcribe(video_path)
+                else:
+                    # 视频文件，需要先提取音频
+                    transcript_result = self.transcriber.transcribe_video(
+                        video_path,
+                        progress_callback=lambda p: logger.info(f"Transcription progress: {p:.0%}")
+                    )
 
                 if transcript_result:
                     result.transcript = transcript_result.get('text', '')
@@ -809,8 +890,8 @@ class VideoAnalysisService:
                     result.key_points = analysis.get('key_points', [])
                     result.topics = analysis.get('topics', [])
 
-            # Step 4: Extract key frames (if enabled)
-            if enable_keyframes:
+            # Step 4: Extract key frames (if enabled and NOT audio_only)
+            if enable_keyframes and not audio_only:
                 logger.info("Extracting key frames...")
                 result.key_frames = self.frame_extractor.extract(
                     video_path,

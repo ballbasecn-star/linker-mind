@@ -1020,11 +1020,63 @@
                 const result = await api.processURL(url, aiEnabled, deepEnabled);
 
                 if (result) {
-                    // 显示成功消息
-                    showMessage('内容处理成功！正在跳转...', 'success');
-                    setTimeout(() => {
-                        window.location.href = `/content/${result.id}`;
-                    }, 1000);
+                    // 检查是否是异步任务
+                    if (result.async && result.task_id) {
+                        // 异步处理模式：轮询任务状态
+                        extractBtn.textContent = '深度分析进行中...';
+                        showMessage('视频深度分析已开始在后台运行，完成后会通知您', 'info');
+
+                        // 轮询任务状态
+                        const pollTask = async () => {
+                            let attempts = 0;
+                            const maxAttempts = 300; // 最多轮询5分钟 (300 * 1s)
+
+                            while (attempts < maxAttempts) {
+                                await new Promise(resolve => setTimeout(resolve, 2000)); // 每2秒检查一次
+
+                                try {
+                                    const taskResult = await api.getTaskResult(result.task_id);
+
+                                    if (taskResult.status === 'completed') {
+                                        // 任务完成，跳转到内容详情页
+                                        const contentId = taskResult.result.content_id;
+                                        showMessage('深度分析完成！正在跳转...', 'success');
+                                        setTimeout(() => {
+                                            window.location.href = `/content/${contentId}`;
+                                        }, 1000);
+                                        return;
+                                    } else if (taskResult.status === 'failed') {
+                                        showMessage('处理失败: ' + taskResult.error, 'error');
+                                        extractBtn.textContent = originalText;
+                                        extractBtn.classList.remove('loading');
+                                        extractBtn.disabled = false;
+                                        loading.style.display = 'none';
+                                        return;
+                                    }
+
+                                    attempts++;
+                                    // 更新进度显示
+                                    extractBtn.textContent = `分析中... ${Math.floor(attempts * 0.5)}秒`;
+                                } catch (e) {
+                                    console.error('Poll error:', e);
+                                }
+                            }
+
+                            // 超时
+                            showMessage('处理超时，但可能仍在后台运行', 'warning');
+                            extractBtn.textContent = originalText;
+                            extractBtn.classList.remove('loading');
+                            extractBtn.disabled = false;
+                        };
+
+                        pollTask();
+                    } else {
+                        // 同步处理模式
+                        showMessage('内容处理成功！正在跳转...', 'success');
+                        setTimeout(() => {
+                            window.location.href = `/content/${result.id}`;
+                        }, 1000);
+                    }
                 } else {
                     alert('处理失败: 未知错误');
                     // 恢复按钮
@@ -1040,7 +1092,9 @@
                 extractBtn.classList.remove('loading');
                 extractBtn.disabled = false;
             } finally {
-                loading.style.display = 'none';
+                if (!deepEnabled) {
+                    loading.style.display = 'none';
+                }
             }
         }
 

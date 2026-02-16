@@ -223,7 +223,12 @@ class PostgreSQLConnection:
         if where:
             sql += f" WHERE {where}"
 
-        return self.execute(sql, tuple(list(data.values()) + (where_params or [])))
+        # Combine data values with where_params
+        params = list(data.values())
+        if where_params:
+            params.extend(list(where_params))
+
+        return self.execute(sql, tuple(params))
 
     def delete(self, table: str, where: str = None, params: Tuple = None) -> int:
         """Delete rows from a table"""

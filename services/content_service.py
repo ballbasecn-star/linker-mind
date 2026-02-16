@@ -274,6 +274,23 @@ class ContentService:
                 logger.warning(f"AI analysis failed: {e}")
 
         # 保存到数据库
+        # 从 processed.content 中提取深度分析数据
+        transcript = processed.content.get('transcript', '')
+        transcript_summary = processed.content.get('transcript_summary', '')
+
+        # 将深度分析数据添加到 metadata 中
+        metadata = processed.processing_info or {}
+
+        # 从 processed.content 中提取视频数据指标（从远程服务获取）
+        video_stats = processed.content.get('video_stats', {})
+        if video_stats:
+            metadata.update(video_stats)
+
+        if transcript:
+            metadata['transcript'] = transcript
+        if transcript_summary:
+            metadata['transcript_summary'] = transcript_summary
+
         return self.create(
             source_type=processed.source_type,
             content_type=self._determine_content_type(processed),
@@ -282,7 +299,7 @@ class ContentService:
             raw_content=processed.raw_content or processed.content.get('main_content', ''),
             summary=processed.content.get('summary', ''),
             ai_analysis=processed.ai_analysis,
-            metadata=processed.processing_info,
+            metadata=metadata,
             media=processed.media
         )
 
