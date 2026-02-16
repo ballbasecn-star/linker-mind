@@ -120,6 +120,134 @@
             background: var(--accent-hover);
         }
 
+        .settings-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            margin-left: 8px;
+        }
+
+        .settings-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* 模态框样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 8px;
+        }
+
+        .modal-content .help-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 16px;
+        }
+
+        .modal-content textarea,
+        .modal-content input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-family: monospace;
+        }
+
+        .modal-content textarea:focus,
+        .modal-content input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .modal-buttons {
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-buttons button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .close:hover {
+            color: var(--text-primary);
+        }
+
+        #cookiesStatus {
+            padding: 10px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        #cookiesStatus.has-cookies {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        #cookiesStatus.no-cookies {
+            background: #fff3cd;
+            color: #856404;
+        }
+
         .stats {
             display: flex;
             justify-content: center;
@@ -646,6 +774,23 @@
             <input type="text" id="urlInput" placeholder="输入 URL (网页、视频、Twitter、微信公众号...)">
             <button onclick="processUrl()">提取内容</button>
             <button onclick="toggleAI()" id="aiBtn">AI: 开</button>
+            <button onclick="openCookiesSettings()" class="settings-btn" title="Cookies 设置">🍪</button>
+        </div>
+
+        <!-- Cookies 设置模态框 -->
+        <div id="cookiesModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeCookiesSettings()">&times;</span>
+                <h2>抖音 Cookies 设置</h2>
+                <p class="help-text">配置抖音 Cookies 以启用视频深度分析功能（下载、转录等）</p>
+                <div id="cookiesStatus"></div>
+                <textarea id="cookiesInput" placeholder="粘贴浏览器导出的 Cookie 字符串..." rows="5"></textarea>
+                <input type="text" id="cookiesDesc" placeholder="备注（可选）" style="width: 100%; margin-top: 10px; padding: 8px;">
+                <div class="modal-buttons">
+                    <button onclick="saveCookies()" class="btn-primary">保存</button>
+                    <button onclick="deleteCookies()" class="btn-danger">删除</button>
+                </div>
+            </div>
         </div>
 
         <div class="stats">
@@ -869,6 +1014,102 @@
                 processUrl();
             }
         });
+
+        // ===== Cookies 管理 =====
+        async function openCookiesSettings() {
+            const modal = document.getElementById('cookiesModal');
+            const statusDiv = document.getElementById('cookiesStatus');
+            const input = document.getElementById('cookiesInput');
+            const descInput = document.getElementById('cookiesDesc');
+
+            modal.style.display = 'flex';
+
+            try {
+                const response = await fetch('/api/settings/douyin-cookies');
+                const data = await response.json();
+
+                if (data.data && data.data.has_cookies) {
+                    statusDiv.className = 'has-cookies';
+                    statusDiv.innerHTML = `✓ Cookies 已配置<br>更新时间: ${data.data.updated_at || '未知'}<br>备注: ${data.data.description || '-'}`;
+                    input.value = '';
+                    descInput.value = data.data.description || '';
+                } else {
+                    statusDiv.className = 'no-cookies';
+                    statusDiv.innerHTML = '⚠ 尚未配置 Cookies';
+                    input.value = '';
+                    descInput.value = '';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '加载失败: ' + error.message;
+            }
+        }
+
+        function closeCookiesSettings() {
+            document.getElementById('cookiesModal').style.display = 'none';
+        }
+
+        async function saveCookies() {
+            const cookieString = document.getElementById('cookiesInput').value.trim();
+            const description = document.getElementById('cookiesDesc').value.trim();
+
+            if (!cookieString) {
+                alert('请输入 Cookie 字符串');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/settings/douyin-cookies', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cookie_string: cookieString,
+                        description: description
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Cookies 保存成功！', 'success');
+                    closeCookiesSettings();
+                } else {
+                    alert('保存失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                alert('保存失败: ' + error.message);
+            }
+        }
+
+        async function deleteCookies() {
+            if (!confirm('确定要删除 Cookies 吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/settings/douyin-cookies', {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Cookies 已删除', 'success');
+                    closeCookiesSettings();
+                } else {
+                    alert('删除失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('cookiesModal');
+            if (event.target === modal) {
+                closeCookiesSettings();
+            }
+        };
     </script>
 </body>
 </html>

@@ -402,3 +402,78 @@ def get_settings():
     except Exception as e:
         logger.error(f"Error getting settings: {e}")
         return json_error_response(str(e), status_code=500)
+
+
+# ========== 抖音 Cookies 管理 ==========
+
+@api_bp.route('/settings/douyin-cookies', methods=['GET'])
+def get_douyin_cookies():
+    """获取抖音 Cookies 状态（不返回完整cookie）"""
+    try:
+        from services.settings_service import get_settings_service
+        service = get_settings_service()
+        cookies_info = service.get_douyin_cookies()
+
+        if cookies_info:
+            return json_success_response({
+                'has_cookies': True,
+                'updated_at': cookies_info.get('updated_at'),
+                'description': cookies_info.get('description', '')
+            })
+        else:
+            return json_success_response({
+                'has_cookies': False,
+                'updated_at': None,
+                'description': ''
+            })
+
+    except Exception as e:
+        logger.error(f"Error getting douyin cookies: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@api_bp.route('/settings/douyin-cookies', methods=['POST'])
+def set_douyin_cookies():
+    """设置抖音 Cookies"""
+    try:
+        from services.settings_service import get_settings_service
+
+        data = request.get_json()
+        cookie_string = data.get('cookie_string', '').strip()
+        description = data.get('description', '').strip()
+
+        if not cookie_string:
+            return json_error_response('Cookie 字符串不能为空', status_code=400)
+
+        service = get_settings_service()
+        success = service.set_douyin_cookies(cookie_string, description)
+
+        if success:
+            return json_success_response({
+                'message': '抖音 Cookies 已设置',
+                'updated_at': datetime.now().isoformat()
+            })
+        else:
+            return json_error_response('设置失败', status_code=500)
+
+    except Exception as e:
+        logger.error(f"Error setting douyin cookies: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@api_bp.route('/settings/douyin-cookies', methods=['DELETE'])
+def delete_douyin_cookies():
+    """删除抖音 Cookies"""
+    try:
+        from services.settings_service import get_settings_service
+
+        service = get_settings_service()
+        service.delete_douyin_cookies()
+
+        return json_success_response({
+            'message': '抖音 Cookies 已删除'
+        })
+
+    except Exception as e:
+        logger.error(f"Error deleting douyin cookies: {e}")
+        return json_error_response(str(e), status_code=500)

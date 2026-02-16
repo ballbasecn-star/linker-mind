@@ -141,6 +141,11 @@ def process_url():
         if not content:
             return json_error_response('Failed to process URL', status_code=500)
 
+        # 检查是否实际启用了深度分析（通过 metadata 中的 processing_info 判断）
+        metadata = content.get('metadata', {})
+        processing_info = metadata.get('processing_info', {}) if isinstance(metadata, dict) else {}
+        actual_deep_analysis = processing_info.get('deep_analysis', deep_analysis)
+
         return json_success_response({
             'id': content['id'],
             'title': content['title'],
@@ -148,7 +153,7 @@ def process_url():
             'source_type': content['source_type'],
             'content_type': content['content_type'],
             'message': 'Content processed successfully',
-            'deep_analysis_enabled': deep_analysis
+            'deep_analysis_enabled': actual_deep_analysis
         }, status_code=201)
 
     except Exception as e:

@@ -83,8 +83,20 @@ def migrate_data():
         return False
 
 
+def validate_config():
+    """Validate required configuration before starting app"""
+    from config.validator import validate_startup_config
+    return validate_startup_config(raise_on_error=True)
+
 def create_app(config=None):
     """Create and configure Flask application"""
+    # 首先验证配置
+    try:
+        validate_config()
+    except Exception as e:
+        logger.error(f"配置验证失败: {e}")
+        raise
+
     from app import create_app
 
     app_config = {}

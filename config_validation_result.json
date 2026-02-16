@@ -1,0 +1,14 @@
+{
+  "total_required": 3,
+  "total_optional": 3,
+  "errors": [],
+  "warnings": [],
+  "config_values": {
+    "FIRECRAWL_API_KEY": "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",
+    "DEEPSEEK_API_KEY": "sk-5bd6dc8ddfb14bc59366a39e125a5e9b",
+    "DATABASE_URL": "jdbc:postgresql://117.72.207.52:5432/linker-mind",
+    "FIRECRAWL_TIMEOUT": "30",
+    "MAX_RETRIES": "3",
+    "LOG_LEVEL": "INFO"
+  }
+}

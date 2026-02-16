@@ -1,0 +1,24 @@
+{
+    "urls": [
+        {
+            "url": "https://www.douyin.com/video/71234567890123456789",
+            "platform": "douyin",
+            "expected_fields": ["title", "description", "video_id", "likes", "comments"]
+        },
+        {
+            "url": "https://www.douyin.com/video/71234567890123456790",
+            "platform": "douyin",
+            "expected_fields": ["title", "description", "video_id", "likes", "comments"]
+        },
+        {
+            "url": "https://mp.weixin.qq.com/s/abc123def456",
+            "platform": "weixin",
+            "expected_fields": ["title", "main_content", "author", "account_name"]
+        },
+        {
+            "url": "https://mp.weixin.qq.com/s/def456abc123",
+            "platform": "weixin",
+            "expected_fields": ["title", "main_content", "author", "account_name"]
+        }
+    ]
+}

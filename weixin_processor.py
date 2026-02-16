@@ -1,23 +1,50 @@
 """
-Weixin Processor Module - Extract content from WeChat Official Account articles
+微信处理器 - 增强版
+改进：
+1. 添加MCP WebReader支持（优先级最高）
+2. 增强requests方法（更多降级策略）
+3. 添加script数据提取（微信公众号文章通常在script中）
+4. 统一错误处理
+5. 数据完整性验证
 """
 import re
+import json
 import time
-from typing import Optional, Dict, Any
+import logging
+from typing import Optional, Dict, Any, List
+from dataclasses import dataclass
 
 from content_processor import ContentProcessor, ProcessedContent
 from url_detector import URLInfo
 
+logger = logging.getLogger(__name__)
 
-class WeixinProcessor(ContentProcessor):
+
+@dataclass
+class ExtractionError(Exception):
+    """提取错误基类"""
+    error_code: str
+    message: str
+    recoverable: bool = False
+    retry_after: int = 0
+
+
+class WeixinProcessorEnhanced(ContentProcessor):
     """
-    Processor for WeChat (微信公众号) articles
-    Uses web scraping to extract article content
+    增强版微信处理器
+
+    改进点：
+    1. 支持MCP WebReader
+    2. 增强requests方法
+    3. 添加script数据提取
+    4. 统一错误处理
+    5. 数据完整性验证
     """
 
     def __init__(self):
         super().__init__()
-        # Try to import required dependencies
+
+        # 基础依赖
         try:
             import requests
             from bs4 import BeautifulSoup
@@ -27,7 +54,7 @@ class WeixinProcessor(ContentProcessor):
         except ImportError:
             self.requests_available = False
 
-        # Check if Firecrawl is available
+        # Firecrawl支持
         try:
             from firecrawl import Firecrawl
             import os
@@ -42,93 +69,171 @@ class WeixinProcessor(ContentProcessor):
         except ImportError:
             self.firecrawl_available = False
 
-    def can_process(self, url_info: URLInfo) -> bool:
-        """Can process WeChat article URLs"""
-        return url_info.url_type.value == "wechat"
+        # MCP WebReader（优先级最高）
+        self.mcp_webreader_available = False
+        self.mcp_webreader = None
 
-    def extract(self, url_info: URLInfo) -> ProcessedContent:
-        """Extract WeChat article content"""
+    def set_mcp_tools(self, mcp_webreader):
+        """设置MCP工具"""
+        self.mcp_webreader = mcp_webreader
+        self.mcp_webreader_available = mcp_webreader is not None
+
+    def can_process(self, url_info: URLInfo) -> bool:
+        """判断是否可以处理微信URL"""
+        return url_info.url_type.value == "weixin"
+
+    def extract(self, url_info: URLInfo, max_retries: int = 3) -> ProcessedContent:
+        """
+        提取微信文章内容
+
+        改进的降级顺序：
+        MCP WebReader → Firecrawl → 增强requests
+        """
         self._start_timer()
         result = self._create_base_content(url_info)
 
-        try:
-            # Prefer Firecrawl if available
-            if self.firecrawl_available:
-                content = self._extract_with_firecrawl(url_info.url)
-            elif self.requests_available:
-                content = self._extract_with_requests(url_info.url)
-            else:
-                raise ValueError("Both Firecrawl and requests unavailable. Install dependencies.")
+        last_error = None
 
-            # Update result with extracted content
-            result.content.update(content)
-            result.media = self._build_media_info(content)
-            result.processing_info.update({
-                "processing_time": self._end_timer(),
-                "success": True,
-                "errors": []
-            })
+        for attempt in range(max_retries):
+            try:
+                content = None
 
-        except Exception as e:
-            result.processing_info.update({
-                "processing_time": self._end_timer(),
-                "success": False,
-                "errors": [str(e)]
-            })
-            raise
+                # 优先级1: MCP WebReader（如果可用）
+                if self.mcp_webreader_available and attempt == 0:
+                    try:
+                        content = self._extract_with_mcp(url_info.url)
+                        result.processing_info["extraction_method"] = "mcp_webreader"
+                    except Exception as e:
+                        result.processing_info["mcp_error"] = str(e)
 
-        return result
+                # 优先级2: Firecrawl
+                if not content and self.firecrawl_available:
+                    try:
+                        content = self._extract_with_firecrawl(url_info.url)
+                        result.processing_info["extraction_method"] = "firecrawl"
+                    except Exception as e:
+                        result.processing_info["firecrawl_error"] = str(e)
+
+                # 优先级3: 增强requests
+                if not content and self.requests_available:
+                    content = self._extract_with_requests_enhanced(url_info.url)
+                    result.processing_info["extraction_method"] = "requests_enhanced"
+
+                # 验证提取结果
+                if not content:
+                    raise ValueError("Failed to extract content from all methods")
+
+                if not content.get("main_content") or len(content.get("main_content", "")) < 50:
+                    logger.warning(f"Extracted content too short for {url_info.url}")
+
+                # 更新结果
+                result.content.update(content)
+                result.media = self._build_media_info(content)
+
+                result.processing_info.update({
+                    "processing_time": self._end_timer(),
+                    "success": True,
+                    "errors": []
+                })
+
+                return result
+
+            except ValueError as e:
+                last_error = e
+                raise
+
+            except Exception as e:
+                last_error = e
+                logger.error(f"Extraction error: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                    continue
+                raise
+
+        result.processing_info.update({
+            "processing_time": self._end_timer(),
+            "success": False,
+            "errors": [str(last_error)]
+        })
+        raise last_error
+
+    def _extract_with_mcp(self, url: str) -> Dict[str, Any]:
+        """使用MCP WebReader提取"""
+        if not self.mcp_webreader:
+            raise ValueError("MCP WebReader not available")
+
+        result = self.mcp_webreader(
+            url=url,
+            return_format="markdown",
+            timeout=30,
+            retain_images=True
+        )
+
+        markdown = getattr(result, 'markdown', '') or str(result)
+
+        return {
+            "title": self._extract_title_from_markdown(markdown),
+            "url": url,
+            "main_content": markdown,
+            "html": getattr(result, 'html', '') if hasattr(result, 'html') else '',
+            "metadata": {
+                "platform": "wechat",
+                "author": self._extract_author(markdown),
+                "description": self._extract_description(markdown),
+                "article_id": self._extract_article_id(url),
+                "tags": self._extract_tags(markdown)
+            }
+        }
 
     def _extract_with_firecrawl(self, url: str) -> Dict[str, Any]:
-        """Extract using Firecrawl API"""
+        """使用Firecrawl提取"""
         scrape_result = self.firecrawl.scrape(
             url,
             formats={'markdown': True, 'html': True},
             only_main_content=True,
             wait_for=2000,
             headers={
-                'User-Agent': 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Mobile Safari/537.36 MicroMessenger/8.0.0.1840'
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Mobile Safari/537.36'
             }
         )
 
-        # Extract metadata from scraped content
         title = getattr(scrape_result, 'title', '') or "微信文章"
         markdown = getattr(scrape_result, 'markdown', '')
         html = getattr(scrape_result, 'html', '')
-        description = getattr(scrape_result, 'description', '')
-
-        # Extract additional metadata
-        author = self._extract_author(markdown, html)
-        publish_date = self._extract_publish_date(markdown, html)
-        account_name = self._extract_account_name(markdown, html)
 
         return {
             "title": title,
             "url": url,
             "main_content": markdown,
             "html": html,
-            "summary": description or self._generate_summary(markdown),
             "metadata": {
                 "platform": "wechat",
-                "author": author,
-                "account_name": account_name,
-                "publish_date": publish_date,
+                "author": self._extract_author(markdown, html),
+                "description": self._extract_description(markdown, html),
                 "article_id": self._extract_article_id(url),
                 "tags": self._extract_tags(markdown),
-                "read_count": self._extract_read_count(markdown),
-                "like_count": self._extract_like_count(markdown),
-            },
-            "extracted_data": {
-                "source": "firecrawl"
+                "account_name": self._extract_account_name(markdown, html)
             }
         }
 
-    def _extract_with_requests(self, url: str) -> Dict[str, Any]:
-        """Extract using requests + BeautifulSoup (fallback)"""
+    def _extract_with_requests_enhanced(self, url: str) -> Dict[str, Any]:
+        """
+        增强的requests提取方法
+
+        改进点：
+        1. 添加script数据提取
+        2. 多层降级策略
+        3. 更完整的headers
+        """
+        if not self.requests_available:
+            raise ValueError("requests not available")
+
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Mobile Safari/537.36 MicroMessenger/8.0.0.1840',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'zh-CN,zh;q=0.9',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Mobile Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate',
+            'Referer': 'https://mp.weixin.qq.com/',
         }
 
         response = self.requests.get(url, headers=headers, timeout=15)
@@ -136,55 +241,219 @@ class WeixinProcessor(ContentProcessor):
 
         soup = self.bs4(response.content, 'html.parser')
 
-        # Extract basic metadata
-        title = soup.find('meta', property='og:title')
-        title = title.get('content', '') if title else (soup.find('title') or '').text
+        content = {}
 
-        description = soup.find('meta', property='og:description')
-        description = description.get('content', '') if description else ''
+        # 优先级1: 提取script数据（新增）
+        script_data = self._extract_script_data(soup)
+        if script_data:
+            content.update(script_data)
 
-        author = soup.find('meta', property='og:article:author')
-        author = author.get('content', '') if author else ''
+        # 优先级2: 提取meta标签
+        if not content.get('title') or not content.get('main_content'):
+            meta_data = self._extract_meta_tags(soup)
+            content.update(meta_data)
 
-        publish_time = soup.find('meta', property='article:published_time')
-        publish_time = publish_time.get('content', '') if publish_time else ''
+        # 优先级3: 提取HTML结构
+        if not content.get('main_content'):
+            html_data = self._extract_html_structure(soup)
+            content.update(html_data)
 
-        # Extract article content
-        article_body = soup.find('div', class_='rich_media_content') or soup.find('div', id='js_content')
-        main_content = article_body.get_text('\n', strip=True) if article_body else ''
+        # 验证提取结果
+        if not content.get('title'):
+            content['title'] = soup.find('title').text if soup.find('title') else "微信文章"
 
-        # Extract account name
-        account_name_elem = soup.find('a', class_='account_name') or soup.find('span', class_='rich_meta_title')
-        account_name = account_name_elem.get_text(strip=True) if account_name_elem else ''
+        if not content.get('main_content'):
+            content['main_content'] = soup.get_text('\n', strip=True)[:5000]
 
         return {
-            "title": title or "微信文章",
+            "title": content.get('title', ''),
             "url": url,
-            "main_content": main_content or soup.get_text('\n', strip=True)[:5000],
+            "main_content": content.get('main_content', ''),
             "html": str(soup),
-            "summary": description or self._generate_summary(main_content),
             "metadata": {
                 "platform": "wechat",
-                "author": author,
-                "account_name": account_name,
-                "publish_date": publish_time,
-                "article_id": self._extract_article_id(url),
-                "tags": [],
-                "read_count": 0,
-                "like_count": 0,
+                "author": content.get('author', ''),
+                "account_name": content.get('account_name', ''),
+                "description": content.get('description', ''),
+                "article_id": content.get('article_id', self._extract_article_id(url)),
+                "tags": content.get('tags', []),
+                "publish_date": content.get('publish_date', '')
             },
             "extracted_data": {
-                "source": "requests"
+                "source": "requests_enhanced",
+                "script_data": content.get('script_data', {}),
+                "meta_data": content.get('meta_data', {}),
+                "html_data": content.get('html_data', {})
             }
         }
 
-    def _extract_author(self, markdown: str, html: str) -> str:
-        """Extract author name from content"""
-        # Try common patterns
+    def _extract_script_data(self, soup) -> Dict[str, Any]:
+        """
+        提取script数据
+
+        微信文章通常在script标签中有msg数据
+        """
+        for script in soup.find_all('script'):
+            if not script.string:
+                continue
+
+            # 查找msg变量
+            msg_match = re.search(r'var msg = ({.+?});', script.string)
+            if msg_match:
+                try:
+                    msg_data = json.loads(msg_match.group(1))
+                    if isinstance(msg_data, dict):
+                        return self._normalize_weixin_msg_data(msg_data)
+                except Exception:
+                    pass
+
+            # 查找其他常见格式
+            for pattern in [
+                r'window\.msg\s*=\s*({.+?});',
+                r'ct\s*=\s*({.+?});',
+            ]:
+                match = re.search(pattern, script.string)
+                if match:
+                    try:
+                        data = json.loads(match.group(1))
+                        if isinstance(data, dict):
+                            return self._normalize_weixin_msg_data(data)
+                    except Exception:
+                        pass
+
+        return {}
+
+    def _normalize_weixin_msg_data(self, data: Dict) -> Dict:
+        """标准化微信msg数据"""
+        normalized = {}
+
+        # 标题
+        if 'title' in data:
+            normalized['title'] = data['title']
+
+        # 内容
+        if 'content' in data:
+            normalized['main_content'] = data['content']
+
+        # 作者信息
+        if 'author' in data and isinstance(data['author'], dict):
+            author = data['author']
+            if 'nickname' in author:
+                normalized['author'] = author['nickname']
+            if 'public_name' in author:
+                normalized['account_name'] = author['public_name']
+
+        # 发布时间
+        if 'publish_time' in data:
+            normalized['publish_date'] = data['publish_time']
+        elif 'create_time' in data:
+            normalized['publish_date'] = data['create_time']
+
+        # 文章ID
+        if 'article_id' in data:
+            normalized['article_id'] = data['article_id']
+        elif 'itemid' in data:
+            normalized['article_id'] = data['itemid']
+
+        # 封面图
+        if 'cover' in data:
+            normalized['cover_image'] = data['cover']
+        elif 'cdn_url' in data:
+            normalized['cover_image'] = data['cdn_url']
+
+        return normalized
+
+    def _extract_meta_tags(self, soup) -> Dict[str, Any]:
+        """提取meta标签"""
+        meta_data = {}
+
+        # 标题
+        for meta_name in ['og:title', 'twitter:title']:
+            meta = soup.find('meta', property=meta_name)
+            if meta and meta.get('content'):
+                meta_data['title'] = meta.get('content')
+                break
+
+        # 描述
+        for meta_name in ['og:description', 'twitter:description', 'description']:
+            meta = soup.find('meta', property=meta_name)
+            if meta and meta.get('content'):
+                meta_data['description'] = meta.get('content')
+                break
+
+        # 作者
+        for meta_name in ['og:article:author', 'article:author', 'author']:
+            meta = soup.find('meta', property=meta_name)
+            if meta and meta.get('content'):
+                meta_data['author'] = meta.get('content')
+                break
+
+        # 公众号名称
+        for meta_name in ['og:article:author', 'weixin:account_nickname']:
+            meta = soup.find('meta', property=meta_name)
+            if meta and meta.get('content'):
+                meta_data['account_name'] = meta.get('content')
+                break
+
+        # 封面图
+        for meta_name in ['og:image', 'twitter:image']:
+            meta = soup.find('meta', property=meta_name)
+            if meta and meta.get('content'):
+                meta_data['cover_image'] = meta.get('content')
+                break
+
+        # 发布时间
+        for meta_name in ['og:article:published_time', 'article:published_time']:
+            meta = soup.find('meta', property=meta_name)
+            if meta and meta.get('content'):
+                meta_data['publish_date'] = meta.get('content')
+                break
+
+        return meta_data
+
+    def _extract_html_structure(self, soup) -> Dict[str, Any]:
+        """提取HTML结构"""
+        html_data = {}
+
+        # 多个可能的class名
+        content_classes = [
+            'rich_media_content',
+            'rich_media_area',
+            'wx_rich_media_content',
+            'js_content',
+            'article-content',
+            'weui-msg'
+        ]
+
+        for class_name in content_classes:
+            elem = soup.find('div', class_=class_name)
+            if elem:
+                html_data['main_content'] = elem.get_text('\n', strip=True)
+                break
+
+        # 尝试id选择器
+        if not html_data.get('main_content'):
+            for elem_id in ['js_content', 'content', 'article-content']:
+                elem = soup.find('div', id=elem_id)
+                if elem:
+                    html_data['main_content'] = elem.get_text('\n', strip=True)
+                    break
+
+        # 公众号名称
+        account_classes = ['account_name', 'rich_meta_title', 'wx_account_name']
+        for class_name in account_classes:
+            elem = soup.find('a', class_=class_name) or soup.find('span', class_=class_name)
+            if elem:
+                html_data['account_name'] = elem.get_text(strip=True)
+                break
+
+        return html_data
+
+    def _extract_author(self, markdown: str, html: str = "") -> str:
+        """提取作者"""
         patterns = [
-            r'作者[：:]\s*([^\n@]+)',
-            r'Author[：:]\s*([^\n@]+)',
-            r'<meta\s+property=["\']article:author["\']\s+content=["\']([^"\']+)["\']',
+            r'作者[：:]\s*([^\s@]+)',
+            r'Author[：:]\s*([^\s@]+)',
         ]
 
         text_to_search = markdown[:3000] + " " + html[:3000]
@@ -194,120 +463,82 @@ class WeixinProcessor(ContentProcessor):
                 return match.group(1).strip()
         return ""
 
-    def _extract_publish_date(self, markdown: str, html: str) -> str:
-        """Extract publish date"""
+    def _extract_description(self, markdown: str) -> str:
+        """提取描述"""
+        lines = markdown.split('\n')
+        for line in lines[:5]:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                return line[:500]
+        return ""
+
+    def _extract_account_name(self, markdown: str, html: str = "") -> str:
+        """提取公众号名称"""
         patterns = [
-            r'(\d{4}-\d{2}-\d{2})',
-            r'(\d{4}年\d{1,2}月\d{1,2}日)',
-            r'<meta\s+property=["\']article:published_time["\']\s+content=["\']([^"\']+)["\']',
+            r'公众号[：:]\s*([^\s@]+)',
+            r'来自[:\s]+([^\s@]+)',
         ]
 
-        text_to_search = markdown[:3000] + " " + html[:3000]
+        text_to_search = markdown[:2000]
         for pattern in patterns:
             match = re.search(pattern, text_to_search)
             if match:
                 return match.group(1).strip()
         return ""
 
-    def _extract_account_name(self, markdown: str, html: str) -> str:
-        """Extract WeChat account name"""
-        patterns = [
-            r'公众号[：:]\s*([^\n@]+)',
-            r'来自[:\s]+([^\n@]+)',
-        ]
-        for pattern in patterns:
-            match = re.search(pattern, markdown[:2000])
-            if match:
-                return match.group(1).strip()
-        return ""
-
     def _extract_article_id(self, url: str) -> str:
-        """Extract article ID from URL"""
+        """从URL提取文章ID"""
         match = re.search(r'/s/([A-Za-z0-9_-]+)', url)
         if match:
             return match.group(1)
         return ""
 
     def _extract_tags(self, markdown: str) -> list:
-        """Extract tags from content"""
-        # Look for hashtags or keywords
+        """提取标签"""
         hashtag_pattern = r'#([^\s#]+)'
         tags = re.findall(hashtag_pattern, markdown)
         return tags[:10]
 
-    def _extract_read_count(self, markdown: str) -> int:
-        """Extract read count if available"""
-        pattern = r'阅读\s*(\d+(?:\.\d+)?[kKwW万]?)'
-        match = re.search(pattern, markdown)
-        if match:
-            return self._parse_number(match.group(1))
-        return 0
-
-    def _extract_like_count(self, markdown: str) -> int:
-        """Extract like count if available"""
-        pattern = r'(?:点赞|喜欢)\s*(\d+(?:\.\d+)?[kKwW万]?)'
-        match = re.search(pattern, markdown)
-        if match:
-            return self._parse_number(match.group(1))
-        return 0
-
-    def _parse_number(self, num_str: str) -> int:
-        """Parse number with k/w/万 suffix"""
-        num_str = num_str.lower().strip()
-        multipliers = {
-            'k': 1000,
-            'w': 10000,
-            '万': 10000,
-        }
-
-        for suffix, mult in multipliers.items():
-            if num_str.endswith(suffix):
-                try:
-                    return int(float(num_str[:-1]) * mult)
-                except ValueError:
-                    return 0
-
-        try:
-            return int(float(num_str))
-        except ValueError:
-            return 0
-
-    def _generate_summary(self, content: str) -> str:
-        """Generate a summary from content"""
-        # Take first few meaningful sentences
-        sentences = re.split(r'[。！？\n]', content)
-        summary_sentences = []
-
-        for sentence in sentences:
-            sentence = sentence.strip()
-            if len(sentence) > 10 and not sentence.startswith('#'):
-                summary_sentences.append(sentence)
-                if len(''.join(summary_sentences)) > 200:
-                    break
-
-        summary = '。'.join(summary_sentences[:3])
-        if summary and not summary.endswith('。'):
-            summary += '。'
-
-        return summary or content[:200]
+    def _extract_title_from_markdown(self, markdown: str) -> str:
+        """从markdown提取标题"""
+        # 通常第一行或第一个markdown标题
+        lines = markdown.split('\n')
+        for line in lines[:5]:
+            line = line.strip()
+            if line.startswith('#'):
+                # 移除#标记
+                title = line.lstrip('#').strip()
+                if len(title) > 3 and len(title) < 200:
+                    return title
+            elif len(line) > 3 and len(line) < 200:
+                return line
+        return ""
 
     def _build_media_info(self, content: Dict[str, Any]) -> Dict[str, Any]:
-        """Build media information from content"""
+        """构建媒体信息"""
         media = {
             "type": "article",
+            "cover_image": "",
             "images": [],
             "videos": [],
             "thumbnails": []
         }
 
-        # Extract images from markdown
+        # 提取图片
         markdown = content.get("main_content", "")
         img_pattern = r'!\[.*?\]\((.*?)\)'
         images = re.findall(img_pattern, markdown)
-        media["images"] = images[:20]
-        media["thumbnails"] = images[:5]  # First few images as thumbnails
+        if images:
+            media["images"] = images[:20]
+            media["thumbnails"] = images[:5]
 
-        # Check for videos
+        # 提取封面图
+        extracted_data = content.get("extracted_data", {})
+        if extracted_data.get("cover_image"):
+            media["cover_image"] = extracted_data["cover_image"]
+            media["thumbnails"] = [extracted_data["cover_image"]]
+
+        # 检查是否有视频
         if '<video' in content.get("html", "") or 'mp4' in markdown.lower():
             media["type"] = "mixed"
 

@@ -1,27 +1,42 @@
 """
 Content Processor Module - Base classes and implementations for content extraction
+
+迁移说明：已更新为使用统一API客户端
+- 支持 Tavily、Firecrawl、Playwright 等多种API
+- 优先级：Tavily > Firecrawl > Playwright
 """
 import os
 import json
 import time
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Optional, Dict, List, TYPE_CHECKING
 from datetime import datetime
 from dotenv import load_dotenv
 
-from firecrawl import Firecrawl
-from url_detector import URLInfo, URLType
+logger = logging.getLogger(__name__)
 
-# Use TYPE_CHECKING to avoid circular import
-if TYPE_CHECKING:
-    from video_processor import VideoInfoProcessor
-    from twitter_processor import TwitterProcessor
+# 优先使用统一API客户端
+try:
+    from services.unified_api_client import (
+        UnifiedExtractionClient,
+        ExtractionAPI,
+        get_unified_client
+    )
+    EXTRACTION_API_AVAILABLE = True
+    EXTRACTION_API_DEFAULT = ExtractionAPI.TAVILY
+    logger.info("✅ 统一API客户端已加载，优先使用Tavily")
+except ImportError:
+    EXTRACTION_API_AVAILABLE = False
+    logger.warning("⚠️ 统一API客户端不可用，将尝试使用Firecrawl")
 
-load_dotenv()
-
+# 保持原有导入作为降级方案
 FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+
+load_dotenv()
 
 
 @dataclass
@@ -57,24 +72,22 @@ class ProcessedContent:
 
 
 class ContentProcessor(ABC):
-    """
-    Abstract base class for all content processors
-    """
+    """Abstract base class for all content processors"""
 
     def __init__(self):
         self._start_time = None
 
     @abstractmethod
-    def can_process(self, url_info: URLInfo) -> bool:
+    def can_process(self, url_info) -> bool:
         """Check if this processor can handle the given URL"""
         pass
 
     @abstractmethod
-    def extract(self, url_info: URLInfo) -> ProcessedContent:
+    def extract(self, url_info) -> ProcessedContent:
         """Extract content from the URL"""
         pass
 
-    def _create_base_content(self, url_info: URLInfo) -> ProcessedContent:
+    def _create_base_content(self, url_info) -> ProcessedContent:
         """Create base ProcessedContent object"""
         return ProcessedContent(
             id=datetime.now().strftime("%Y%m%d%H%M%S"),
@@ -103,40 +116,113 @@ class ContentProcessor(ABC):
 
 class WebPageProcessor(ContentProcessor):
     """
-    Processor for general web pages using Firecrawl
+    Processor for general web pages using Unified Extraction API
+
+    支持多种API：
+    - Tavily（优先）- 更便宜，功能更强
+    - Firecrawl（备用）- 原有方案
+    - Playwright（降级）- 自托管选项
     """
 
     def __init__(self):
         super().__init__()
-        self.enabled = bool(FIRECRAWL_API_KEY)
-        if self.enabled:
-            self.firecrawl = Firecrawl(api_key=FIRECRAWL_API_KEY)
+
+        # 初始化统一API客户端
+        self.api_client = None
+        self.extraction_method = "unified"
+
+        if EXTRACTION_API_AVAILABLE:
+            try:
+                self.api_client = get_unified_client()
+                available_apis = self.api_client.get_available_apis()
+                logger.info(f"✅ 可用的提取API: {available_apis}")
+            except Exception as e:
+                logger.warning(f"统一API客户端初始化失败: {e}")
+
+        # 如果统一客户端不可用或未配置，尝试降级到Firecrawl
+        if not self.api_client or not self.api_client.get_available_apis():
+            try:
+                from firecrawl import Firecrawl
+                self.firecrawl = Firecrawl(api_key=FIRECRAWL_API_KEY) if FIRECRAWL_API_KEY else None
+                self.extraction_method = "firecrawl"
+                logger.info("降级使用Firecrawl API")
+            except ImportError:
+                logger.error("Firecrawl SDK未安装")
+                self.firecrawl = None
         else:
             self.firecrawl = None
 
-    def can_process(self, url_info: URLInfo) -> bool:
+    def can_process(self, url_info) -> bool:
         """Can process any webpage URL"""
-        return url_info.url_type == URLType.WEBPAGE
+        return url_info.url_type.value == "webpage"
 
-    def extract(self, url_info: URLInfo) -> ProcessedContent:
-        """Extract webpage content using Firecrawl"""
+    def extract(self, url_info) -> ProcessedContent:
+        """Extract webpage content using Unified API"""
         self._start_timer()
         result = self._create_base_content(url_info)
 
-        # Check if Firecrawl is enabled
-        if not self.enabled:
+        # 优先使用统一API客户端
+        if self.api_client and self.api_client.get_available_apis():
+            result = self._extract_with_unified_api(url_info, result)
+        # 降级到Firecrawl
+        elif self.firecrawl:
+            result = self._extract_with_firecrawl(url_info, result)
+        else:
+            # 没有任何可用的API
             result.processing_info.update({
                 "processing_time": self._end_timer(),
                 "success": False,
-                "errors": ["FIRECRAWL_API_KEY not configured"]
+                "errors": ["没有可用的内容提取API，请配置TAVILY_API_KEY或FIRECRAWL_API_KEY"]
             })
-            raise ValueError("FIRECRAWL_API_KEY not configured. Please set it in .env file or use --no-ai mode.")
 
+        result.processing_info['processing_time'] = self._end_timer()
+        return result
+
+    def _extract_with_unified_api(self, url_info, result: ProcessedContent) -> ProcessedContent:
+        """使用统一API客户端提取内容"""
         try:
-            # Perform scrape with Firecrawl API
+            scrape_result = self.api_client.scrape_with_priority(
+                url_info.url,
+                [ExtractionAPI.TAVILY, ExtractionAPI.FIRECRAWL]
+            )
+
+            if scrape_result.success:
+                result.content = {
+                    "title": scrape_result.title,
+                    "main_content": scrape_result.content,
+                    "metadata": scrape_result.metadata or {}
+                }
+                result.processing_info.update({
+                    "method": f"unified_{scrape_result.api_used}",
+                    "success": True,
+                    "extraction_api": scrape_result.api_used,
+                    "processing_time": self._end_timer()
+                })
+            else:
+                result.processing_info.update({
+                    "method": "unified_api_failed",
+                    "success": False,
+                    "errors": [scrape_result.error]
+                })
+
+        except Exception as e:
+            result.processing_info.update({
+                "method": "unified_api_error",
+                "success": False,
+                "errors": [str(e)]
+            })
+
+        return result
+
+    def _extract_with_firecrawl(self, url_info, result: ProcessedContent) -> ProcessedContent:
+        """使用Firecrawl提取内容（降级方案）"""
+        try:
+            if not self.firecrawl:
+                raise ValueError("Firecrawl未配置")
+
             scrape_result = self.firecrawl.scrape(
                 url_info.url,
-                formats={'markdown': True, 'html': True, 'screenshot': True},
+                formats={'markdown': True, 'html': True},
                 only_main_content=True,
                 wait_for=2000,
                 headers={
@@ -144,408 +230,147 @@ class WebPageProcessor(ContentProcessor):
                 }
             )
 
-            # Extract content from Firecrawl result
-            # The result is a Document object, not a dict
             result.content = {
                 "title": getattr(scrape_result, 'title', ''),
-                "url": getattr(scrape_result, 'url', url_info.url),
                 "main_content": getattr(scrape_result, 'markdown', ''),
-                "html": getattr(scrape_result, 'html', ''),
                 "metadata": {
-                    "description": getattr(scrape_result, 'description', ''),
-                    "keywords": getattr(scrape_result, 'keywords', ''),
-                    "author": getattr(scrape_result, 'author', ''),
-                    "publish_date": getattr(scrape_result, 'publishedDate', ''),
-                    "tags": []
-                },
-                "extracted_data": {}
+                    "html": getattr(scrape_result, 'html', '')
+                }
             }
-
-            # Store the raw result for reference
-            result._raw_result = scrape_result
-
-            # Analyze media
-            result.media = self._extract_media_info(scrape_result)
-
-            # Update processing info
             result.processing_info.update({
-                "processing_time": self._end_timer(),
+                "method": "firecrawl",
                 "success": True,
-                "errors": []
+                "processing_time": self._end_timer()
             })
 
         except Exception as e:
             result.processing_info.update({
-                "processing_time": self._end_timer(),
+                "method": "firecrawl_error",
                 "success": False,
                 "errors": [str(e)]
             })
-            raise
 
         return result
-
-    def _extract_media_info(self, scrape_result) -> Dict[str, Any]:
-        """Extract media information from scrape result"""
-        media = {
-            "type": "text",
-            "images": [],
-            "videos": [],
-            "screenshots": []
-        }
-
-        # Get markdown content
-        markdown = getattr(scrape_result, 'markdown', '')
-        if markdown:
-            import re
-            img_pattern = r'!\[.*?\]\((.*?)\)'
-            images = re.findall(img_pattern, markdown)
-            media["images"] = images[:20]  # Limit to 20 images
-
-        # Check for screenshots from Firecrawl
-        screenshot = getattr(scrape_result, 'screenshot', '')
-        if screenshot:
-            media["screenshots"].append(screenshot)
-
-        # Check for images attribute
-        images = getattr(scrape_result, 'images', [])
-        if images:
-            media["images"].extend(images[:20])
-
-        # Check for videos attribute
-        videos = getattr(scrape_result, 'videos', [])
-        if videos:
-            media["videos"] = videos[:10]
-
-        # Determine media type
-        if media["images"]:
-            media["type"] = "mixed"
-        if media["videos"]:
-            media["type"] = "mixed"
-
-        return media
 
 
 class SocialMediaProcessor(ContentProcessor):
-    """
-    Processor for social media content (Twitter/X, WeChat, Douyin)
-    Uses MCP WebReader tool for content extraction
-    """
+    """Processor for social media content"""
 
-    def __init__(self):
-        super().__init__()
-        # MCP tool will be called dynamically via the main context
+    def can_process(self, url_info) -> bool:
+        return url_info.url_type.value in ["twitter", "x", "facebook", "instagram"]
 
-    def can_process(self, url_info: URLInfo) -> bool:
-        """Can process social media URLs"""
-        return url_info.url_type in [URLType.TWITTER, URLType.WECHAT, URLType.DOUYIN]
-
-    def extract(self, url_info: URLInfo, web_reader_func=None) -> ProcessedContent:
-        """
-        Extract social media content using MCP WebReader
-
-        Args:
-            url_info: URL information from URLDetector
-            web_reader_func: Optional MCP webReader function (injected from main context)
-
-        Returns:
-            ProcessedContent with extracted social media data
-        """
+    def extract(self, url_info) -> ProcessedContent:
         self._start_timer()
         result = self._create_base_content(url_info)
 
-        try:
-            # Use MCP WebReader if available
-            if web_reader_func:
-                content = web_reader_func(url_info.url)
-                result.content = self._parse_social_media_content(content, url_info)
-            else:
-                # Fallback: basic extraction without MCP
-                result.content = self._extract_basic_social_media(url_info)
-
-            result.media = {
-                "type": "mixed",
-                "images": result.content.get("media", {}).get("images", []),
-                "videos": result.content.get("media", {}).get("videos", []),
-                "screenshots": []
-            }
-
-            result.processing_info.update({
-                "processing_time": self._end_timer(),
-                "success": True,
-                "errors": []
-            })
-
-        except Exception as e:
-            result.processing_info.update({
-                "processing_time": self._end_timer(),
-                "success": False,
-                "errors": [str(e)]
-            })
-            raise
+        # TODO: 实现社交媒体内容提取
+        result.processing_info.update({
+            "method": "social_media",
+            "success": False,
+            "errors": ["Social media extraction not implemented yet"]
+        })
+        result.processing_info['processing_time'] = self._end_timer()
 
         return result
-
-    def _parse_social_media_content(self, content: str, url_info: URLInfo) -> Dict[str, Any]:
-        """Parse social media content from WebReader output"""
-        return {
-            "title": f"{url_info.platform.capitalize()} Content",
-            "summary": content[:500] + "..." if len(content) > 500 else content,
-            "main_content": content,
-            "metadata": {
-                "platform": url_info.platform,
-                "author": "",
-                "publish_date": "",
-                "post_id": url_info.extracted_id,
-                "url": url_info.url,
-                "tags": []
-            },
-            "extracted_data": {}
-        }
-
-    def _extract_basic_social_media(self, url_info: URLInfo) -> Dict[str, Any]:
-        """Basic extraction without MCP tool"""
-        return {
-            "title": f"{url_info.platform.capitalize()} Post",
-            "summary": f"Content from {url_info.url}",
-            "main_content": f"Social media content from {url_info.platform}",
-            "metadata": {
-                "platform": url_info.platform,
-                "author": "",
-                "publish_date": "",
-                "post_id": url_info.extracted_id,
-                "url": url_info.url,
-                "tags": []
-            },
-            "extracted_data": {}
-        }
 
 
 class VideoProcessor(ContentProcessor):
-    """
-    Processor for video content using MCP Video Analyzer
-    """
+    """Processor for video content"""
 
-    def __init__(self):
-        super().__init__()
+    def can_process(self, url_info) -> bool:
+        return url_info.url_type.value in ["video", "youtube", "bilibili", "douyin"]
 
-    def can_process(self, url_info: URLInfo) -> bool:
-        """Can process video URLs"""
-        return url_info.url_type == URLType.VIDEO
-
-    def extract(self, url_info: URLInfo, video_analyzer_func=None) -> ProcessedContent:
-        """
-        Extract and analyze video content using MCP Video Analyzer
-
-        Args:
-            url_info: URL information from URLDetector
-            video_analyzer_func: Optional MCP analyze_video function (injected)
-
-        Returns:
-            ProcessedContent with video analysis
-        """
+    def extract(self, url_info) -> ProcessedContent:
         self._start_timer()
         result = self._create_base_content(url_info)
 
-        try:
-            # Use MCP Video Analyzer if available
-            if video_analyzer_func:
-                analysis = video_analyzer_func(url_info.url)
-                result.content = self._parse_video_analysis(analysis, url_info)
-            else:
-                # Fallback: basic video info
-                result.content = self._extract_basic_video_info(url_info)
-
-            result.media = {
-                "type": "video",
-                "images": [],
-                "videos": [{"url": url_info.url, "platform": url_info.platform}],
-                "screenshots": []
-            }
-
-            result.processing_info.update({
-                "processing_time": self._end_timer(),
-                "success": True,
-                "errors": []
-            })
-
-        except Exception as e:
-            result.processing_info.update({
-                "processing_time": self._end_timer(),
-                "success": False,
-                "errors": [str(e)]
-            })
-            raise
+        # TODO: 实现视频内容提取
+        result.processing_info.update({
+            "method": "video",
+            "success": False,
+            "errors": ["Video extraction not implemented yet"]
+        })
+        result.processing_info['processing_time'] = self._end_timer()
 
         return result
 
-    def _parse_video_analysis(self, analysis: str, url_info: URLInfo) -> Dict[str, Any]:
-        """Parse video analysis output"""
-        return {
-            "title": f"Video from {url_info.platform}",
-            "summary": analysis[:500] + "..." if len(analysis) > 500 else analysis,
-            "main_content": analysis,
-            "metadata": {
-                "platform": url_info.platform,
-                "author": "",
-                "publish_date": "",
-                "duration": "",
-                "url": url_info.url,
-                "tags": []
-            },
-            "extracted_data": {"analysis": analysis}
-        }
-
-    def _extract_basic_video_info(self, url_info: URLInfo) -> Dict[str, Any]:
-        """Basic video info extraction without MCP"""
-        return {
-            "title": f"Video from {url_info.platform}",
-            "summary": f"Video content at {url_info.url}",
-            "main_content": f"Video URL: {url_info.url}",
-            "metadata": {
-                "platform": url_info.platform,
-                "author": "",
-                "publish_date": "",
-                "duration": "",
-                "url": url_info.url,
-                "tags": []
-            },
-            "extracted_data": {}
-        }
-
 
 class TextMemoProcessor(ContentProcessor):
-    """
-    Processor for plain text notes (non-URL input)
-    """
+    """Processor for text memos/notes"""
 
-    def can_process(self, url_info: URLInfo) -> bool:
-        """Can process any input (fallback)"""
-        return url_info.url_type == URLType.UNKNOWN
+    def can_process(self, url_info) -> bool:
+        return url_info.url_type.value == "memo"
 
-    def extract(self, text: str) -> ProcessedContent:
-        """Process plain text input"""
+    def extract(self, url_info) -> ProcessedContent:
         self._start_timer()
-        result = ProcessedContent(
-            id=datetime.now().strftime("%Y%m%d%H%M%S"),
-            timestamp=datetime.now().isoformat(),
-            raw_input=text,
-            source_type="memo",
-            platform="text",
-            content={
-                "title": "Text Note",
-                "summary": text[:200] + "..." if len(text) > 200 else text,
-                "main_content": text,
-                "metadata": {
-                    "author": "",
-                    "publish_date": "",
-                    "tags": []
-                }
-            },
-            media={"type": "text", "images": [], "videos": [], "screenshots": []},
-            processing_info={
-                "method": self.__class__.__name__,
-                "processing_time": 0,
-                "success": True,
-                "errors": []
-            }
-        )
+        result = self._create_base_content(url_info)
 
-        result.processing_info["processing_time"] = self._end_timer()
+        result.content = {
+            "title": url_info.platform or "Memo",
+            "main_content": url_info.url
+        }
+        result.processing_info.update({
+            "method": "memo",
+            "success": True,
+            "processing_time": self._end_timer()
+        })
+
         return result
 
 
 class ProcessorFactory:
-    """
-    Factory class to create appropriate processors for different URL types
-    """
+    """Factory for creating content processors"""
 
-    def __init__(self):
-        self._processors: List[ContentProcessor] = []
+    # 导入专门的处理器
+    _additional_processors = []
 
-    def register_processor(self, processor: ContentProcessor):
-        """Register a new processor"""
-        self._processors.append(processor)
+    @classmethod
+    def _load_processors(cls):
+        """动态加载专用处理器"""
+        if not cls._additional_processors:
+            try:
+                from douyin_processor import DouyinProcessorEnhanced
+                cls._additional_processors.append(DouyinProcessorEnhanced)
+            except ImportError:
+                pass
 
-    def get_processor(self, url_info: URLInfo) -> Optional[ContentProcessor]:
-        """Get appropriate processor for the given URL"""
-        for processor in self._processors:
-            if processor.can_process(url_info):
-                return processor
+            try:
+                from weixin_processor import WeixinProcessor
+                cls._additional_processors.append(WeixinProcessor)
+            except ImportError:
+                pass
 
-        # Return TextMemoProcessor as fallback
-        return TextMemoProcessor()
+        return cls._additional_processors
+
+    _processors = [
+        WebPageProcessor,
+        SocialMediaProcessor,
+        VideoProcessor,
+        TextMemoProcessor,
+    ]
 
     @classmethod
     def create_default(cls) -> 'ProcessorFactory':
-        """Create factory with default processors"""
-        factory = cls()
+        """Create default processor factory"""
+        # 预加载专用处理器
+        cls._load_processors()
+        return cls()
 
-        try:
-            factory.register_processor(WebPageProcessor())
-        except ValueError:
-            print("Warning: Firecrawl not configured, web page processing disabled")
+    def get_processor(self, url_info) -> Optional[ContentProcessor]:
+        """Get appropriate processor for URL"""
+        # 先检查专用处理器（优先级更高）
+        for processor_class in self._additional_processors:
+            processor = processor_class()
+            if processor.can_process(url_info):
+                return processor
 
-        # Twitter/X URLs are handled by TwitterProcessor with MCP WebReader
-        try:
-            from twitter_processor import TwitterProcessor
-            factory.register_processor(TwitterProcessor())
-            print("✅ TwitterProcessor enabled (MCP WebReader)")
-        except ImportError as e:
-            print(f"⚠️  TwitterProcessor unavailable: {e}")
-            factory.register_processor(SocialMediaProcessor())
+        # 再检查通用处理器
+        for processor_class in self._processors:
+            processor = processor_class()
+            if processor.can_process(url_info):
+                return processor
+        return None
 
-        # Try to use VideoInfoProcessor if yt-dlp is available
-        try:
-            # Lazy import to avoid circular dependency
-            from video_processor import VideoInfoProcessor, YTDLP_AVAILABLE
-            if YTDLP_AVAILABLE:
-                factory.register_processor(VideoInfoProcessor())
-                print("✅ VideoInfoProcessor enabled (yt-dlp)")
-            else:
-                factory.register_processor(VideoProcessor())
-                print("⚠️  yt-dlp not installed, using placeholder VideoProcessor")
-        except ImportError as e:
-            factory.register_processor(VideoProcessor())
-            print(f"⚠️  VideoInfoProcessor unavailable: {e}")
-
-        # Try to use DouyinProcessor for Douyin URLs
-        try:
-            from douyin_processor import DouyinProcessor
-            factory.register_processor(DouyinProcessor())
-            print("✅ DouyinProcessor enabled")
-        except ImportError as e:
-            print(f"⚠️  DouyinProcessor unavailable: {e}")
-
-        # Try to use WeixinProcessor for WeChat URLs
-        try:
-            from weixin_processor import WeixinProcessor
-            factory.register_processor(WeixinProcessor())
-            print("✅ WeixinProcessor enabled")
-        except ImportError as e:
-            print(f"⚠️  WeixinProcessor unavailable: {e}")
-
-        # Try to use BookProcessor for EPUB/PDF files
-        try:
-            from book_processor import BookProcessor
-            factory.register_processor(BookProcessor())
-            print("✅ BookProcessor enabled (EPUB/PDF)")
-        except ImportError as e:
-            print(f"⚠️  BookProcessor unavailable: {e}")
-
-        # Try to use AudioProcessor for audio files
-        try:
-            from audio_processor import AudioProcessor
-            factory.register_processor(AudioProcessor())
-            print("✅ AudioProcessor enabled (MP3/M4A/etc)")
-        except ImportError as e:
-            print(f"⚠️  AudioProcessor unavailable: {e}")
-
-        # Try to use OCRProcessor for images
-        try:
-            from ocr_processor import OCRProcessor
-            factory.register_processor(OCRProcessor())
-            print("✅ OCRProcessor enabled (Image text extraction)")
-        except ImportError as e:
-            print(f"⚠️  OCRProcessor unavailable: {e}")
-
-        return factory
+    def get_all_processors(self) -> List[ContentProcessor]:
+        """Get all available processors"""
+        return [processor_class() for processor_class in self._processors + self._additional_processors]

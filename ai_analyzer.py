@@ -99,6 +99,9 @@ class AIAnalyzer:
 
             # Extract tags from topics
             if "topics" in analysis_result:
+                # 确保 metadata 字典存在
+                if "metadata" not in content.content:
+                    content.content["metadata"] = {}
                 content.content["metadata"]["tags"] = analysis_result["topics"]
 
         except Exception as e:
