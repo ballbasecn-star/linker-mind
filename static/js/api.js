@@ -67,9 +67,16 @@ class LinkerMindAPI {
 
     /**
      * 处理 URL 并保存内容
+     * @param {string} url - 要处理的URL
+     * @param {boolean} enableAI - 是否启用AI分析
+     * @param {boolean} deepAnalysis - 是否进行深度分析（视频转录、关键帧等）
      */
-    async processURL(url, enableAI = true) {
-        return this.post('/api/process', { url, enable_ai: enableAI });
+    async processURL(url, enableAI = true, deepAnalysis = false) {
+        return this.post('/api/process', {
+            url,
+            enable_ai: enableAI,
+            deep_analysis: deepAnalysis
+        });
     }
 
     /**

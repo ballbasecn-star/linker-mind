@@ -236,11 +236,10 @@ class ContentService:
         import inspect
         sig = inspect.signature(processor.extract)
         if 'deep_analysis' in sig.parameters:
-            # TODO: 暂时禁用抖音自动深度分析，等待解决 cookies 问题
-            # 未来可以在这里检查 cookies 是否足够"新鲜"
-            use_deep_analysis = False
+            # 现在已解决 cookies 问题，可以启用抖音深度分析
+            use_deep_analysis = deep_analysis
             if deep_analysis and "DouyinProcessor" in processor_class_name:
-                logger.info("抖音视频深度分析已暂时禁用（cookies 问题）")
+                logger.info("启用抖音视频深度分析（转录 + 关键帧 + LLM分析）")
         else:
             use_deep_analysis = False
 

@@ -104,6 +104,11 @@
             background: var(--text-tertiary);
         }
 
+        .search-box button.deep-off {
+            background: var(--text-tertiary);
+            opacity: 0.7;
+        }
+
         .search-box button.loading {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -796,7 +801,8 @@
         <div class="search-box">
             <input type="text" id="urlInput" placeholder="输入 URL (网页、视频、Twitter、微信公众号...)">
             <button onclick="processUrl()" id="extractBtn">提取内容</button>
-            <button onclick="toggleAI()" id="aiBtn">AI: 开</button>
+            <button onclick="toggleAI()" id="aiBtn" title="AI分析开关">AI: 开</button>
+            <button onclick="toggleDeep()" id="deepBtn" title="深度分析：视频转录+关键帧">🔊</button>
             <button onclick="openCookiesSettings()" class="settings-btn" title="Cookies 设置">🍪</button>
         </div>
 
@@ -927,6 +933,7 @@
     <script src="{{ url_for('static', filename='js/api.js') }}"></script>
     <script>
         let aiEnabled = true;
+        let deepEnabled = false; // 深度分析开关（视频转录、关键帧）
 
         // Configure marked for better rendering
         marked.setOptions({
@@ -978,6 +985,14 @@
             document.getElementById('aiBtn').textContent = aiEnabled ? '🤖 AI: 开' : '🤖 AI: 关';
         }
 
+        function toggleDeep() {
+            deepEnabled = !deepEnabled;
+            const btn = document.getElementById('deepBtn');
+            btn.classList.toggle('deep-off', !deepEnabled);
+            btn.style.background = deepEnabled ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '';
+            console.log('深度分析:', deepEnabled ? '开启' : '关闭');
+        }
+
         async function processUrl() {
             const urlInput = document.getElementById('urlInput');
             const extractBtn = document.getElementById('extractBtn');
@@ -1000,7 +1015,7 @@
 
             try {
                 // 使用新的 API 客户端
-                const result = await api.processURL(url, aiEnabled);
+                const result = await api.processURL(url, aiEnabled, deepEnabled);
 
                 if (result) {
                     // 显示成功消息
