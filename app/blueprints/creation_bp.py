@@ -42,6 +42,15 @@ def creations_page():
         return render_template('creations.html', projects=[])
 
 
+@creation_bp.route('/creations/new')
+def new_creation_page():
+    """New creation project page"""
+    return render_template('creation_workshop.html',
+                         project={'id': None, 'title': '', 'status': 'research'},
+                         materials=[],
+                         sections=[])
+
+
 @creation_bp.route('/creations/<project_id>')
 def creation_detail_page(project_id: str):
     """Creation workspace page"""
@@ -52,15 +61,16 @@ def creation_detail_page(project_id: str):
         if not project:
             return render_template('error.html', error='Creation not found'), 404
 
-        # Get source materials
+        # Get source materials from project's source_materials JSON field
         db = get_connection()
-        materials = db.fetchall("""
-            SELECT c.*
-            FROM creation_sources cs
-            JOIN contents c ON cs.content_id = c.id
-            WHERE cs.project_id = ?
-            ORDER BY cs.added_at DESC
-        """, (project_id,))
+        materials = []
+        if project.source_materials:
+            placeholders = ','.join(['?' for _ in project.source_materials])
+            materials = db.fetchall(f"""
+                SELECT c.*
+                FROM contents c
+                WHERE c.id IN ({placeholders})
+            """, tuple(project.source_materials))
 
         # Get outline sections
         outline = project.outline or []
@@ -581,3 +591,216 @@ def find_gaps(project_id: str):
 def list_projects_alias():
     """Alias for /api/creations - list creation projects"""
     return list_creations()
+
+
+# ============== AI Writing Workflow Endpoints ==============
+
+@creation_bp.route('/api/creations/from-material', methods=['POST'])
+def create_from_material():
+    """Create a new creation project from source materials"""
+    try:
+        service = get_creation_service()
+        data = request.get_json()
+
+        if not data or not data.get('title'):
+            return json_error_response('title is required', status_code=400)
+
+        project_type_str = data.get('project_type', 'ARTICLE').upper()
+        try:
+            project_type = CreationType[project_type_str]
+        except KeyError:
+            return json_error_response(f'Invalid project_type: {project_type_str}', status_code=400)
+
+        # Create project
+        project = service.create(
+            project_type=project_type,
+            title=data['title'],
+            brief=data.get('brief'),
+            target_date=data.get('target_date'),
+            word_count_goal=data.get('word_count_goal')
+        )
+
+        # Add source materials if provided
+        material_ids = data.get('material_ids', [])
+        for content_id in material_ids:
+            service.add_source_material(project.id, content_id)
+
+        # Generate initial outline if materials added
+        if material_ids:
+            service.update(project.id, status=CreationStatus.OUTLINING)
+
+        return json_success_response(project.__dict__, status_code=201)
+
+    except Exception as e:
+        logger.error(f"Error creating from material: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/generate-draft', methods=['POST'])
+def generate_draft(project_id: str):
+    """Generate draft from source materials"""
+    try:
+        from services.creation_assistant import AICreationAssistantService
+
+        assistant = AICreationAssistantService()
+        data = request.get_json() or {}
+
+        target_words = data.get('target_words', 1000)
+
+        result = assistant.generate_draft(project_id, target_words)
+
+        if not result:
+            return json_error_response('Failed to generate draft', status_code=500)
+
+        if result.get('error'):
+            return json_error_response(result['error'], status_code=400)
+
+        # Update project status
+        service = get_creation_service()
+        service.update(project_id, status=CreationStatus.DRAFTING)
+
+        return json_success_response(result)
+
+    except Exception as e:
+        logger.error(f"Error generating draft: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/improve-structure', methods=['POST'])
+def improve_structure(project_id: str):
+    """Get A/B structural improvement suggestions"""
+    try:
+        from services.creation_assistant import AICreationAssistantService
+
+        assistant = AICreationAssistantService()
+        data = request.get_json() or {}
+
+        draft_content = data.get('draft_content', '')
+        if not draft_content:
+            return json_error_response('draft_content is required', status_code=400)
+
+        result = assistant.suggest_structural_improvements(project_id, draft_content)
+
+        if not result:
+            return json_error_response('Failed to generate suggestions', status_code=500)
+
+        return json_success_response(result)
+
+    except Exception as e:
+        logger.error(f"Error improving structure: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/generate-titles', methods=['POST'])
+def generate_titles(project_id: str):
+    """Generate title suggestions"""
+    try:
+        from services.creation_assistant import AICreationAssistantService
+
+        assistant = AICreationAssistantService()
+        data = request.get_json() or {}
+
+        content = data.get('content', '')
+        if not content:
+            return json_error_response('content is required', status_code=400)
+
+        num_titles = data.get('num_titles', 5)
+
+        result = assistant.generate_titles(project_id, content, num_titles)
+
+        if not result:
+            return json_error_response('Failed to generate titles', status_code=500)
+
+        return json_success_response({'titles': result})
+
+    except Exception as e:
+        logger.error(f"Error generating titles: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/platform-format', methods=['POST'])
+def platform_format(project_id: str):
+    """Convert content to platform-specific format"""
+    try:
+        from services.creation_assistant import AICreationAssistantService
+
+        assistant = AICreationAssistantService()
+        data = request.get_json() or {}
+
+        content = data.get('content', '')
+        if not content:
+            return json_error_response('content is required', status_code=400)
+
+        platform = data.get('platform', 'x')
+
+        result = assistant.convert_to_platform_format(project_id, content, platform)
+
+        if not result:
+            return json_error_response('Failed to convert format', status_code=500)
+
+        return json_success_response(result)
+
+    except Exception as e:
+        logger.error(f"Error converting format: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/workflow', methods=['GET'])
+def get_workflow(project_id: str):
+    """Get AI writing workflow for a project"""
+    try:
+        from services.creation_service import get_workflow_for_type
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        workflow = get_workflow_for_type(project.project_type)
+
+        # Map workflow steps to project progress
+        current_status = project.status
+        current_step = 0
+
+        for i, step in enumerate(workflow):
+            if step['status'].value == current_status:
+                current_step = i
+                break
+            elif step['status'].value in [s.value for s in [
+                CreationStatus.RESEARCH, CreationStatus.OUTLINING
+            ]] and current_status in [s.value for s in [
+                CreationStatus.RESEARCH, CreationStatus.OUTLINING
+            ]]:
+                current_step = 0
+            elif step['status'].value in [s.value for s in [
+                CreationStatus.DRAFTING, CreationStatus.EDITING
+            ]] and current_status in [s.value for s in [
+                CreationStatus.DRAFTING, CreationStatus.EDITING
+            ]]:
+                current_step = 1
+            elif step['status'].value == CreationStatus.REVIEWING and current_status == CreationStatus.REVIEWING.value:
+                current_step = 2
+            elif step['status'].value == CreationStatus.FINALIZING and current_status == CreationStatus.FINALIZING.value:
+                current_step = 3
+            elif step['status'].value == CreationStatus.PUBLISHED and current_status == CreationStatus.PUBLISHED.value:
+                current_step = 4
+
+        # Convert workflow to JSON-serializable format
+        workflow_json = []
+        for step in workflow:
+            workflow_json.append({
+                'step': step['step'],
+                'status': step['status'].value,  # Convert enum to string
+                'description': step['description']
+            })
+
+        return json_success_response({
+            'workflow': workflow_json,
+            'current_step': current_step,
+            'current_status': current_status
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting workflow: {e}")
+        return json_error_response(str(e), status_code=500)

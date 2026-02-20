@@ -529,7 +529,7 @@
                 <div class="header-actions">
                     <a href="#inbox" class="nav-link">📥 Inbox</a>
                     <a href="#projects" class="nav-link">📁 Projects</a>
-                    <a href="#creation" class="nav-link">🎨 Create</a>
+                    <a href="/creations" class="nav-link">🎨 Create</a>
                     <a href="#learning" class="nav-link">📚 Learn</a>
                     <a href="#graph" class="nav-link">🕸️ Graph</a>
                 </div>
@@ -918,10 +918,37 @@
             console.log('Creating project...');
         }
 
-        function createCreation(event) {
+        async function createCreation(event) {
             event.preventDefault();
-            // API call to create creation project
-            console.log('Creating creative project...');
+
+            const type = document.getElementById('creationType').value;
+            const title = document.getElementById('creationTitle').value;
+            const brief = document.getElementById('creationBrief').value;
+
+            try {
+                const response = await fetch('/api/creations', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        project_type: type,
+                        title: title,
+                        brief: brief
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeModal('createCreationModal');
+                    // Navigate to the creation workspace
+                    window.location.href = `/creations/${data.data.id}`;
+                } else {
+                    alert('创建失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('创建项目时出错');
+            }
         }
 
         // Update inbox and review counts (simulate API call)

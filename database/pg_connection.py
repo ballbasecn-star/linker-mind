@@ -221,7 +221,9 @@ class PostgreSQLConnection:
         sql = f"UPDATE {table} SET {', '.join(updates)}"
 
         if where:
-            sql += f" WHERE {where}"
+            # Convert SQLite-style ? placeholders in where clause to %s
+            where_converted = where.replace('?', '%s')
+            sql += f" WHERE {where_converted}"
 
         # Combine data values with where_params
         params = list(data.values())

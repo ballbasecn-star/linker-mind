@@ -447,7 +447,7 @@
             color: var(--text-primary);
         }
 
-        /* Content Text */
+        /* Content Text - 基础样式 */
         .content-text {
             background: var(--bg-tertiary);
             border-radius: var(--radius-md);
@@ -455,6 +455,86 @@
             font-size: 0.95rem;
             line-height: 1.8;
             color: var(--text-secondary);
+        }
+
+        /* Content Text - 图片样式优化 */
+        .content-text img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 12px 0;
+            display: block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Content Text - 段落样式 */
+        .content-text p {
+            margin: 0 0 12px 0;
+            line-height: 1.7;
+        }
+
+        /* Content Text - 链接样式 */
+        .content-text a {
+            color: #1DA1F2;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .content-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Content Text - 引用样式 */
+        .content-text blockquote {
+            border-left: 3px solid #1DA1F2;
+            padding-left: 12px;
+            margin: 12px 0;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        /* Content Text - 代码样式 */
+        .content-text code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        /* Content Text - 列表样式 */
+        .content-text ul, .content-text ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .content-text li {
+            margin: 4px 0;
+        }
+
+        /* Content Text - 标题样式 */
+        .content-text h1, .content-text h2, .content-text h3,
+        .content-text h4, .content-text h5, .content-text h6 {
+            color: var(--text-primary);
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+        }
+
+        /* Content Text - 分割线 */
+        .content-text hr {
+            border: none;
+            border-top: 1px solid var(--bg-secondary);
+            margin: 16px 0;
+        }
+
+        /* Content Text - 微信文章特殊样式 */
+        .content-text.wechat-content {
+            padding: 20px 24px;
+        }
+
+        /* Content Text - Twitter/X 特殊样式 */
+        .content-text.twitter-content {
+            padding: 16px 20px;
         }
 
         /* Metadata Grid */
@@ -1025,8 +1105,11 @@
                                 <div class="section-title">📝 内容</div>
                             </div>
                             {% if platform in ['twitter', 'x'] %}
-                            {# X/Twitter: show full content with images rendered #}
-                            <div class="content-text">{{ raw|markdown_images|nl2br|safe }}</div>
+                            {# X/Twitter: render markdown images #}
+                            <div class="content-text twitter-content">{{ raw|markdown_images|nl2br|safe }}</div>
+                            {% elif platform in ['wechat'] %}
+                            {# WeChat: 微信内容渲染 #}
+                            <div class="content-text wechat-content">{{ raw|markdown_images|nl2br|safe }}</div>
                             {% else %}
                             <div class="content-text">{{ raw[:2000] }}{% if raw|length > 2000 %}...{% endif %}</div>
                             {% endif %}

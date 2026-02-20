@@ -53,6 +53,41 @@ class CreationStatus(Enum):
     PUBLISHED = "published"                # Published
 
 
+# AI Writing Workflow - Maps 5-step workflow to CreationStatus
+# Reference: LawrenceW_Zen's "最小可闭环的AI写作工作流"
+AI_WRITING_WORKFLOW = {
+    # Article workflow steps
+    'article': [
+        {'step': '写草稿', 'status': CreationStatus.DRAFTING, 'description': '先把想法一股脑倒出来，不分结构'},
+        {'step': '优化结构', 'status': CreationStatus.EDITING, 'description': '反复看草稿，补充内容，调整结构'},
+        {'step': '总结全文', 'status': CreationStatus.REVIEWING, 'description': '思考主题、提炼标题'},
+        {'step': '配图', 'status': CreationStatus.FINALIZING, 'description': '按标题或分段生成配图'},
+        {'step': '发布平台', 'status': CreationStatus.PUBLISHED, 'description': '转换为平台富文本格式'}
+    ],
+    # Video script workflow
+    'video_script': [
+        {'step': '写脚本', 'status': CreationStatus.DRAFTING, 'description': '先把脚本内容倒出来'},
+        {'step': '优化结构', 'status': CreationStatus.EDITING, 'description': '调整节奏和叙事结构'},
+        {'step': '提炼标题', 'status': CreationStatus.REVIEWING, 'description': '思考标题和开场hook'},
+        {'step': '配素材', 'status': CreationStatus.FINALIZING, 'description': '关联素材、添加画面描述'},
+        {'step': '导出', 'status': CreationStatus.PUBLISHED, 'description': '导出为视频制作格式'}
+    ],
+    # Social post workflow
+    'social_post': [
+        {'step': '写内容', 'status': CreationStatus.DRAFTING, 'description': '把想法倒出来'},
+        {'step': '优化表达', 'status': CreationStatus.EDITING, 'description': '调整表达，使其更有感染力'},
+        {'step': '提炼标题', 'status': CreationStatus.REVIEWING, 'description': '思考标题和钩子'},
+        {'step': '配图/Emoji', 'status': CreationStatus.FINALIZING, 'description': '添加配图和表情'},
+        {'step': '发布', 'status': CreationStatus.PUBLISHED, 'description': '复制粘贴到平台'}
+    ]
+}
+
+
+def get_workflow_for_type(project_type: str) -> List[Dict[str, Any]]:
+    """Get the AI writing workflow for a project type"""
+    return AI_WRITING_WORKFLOW.get(project_type, AI_WRITING_WORKFLOW['article'])
+
+
 @dataclass
 class OutlineSection:
     """A section in a creation outline"""

@@ -69,11 +69,36 @@ def register_jinja_filters(app):
         - [Image N: Image](url) - Twitter's format
         - [![Image N: Image](pbs.twimg.com)](x.com link) - nested format
         - [Image: source: /path/to/file.jpg] - local file format
+        - <img src="..."> - HTML img tags (preserve)
+        - 微信图片格式 (mmbiz.qpic.cn, qpic.cn, etc.)
         """
         if not text:
             return text
 
         # Strategy: Process patterns from most complex to simplest
+
+        # First: Preserve existing HTML img tags to avoid double-processing
+        img_tags = []
+        def save_img_tags(match):
+            img_tags.append(match.group(0))
+            return f'___IMG_TAG_{len(img_tags)-1}___'
+
+        text = re.sub(r'<img[^>]+>', save_img_tags, text)
+
+        # Pattern 0: WeChat image format - direct URLs from WeChat CDN
+        # Match common WeChat image domains
+        def replace_wechat_image(match):
+            url = match.group(0)
+            # Filter out non-image URLs
+            if any(x in url for x in ['wx_fmt=gif', 'wx_fmt=webp']) and 'mmbiz.qpic.cn' not in url:
+                # Might be an animation, still show it
+                return f'<img src="{url}" alt="Image" loading="lazy" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+            return f'<img src="{url}" alt="Image" loading="lazy" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+
+        # Match WeChat CDN URLs directly
+        text = re.sub(r'https://mmbiz\.qpic\.cn/[^\s\)\]"\']+', replace_wechat_image, text)
+        text = re.sub(r'https://qpic\.cn/[^\s\)\]"\']+', replace_wechat_image, text)
+        text = re.sub(r'https://mmbiz\.qlogo\.cn/[^\s\)\]"\']+', replace_wechat_image, text)
 
         # First: Remove or convert local file paths (not accessible in browser)
         # Pattern: [Image: source: /path/to/file.jpg] or similar
@@ -84,7 +109,7 @@ def register_jinja_filters(app):
             if url_match:
                 url = url_match.group(1)
                 if url.startswith('http'):
-                    return f'<img src="{url}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+                    return f'<img src="{url}" alt="Image" loading="lazy" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
                 # Local file - hide it or show a placeholder
                 return f'<div style="display:none;"></div>'
             return ''
@@ -100,11 +125,11 @@ def register_jinja_filters(app):
             if inner_match:
                 url = inner_match.group(1)
                 if 'pbs.twimg.com' in url:
-                    return f'<img src="{url}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+                    return f'<img src="{url}" alt="Image" loading="lazy" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
             # If not a pbs.twimg.com URL, try to find any URL in the text
             url_match = re.search(r'https?://[^\s\)\]]+', full)
             if url_match:
-                return f'<img src="{url_match.group(0)}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+                return f'<img src="{url_match.group(0)}" alt="Image" loading="lazy" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
             return full
 
         # Match nested images: [![Image...](pbs...)](x.com...)
@@ -116,7 +141,7 @@ def register_jinja_filters(app):
             url = match.group(2)
             # Check if URL is pbs.twimg.com
             if 'pbs.twimg.com' in url:
-                return f'<img src="{url}" alt="Image" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+                return f'<img src="{url}" alt="Image" loading="lazy" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
             # Otherwise make it a link
             return f'<a href="{url}" target="_blank" style="color: #1DA1F2;">{text_content}</a>'
 
@@ -126,9 +151,13 @@ def register_jinja_filters(app):
         def replace_basic_image(match):
             alt_text = match.group(1) or 'Image'
             url = match.group(2)
-            return f'<img src="{url}" alt="{alt_text}" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
+            return f'<img src="{url}" alt="{alt_text}" loading="lazy" style="max-width: 100%; border-radius: 8px; margin: 8px 0;">'
 
         text = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', replace_basic_image, text)
+
+        # Restore saved HTML img tags
+        for i, img_tag in enumerate(img_tags):
+            text = text.replace(f'___IMG_TAG_{i}___', img_tag)
 
         return text
 

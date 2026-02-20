@@ -1048,7 +1048,53 @@ from processors.media.video_processor import VideoInfoProcessor
 - `processors/media/*.py`
 - `tests/*.py`
 
+### 9.6 AI写作闭环工作流
+
+**功能**：基于LawrenceW_Zen的"最小可闭环的AI写作工作流"，实现从草稿到发布的一站式AI辅助创作
+
+**核心流程**（5步工作流）：
+1. **写草稿** - 先把想法一股脑倒出来，不分结构
+2. **优化结构** - 反复看草稿，补充内容，调整结构（A/B版本选择）
+3. **总结全文** - 思考主题、提炼标题
+4. **配图** - 按标题或分段生成配图
+5. **发布平台** - 转换为平台富文本格式
+
+**实现**：
+
+| 文件 | 功能 |
+|------|------|
+| `services/creation_service.py` | 添加AI_WRITING_WORKFLOW配置，映射5步工作流到创作状态 |
+| `services/creation_assistant.py` | 新增4个AI方法：generate_draft, suggest_structural_improvements, generate_titles, convert_to_platform_format |
+| `app/blueprints/creation_bp.py` | 新增API端点：/generate-draft, /improve-structure, /generate-titles, /platform-format |
+| `templates/creations.html` | 创作项目列表页（浅色主题） |
+| `templates/creation_workshop.html` | AI创作工作坊页面，包含工作流进度、AI助手面板、A/B版本对比、标题选择、平台格式转换 |
+| `templates/index.html` | 首页添加"AI创作"入口 |
+
+**状态映射**：
+| 工作流阶段 | CreationStatus |
+|-----------|---------------|
+| 写草稿 | DRAFTING |
+| 优化结构 | EDITING |
+| 总结全文 | REVIEWING |
+| 配图 | FINALIZING |
+| 发布平台 | PUBLISHED |
+
+**API端点**：
+- `POST /api/creations/from-material` - 基于素材创建项目
+- `POST /api/creations/<id>/generate-draft` - 生成初稿
+- `POST /api/creations/<id>/improve-structure` - A/B结构优化
+- `POST /api/creations/<id>/generate-titles` - 生成标题
+- `POST /api/creations/<id>/platform-format` - 转换为平台格式
+- `GET /api/creations/<id>/workflow` - 获取工作流状态
+
+**前端页面**：
+- `/creations` - 创作项目列表
+- `/creations/new` - 新建创作项目
+- `/creations/<id>` - 创作工作坊
+
+**核心原则**：用户手动撰写 → AI辅助优化 → 用户确认 → AI转换格式
+
 ---
 
-*文档版本: v1.5*
-*最后更新: 2026-02-16*
+*文档版本: v1.6*
+*最后更新: 2026-02-20*

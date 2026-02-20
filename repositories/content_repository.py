@@ -13,7 +13,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 from repositories.base import BaseRepository, RepositoryResult, Filters
-from database import get_db, json_dumps, json_loads, json_list, json_dict
+from database import get_connection, json_dumps, json_loads, json_list, json_dict
 
 
 class SourceType(Enum):
@@ -124,7 +124,7 @@ class ContentRepository(BaseRepository[Content]):
 
     def __init__(self, db_path: str = "linker_mind.db"):
         super().__init__(db_path)
-        self.db = get_db(db_path)
+        # db is inherited from parent class (BaseRepository)
 
     def _get_table(self) -> str:
         return "contents"

@@ -12,7 +12,7 @@ from typing import Dict, List, Any, Optional, Tuple, TypeVar, Generic
 from dataclasses import dataclass, asdict
 import logging
 
-from database import get_db, json_dumps, json_loads, json_list, json_dict
+from database import get_connection, json_dumps, json_loads, json_list, json_dict
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,8 @@ class BaseRepository(ABC, Generic[T]):
     """
 
     def __init__(self, db_path: str = "linker_mind.db"):
-        self.db = get_db(db_path)
+        # Note: db_path is kept for compatibility but we use global connection
+        self.db = get_connection()
         self.db_path = db_path
 
     @abstractmethod

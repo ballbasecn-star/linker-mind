@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creation Workshop - Linker Mind v2.0</title>
+    <title>AI创作工作坊 - Linker Mind</title>
     <style>
         * {
             margin: 0;
@@ -12,18 +12,18 @@
         }
 
         :root {
-            --primary: #6366f1;
+            --primary: #4f46e5;
             --secondary: #ec4899;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border: #334155;
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border: #e5e5e5;
         }
 
         body {
@@ -55,9 +55,8 @@
         .logo {
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-primary);
+            text-decoration: none;
         }
 
         .nav-link {
@@ -73,21 +72,32 @@
             color: var(--text-primary);
         }
 
-        /* Main Layout */
+        /* Main Layout - Editor focused */
         .creation-layout {
             display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 2rem;
-            margin-top: 2rem;
+            grid-template-columns: 1fr 300px;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
 
-        /* Sidebar */
-        .sidebar {
+        /* Editor Area - Primary Focus */
+        .editor-area {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 1rem;
             padding: 1.5rem;
+            min-height: 70vh;
+        }
+
+        /* Sidebar - Secondary */
+        .sidebar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem;
             height: fit-content;
+            position: sticky;
+            top: 1rem;
         }
 
         .sidebar-section {
@@ -224,19 +234,29 @@
         .editor-header {
             display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
         }
 
         .editor-title-input {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 700;
             background: transparent;
             border: none;
             color: var(--text-primary);
             width: 100%;
+            padding: 0.5rem 0;
+        }
+
+        .editor-title-input:focus {
+            outline: none;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .editor-title-input::placeholder {
+            color: var(--text-tertiary);
         }
 
         .editor-title-input:focus {
@@ -333,38 +353,54 @@
             border-color: var(--primary);
         }
 
-        /* Draft Editor */
+        /* Draft Editor - Primary Focus */
         .draft-editor {
             width: 100%;
-            min-height: 400px;
-            padding: 1rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
+            min-height: 500px;
+            height: 55vh;
+            padding: 1.25rem;
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            border-radius: 0.75rem;
             color: var(--text-primary);
-            font-size: 1rem;
-            line-height: 1.8;
+            font-size: 1.05rem;
+            line-height: 1.9;
             resize: vertical;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+        }
+
+        .draft-editor:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .draft-editor::placeholder {
+            color: var(--text-tertiary);
         }
 
         /* Stats */
         .stats-bar {
             display: flex;
-            gap: 2rem;
-            padding: 1rem;
-            background: var(--bg-tertiary);
-            border-radius: 0.5rem;
-            margin-top: 2rem;
+            gap: 2.5rem;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(79, 70, 229, 0.1);
         }
 
         .stat-item {
             display: flex;
             flex-direction: column;
+            align-items: center;
         }
 
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
+            color: var(--primary);
         }
 
         .stat-label {
@@ -381,7 +417,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -434,9 +470,317 @@
                 grid-template-columns: 1fr;
             }
 
-            .material-kanban {
-                grid-template-columns: 1fr;
+            .sidebar {
+                position: static;
             }
+
+            .workflow-progress {
+                flex-wrap: wrap;
+                gap: 1rem;
+                justify-content: center;
+            }
+
+            .workflow-progress::before {
+                display: none;
+            }
+
+            .draft-editor {
+                min-height: 300px;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .workflow-step-label {
+                font-size: 0.7rem;
+            }
+
+            .workflow-step-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* AI Writing Workflow Styles */
+        .workflow-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding: 1rem 0;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+            border-radius: 0.75rem;
+            position: relative;
+        }
+
+        .workflow-progress::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: translateY(-50%);
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        .workflow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+            padding: 0 1rem;
+        }
+
+        .workflow-step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 3px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        .workflow-step.active .workflow-step-icon {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .workflow-step.completed .workflow-step-icon {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .workflow-step-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .workflow-step.active .workflow-step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* AI Assistant Panel */
+        .ai-assistant-panel {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+            border: 1px solid var(--primary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .ai-assistant-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .ai-action-btn {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .ai-action-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--primary);
+        }
+
+        .ai-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .ai-action-icon {
+            font-size: 1.2rem;
+        }
+
+        /* A/B Version Compare */
+        .version-compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .version-card {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .version-card:hover {
+            border-color: var(--primary);
+        }
+
+        .version-card.selected {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .version-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .version-title {
+            font-weight: 600;
+        }
+
+        .version-badge {
+            font-size: 0.7rem;
+            padding:  0.50.2remrem;
+            border-radius: 1rem;
+            background: var(--primary);
+        }
+
+        .version-content {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .version-changes {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .version-changes li {
+            margin-bottom: 0.25rem;
+        }
+
+        /* Title Suggestions */
+        .title-suggestions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .title-option {
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .title-option:hover {
+            border-color: var(--primary);
+        }
+
+        .title-option.selected {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .title-type {
+            font-size: 0.7rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .title-text {
+            font-weight: 500;
+        }
+
+        .title-reason {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Platform Preview */
+        .platform-preview {
+            background: var(--bg-tertiary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .platform-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .platform-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .platform-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .platform-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .platform-content {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* Loading State */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -444,12 +788,10 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <div class="logo">✍️ Creation Workshop</div>
+                <a href="/" class="logo">✍️ AI创作工作坊</a>
                 <nav>
-                    <a href="/" class="nav-link">← Dashboard</a>
-                    <a href="#" class="nav-link">My Projects</a>
-                    <a href="#" class="nav-link">Templates</a>
-                    <a href="#" class="nav-link">Publish</a>
+                    <a href="/" class="nav-link">← 首页</a>
+                    <a href="/creations" class="nav-link">我的项目</a>
                 </nav>
             </div>
         </div>
@@ -457,253 +799,120 @@
 
     <main class="container">
         <div class="creation-layout">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">My Projects</div>
-                    <div class="project-list">
-                        <div class="project-item active">
-                            <div class="project-item-title">The Future of AI Agents</div>
-                            <div class="project-item-meta">Article • 65% done</div>
-                        </div>
-                        <div class="project-item">
-                            <div class="project-item-title">Character Design Series</div>
-                            <div class="project-item-meta">Video • 40% done</div>
-                        </div>
-                        <div class="project-item">
-                            <div class="project-item-title">Weekly Newsletter</div>
-                            <div class="project-item-meta">Email • Ongoing</div>
-                        </div>
-                    </div>
-                    <button style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: var(--primary); border: none; border-radius: 0.5rem; color: white; cursor: pointer;" onclick="openModal('newProjectModal')">
-                        + New Project
-                    </button>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Quick Actions</div>
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <button class="toolbar-btn" onclick="generateOutline()">🤖 Generate Outline</button>
-                        <button class="toolbar-btn" onclick="findGaps()">🔍 Find Gaps</button>
-                        <button class="toolbar-btn" onclick="showConnections()">🔗 Show Connections</button>
-                        <button class="toolbar-btn" onclick="generateCitations()">📚 Generate Citations</button>
-                    </div>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Material Stats</div>
-                    <div class="stats-bar" style="flex-direction: column; gap: 1rem; margin-top: 0;">
-                        <div class="stat-item">
-                            <div class="stat-value">47</div>
-                            <div class="stat-label">Total Items</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">52</div>
-                            <div class="stat-label">Images</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">18</div>
-                            <div class="stat-label">Articles</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">8</div>
-                            <div class="stat-label">Videos</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Editor Area -->
+            <!-- Main Editor Area - Primary Focus -->
             <div class="editor-area">
+                <!-- Workflow Progress - Top -->
+                <div class="workflow-progress" id="workflowProgress">
+                    <div class="workflow-step active" data-step="0" onclick="goToStep(0)">
+                        <div class="workflow-step-icon">1</div>
+                        <div class="workflow-step-label">写草稿</div>
+                    </div>
+                    <div class="workflow-step" data-step="1" onclick="goToStep(1)">
+                        <div class="workflow-step-icon">2</div>
+                        <div class="workflow-step-label">优化结构</div>
+                    </div>
+                    <div class="workflow-step" data-step="2" onclick="goToStep(2)">
+                        <div class="workflow-step-icon">3</div>
+                        <div class="workflow-step-label">总结全文</div>
+                    </div>
+                    <div class="workflow-step" data-step="3" onclick="goToStep(3)">
+                        <div class="workflow-step-icon">4</div>
+                        <div class="workflow-step-label">配图</div>
+                    </div>
+                    <div class="workflow-step" data-step="4" onclick="goToStep(4)">
+                        <div class="workflow-step-icon">5</div>
+                        <div class="workflow-step-label">发布</div>
+                    </div>
+                </div>
+
+                <!-- Editor Header -->
                 <div class="editor-header">
                     <div style="flex: 1;">
-                        <input type="text" class="editor-title-input" value="The Future of AI Agents" placeholder="Project Title">
-                        <div class="editor-meta">
-                            <div class="editor-meta-item">📝 Article</div>
-                            <div class="editor-meta-item">📊 Drafting</div>
-                            <div class="editor-meta-item">🎯 1,500 words goal</div>
-                            <div class="editor-meta-item">📅 Due: Feb 15, 2024</div>
-                        </div>
+                        <input type="text" class="editor-title-input" value="" placeholder="输入文章标题...">
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="toolbar-btn">⭐</button>
-                        <button class="toolbar-btn">🗂️</button>
-                        <button class="toolbar-btn">📤 Publish</button>
+                        <button class="toolbar-btn" onclick="saveDraft()">💾 保存</button>
+                        <button class="toolbar-btn primary" onclick="showPlatformFormat()">📤 发布</button>
                     </div>
                 </div>
 
-                <!-- Outline -->
-                <div class="sidebar-title">Outline</div>
-                <div class="outline-section">
-                    <div class="outline-item">
-                        <div class="outline-item-status completed"></div>
-                        <div class="outline-item-content">
-                            <div class="outline-item-title">1. Introduction - Hook and Thesis</div>
-                            <div class="outline-item-notes">Start with a compelling story about AI assistants changing how we work</div>
-                        </div>
-                    </div>
-                    <div class="outline-item">
-                        <div class="outline-item-status completed"></div>
-                        <div class="outline-item-content">
-                            <div class="outline-item-title">2. What Are AI Agents?</div>
-                            <div class="outline-item-notes">Define AI agents and distinguish from traditional chatbots</div>
-                        </div>
-                    </div>
-                    <div class="outline-item">
-                        <div class="outline-item-status"></div>
-                        <div class="outline-item-content">
-                            <div class="outline-item-title">3. Current State of AI Agents</div>
-                            <div class="outline-item-notes">Overview of AutoGPT, BabyAGI, AgentGPT, and recent developments</div>
-                        </div>
-                    </div>
-                    <div class="outline-item">
-                        <div class="outline-item-status"></div>
-                        <div class="outline-item-content">
-                            <div class="outline-item-title">4. Key Capabilities</div>
-                            <div class="outline-item-notes">Autonomous planning, tool use, memory, and self-correction</div>
-                        </div>
-                    </div>
-                    <div class="outline-item">
-                        <div class="outline-item-status"></div>
-                        <div class="outline-item-content">
-                            <div class="outline-item-title">5. Real-World Applications</div>
-                            <div class="outline-item-notes">Coding agents, research assistants, data analysis, content creation</div>
-                        </div>
-                    </div>
-                    <div class="outline-item">
-                        <div class="outline-item-status"></div>
-                        <div class="outline-item-content">
-                            <div class="outline-item-title">6. Challenges and Limitations</div>
-                            <div class="outline-item-notes">Hallucination, reliability, ethical concerns, technical hurdles</div>
-                        </div>
-                    </div>
-                    <div class="outline-item">
-                        <div class="outline-item-status"></div>
-                        <div class="outline-item-content">
-                            <div class="outline-item-title">7. The Future</div>
-                            <div class="outline-item-notes">Multi-agent systems, improved reasoning, broader adoption</div>
-                        </div>
-                    </div>
-                    <div class="outline-item">
-                        <div class="outline-item-status"></div>
-                        <div class="outline-item-content">
-                            <div class="outline-item-title">8. Conclusion - Call to Action</div>
-                            <div class="outline-item-notes">Summary and invitation to experiment with AI agents</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Material Kanban -->
-                <div class="sidebar-title" style="margin-top: 2rem;">Source Materials</div>
-                <div class="material-kanban">
-                    <div class="kanban-column">
-                        <div class="kanban-header">
-                            <span class="kanban-title">📸 Images (52)</span>
-                            <span class="kanban-count">52</span>
-                        </div>
-                        <div class="material-grid">
-                            <div class="material-card">
-                                <div class="material-card-image">🖼️</div>
-                                <div class="material-card-title">Agent Architecture Diagram</div>
-                                <div class="material-card-type">Reference</div>
-                            </div>
-                            <div class="material-card">
-                                <div class="material-card-image">🖼️</div>
-                                <div class="material-card-title">AutoGPT Screenshot</div>
-                                <div class="material-card-type">Example</div>
-                            </div>
-                            <div class="material-card">
-                                <div class="material-card-image">🖼️</div>
-                                <div class="material-card-title">Comparison Chart</div>
-                                <div class="material-card-type">Data</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="kanban-column">
-                        <div class="kanban-header">
-                            <span class="kanban-title">📄 Articles (18)</span>
-                            <span class="kanban-count">18</span>
-                        </div>
-                        <div class="material-grid">
-                            <div class="material-card">
-                                <div class="material-card-image">📄</div>
-                                <div class="material-card-title">AutoGPT Paper</div>
-                                <div class="material-card-type">Research</div>
-                            </div>
-                            <div class="material-card">
-                                <div class="material-card-image">📄</div>
-                                <div class="material-card-title">BabyAGI Explained</div>
-                                <div class="material-card-type">Tutorial</div>
-                            </div>
-                            <div class="material-card">
-                                <div class="material-card-image">📄</div>
-                                <div class="material-card-title">Agent Design Patterns</div>
-                                <div class="material-card-type">Guide</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="kanban-column">
-                        <div class="kanban-header">
-                            <span class="kanban-title">🎬 Videos (8)</span>
-                            <span class="kanban-count">8</span>
-                        </div>
-                        <div class="material-grid">
-                            <div class="material-card">
-                                <div class="material-card-image">🎬</div>
-                                <div class="material-card-title">LangChain Tutorial</div>
-                                <div class="material-card-type">Education</div>
-                            </div>
-                            <div class="material-card">
-                                <div class="material-card-image">🎬</div>
-                                <div class="material-card-title">Agents in Practice</div>
-                                <div class="material-card-type">Demo</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Draft Editor -->
-                <div class="sidebar-title" style="margin-top: 2rem;">Draft Content</div>
+                <!-- Editor Toolbar -->
                 <div class="editor-toolbar">
-                    <button class="toolbar-btn" onclick="formatText('bold')">Bold</button>
-                    <button class="toolbar-btn" onclick="formatText('italic')">Italic</button>
-                    <button class="toolbar-btn" onclick="formatText('heading')">H2</button>
-                    <button class="toolbar-btn" onclick="formatText('link')">Link</button>
-                    <button class="toolbar-btn" onclick="formatText('quote')">Quote</button>
-                    <button class="toolbar-btn" onclick="insertCitation()">📚 Insert Citation</button>
+                    <button class="toolbar-btn" onclick="formatText('bold')">B</button>
+                    <button class="toolbar-btn" onclick="formatText('italic')">I</button>
+                    <button class="toolbar-btn" onclick="formatText('heading')">H</button>
+                    <button class="toolbar-btn" onclick="formatText('link')">🔗</button>
+                    <button class="toolbar-btn" onclick="formatText('quote')">"</button>
                     <div style="flex: 1;"></div>
-                    <button class="toolbar-btn primary" onclick="saveDraft()">Save Draft</button>
+                    <button class="toolbar-btn" id="btnGenerateDraft" onclick="generateDraft()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">✨ AI生成初稿</button>
                 </div>
-                <textarea class="draft-editor" id="draftEditor" placeholder="Start writing your content here..."># The Future of AI Agents
 
-## Introduction
-
-Imagine having an assistant that doesn't just answer questions, but takes action on your behalf...
-
-## What Are AI Agents?
-
-AI agents represent a paradigm shift in how we interact with artificial intelligence...
-
-</textarea>
+                <!-- Main Draft Editor -->
+                <textarea class="draft-editor" id="draftEditor" placeholder="在这里开始写作...&#10;&#10;写下你的想法，不需要考虑结构，让思维自由流动。&#10;完成后可以使用AI助手优化结构、生成标题、转换为平台格式。"></textarea>
 
                 <!-- Progress Stats -->
                 <div class="stats-bar">
                     <div class="stat-item">
-                        <div class="stat-value">972</div>
-                        <div class="stat-label">Words</div>
+                        <div class="stat-value" id="wordCount">0</div>
+                        <div class="stat-label">字数</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">65%</div>
-                        <div class="stat-label">Complete</div>
+                        <div class="stat-value">0%</div>
+                        <div class="stat-label">完成度</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">~4 min</div>
-                        <div class="stat-label">Read Time</div>
+                        <div class="stat-value">-</div>
+                        <div class="stat-label">阅读时间</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value">8</div>
-                        <div class="stat-label">Citations</div>
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">引用数</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Sidebar - Secondary -->
+            <div class="sidebar">
+                <!-- AI Assistant Panel -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">✨ AI写作助手</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button class="ai-action-btn" id="btnImproveStructure" onclick="improveStructure()">
+                            <span class="ai-action-icon">🔧</span>
+                            <span>优化结构 (A/B)</span>
+                        </button>
+
+                        <button class="ai-action-btn" id="btnGenerateTitles" onclick="generateTitles()">
+                            <span class="ai-action-icon">✏️</span>
+                            <span>生成标题</span>
+                        </button>
+
+                        <button class="ai-action-btn" id="btnPlatformFormat" onclick="showPlatformFormat()">
+                            <span class="ai-action-icon">📤</span>
+                            <span>平台格式转换</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Materials Panel -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>📚 素材库</span>
+                        <button onclick="openMaterialModal()" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: var(--primary); color: white; border: none; border-radius: 0.25rem; cursor: pointer;">+ 添加</button>
+                    </div>
+                    <div id="materialList" style="max-height: 200px; overflow-y: auto; margin-top: 0.5rem;">
+                        <p style="color: var(--text-tertiary); text-align: center; padding: 1rem; font-size: 0.8rem;">
+                            暂无素材<br><span style="font-size: 0.7rem;">点击"+ 添加"选择</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Project Panel -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">📁 项目</div>
+                    <button style="width: 100%; margin-top: 0.5rem; padding: 0.6rem; background: var(--primary); border: none; border-radius: 0.5rem; color: white; cursor: pointer; font-size: 0.85rem;" onclick="openModal('newProjectModal')">
+                        + 新建项目
+                    </button>
                 </div>
             </div>
         </div>
@@ -712,44 +921,157 @@ AI agents represent a paradigm shift in how we interact with artificial intellig
     <!-- New Project Modal -->
     <div class="modal" id="newProjectModal">
         <div class="modal-content">
-            <h3 style="margin-bottom: 1.5rem;">Start New Creative Project</h3>
+            <h3 style="margin-bottom: 1.5rem;">新建创作项目</h3>
             <form onsubmit="createProject(event)">
                 <div class="form-group">
-                    <label>Project Type</label>
+                    <label>项目类型</label>
                     <select id="projectType">
-                        <option value="article">📝 Article / Blog Post</option>
-                        <option value="video_script">🎬 Video Script</option>
-                        <option value="presentation">📊 Presentation</option>
-                        <option value="social_post">📱 Social Media Content</option>
-                        <option value="book">📚 Book</option>
-                        <option value="course">🎓 Course</option>
+                        <option value="article">📝 文章 / 博客</option>
+                        <option value="video_script">🎬 视频脚本</option>
+                        <option value="presentation">📊 演示文稿</option>
+                        <option value="social_post">📱 社交媒体</option>
+                        <option value="book">📚 书籍</option>
+                        <option value="course">🎓 课程</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Working Title</label>
-                    <input type="text" id="projectTitle" placeholder="e.g., The Future of Productivity" required>
+                    <label>标题</label>
+                    <input type="text" id="projectTitle" placeholder="例如：AI写作的未来" required>
                 </div>
                 <div class="form-group">
-                    <label>Brief / Concept</label>
-                    <textarea id="projectBrief" placeholder="What is this project about?"></textarea>
+                    <label>简介</label>
+                    <textarea id="projectBrief" placeholder="这个项目是关于什么的？"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Target Date</label>
+                    <label>目标日期</label>
                     <input type="date" id="projectTargetDate">
                 </div>
                 <div class="form-group">
-                    <label>Word Count Goal</label>
-                    <input type="number" id="projectWordGoal" placeholder="e.g., 1500">
+                    <label>目标字数</label>
+                    <input type="number" id="projectWordGoal" placeholder="例如：1500">
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button type="button" class="toolbar-btn" onclick="closeModal('newProjectModal')">Cancel</button>
-                    <button type="submit" class="toolbar-btn primary">Start Creating</button>
+                    <button type="button" class="toolbar-btn" onclick="closeModal('newProjectModal')">取消</button>
+                    <button type="submit" class="toolbar-btn primary">创建项目</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Structure Improvement Modal -->
+    <div class="modal" id="structureModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <h3 style="margin-bottom: 1rem;">🔧 结构优化建议 (A/B版本)</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">
+                选择一个结构优化方案应用到你的内容中
+            </p>
+            <div class="version-compare" id="versionCompare">
+                <div class="version-card" onclick="selectVersion('a')">
+                    <div class="version-header">
+                        <span class="version-title">Version A</span>
+                        <span class="version-badge">线性结构</span>
+                    </div>
+                    <div class="version-content" id="versionAContent">
+                        加载中...
+                    </div>
+                    <ul class="version-changes" id="versionAChanges"></ul>
+                </div>
+                <div class="version-card" onclick="selectVersion('b')">
+                    <div class="version-header">
+                        <span class="version-title">Version B</span>
+                        <span class="version-badge">问题-解决</span>
+                    </div>
+                    <div class="version-content" id="versionBContent">
+                        加载中...
+                    </div>
+                    <ul class="version-changes" id="versionBChanges"></ul>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" class="toolbar-btn" onclick="closeModal('structureModal')">取消</button>
+                <button type="button" class="toolbar-btn primary" onclick="applyStructure()">应用所选方案</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title Generation Modal -->
+    <div class="modal" id="titleModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h3 style="margin-bottom: 1rem;">✏️ 标题建议</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">
+                选择一个标题应用到你的内容中
+            </p>
+            <div class="title-suggestions" id="titleSuggestions">
+                加载中...
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" class="toolbar-btn" onclick="closeModal('titleModal')">取消</button>
+                <button type="button" class="toolbar-btn primary" onclick="applyTitle()">应用所选标题</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Material Selection Modal -->
+    <div class="modal" id="materialModal">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+            <h3 style="margin-bottom: 1rem;">📚 选择素材</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">
+                从内容库中选择素材添加到创作项目
+            </p>
+            <div id="materialSearch" style="margin-bottom: 1rem;">
+                <input type="text" id="materialSearchInput" placeholder="搜索内容..." style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-primary); color: var(--text-primary);">
+            </div>
+            <div id="materialOptions" style="max-height: 300px; overflow-y: auto;">
+                <p style="text-align: center; color: var(--text-muted);">加载中...</p>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" class="toolbar-btn" onclick="closeModal('materialModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Platform Format Modal -->
+    <div class="modal" id="platformModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h3 style="margin-bottom: 1rem;">📤 平台格式转换</h3>
+            <div class="platform-preview">
+                <div class="platform-header">
+                    <div class="platform-tabs">
+                        <button class="platform-tab active" onclick="selectPlatform('x')">X</button>
+                        <button class="platform-tab" onclick="selectPlatform('weixin')">微信</button>
+                        <button class="platform-tab" onclick="selectPlatform('linkedin')">LinkedIn</button>
+                        <button class="platform-tab" onclick="selectPlatform('xiaohongshu')">小红书</button>
+                    </div>
+                </div>
+                <div class="platform-content" id="platformContent">
+                    点击"转换"按钮生成平台格式内容...
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);" id="platformNotes"></div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" class="toolbar-btn" onclick="closeModal('platformModal')">关闭</button>
+                <button type="button" class="toolbar-btn primary" onclick="convertPlatform()">转换</button>
+                <button type="button" class="toolbar-btn" onclick="copyPlatformContent()">复制内容</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Current project ID
+        var currentProjectId = '{{ project.id if project else "" }}';
+
+        // State for workflow
+        let selectedVersion = null;
+        let selectedTitle = null;
+        let currentPlatform = 'x';
+
+        // If no project ID, show creation modal on load
+        if (!currentProjectId) {
+            window.addEventListener('DOMContentLoaded', function() {
+                openModal('newProjectModal');
+            });
+        }
+
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('active');
         }
@@ -758,7 +1080,7 @@ AI agents represent a paradigm shift in how we interact with artificial intellig
             document.getElementById(modalId).classList.remove('active');
         }
 
-        function createProject(event) {
+        async function createProject(event) {
             event.preventDefault();
             const type = document.getElementById('projectType').value;
             const title = document.getElementById('projectTitle').value;
@@ -766,10 +1088,324 @@ AI agents represent a paradigm shift in how we interact with artificial intellig
             const targetDate = document.getElementById('projectTargetDate').value;
             const wordGoal = document.getElementById('projectWordGoal').value;
 
-            console.log('Creating project:', { type, title, brief, targetDate, wordGoal });
-            // TODO: API call to create project
+            try {
+                const response = await fetch('/api/creations', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        project_type: type,
+                        title: title,
+                        brief: brief,
+                        target_date: targetDate,
+                        word_count_goal: wordGoal ? parseInt(wordGoal) : null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentProjectId = data.data.id;
+                    // Update URL without reload
+                    history.pushState({}, '', `/creations/${currentProjectId}`);
+                    // Reload to get the full project page
+                    window.location.reload();
+                } else {
+                    alert('创建失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('创建项目时出错');
+            }
             closeModal('newProjectModal');
         }
+
+        // ============== AI Writing Workflow Functions ==============
+
+        async function generateDraft() {
+            const btn = document.getElementById('btnGenerateDraft');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> 生成中...';
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/generate-draft`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({target_words: 1000})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Check if need manual input
+                    if (data.data.need_manual) {
+                        alert(data.data.message || '请手动撰写初稿');
+                        return;
+                    }
+
+                    const editor = document.getElementById('draftEditor');
+                    editor.value = data.data.draft || '';
+
+                    // Update word count
+                    const wordCount = data.data.word_count || 0;
+                    updateWordCount(wordCount);
+
+                    // Save draft to project
+                    await saveDraftToProject(data.data.draft || '', wordCount);
+
+                    alert('初稿生成完成！');
+                    goToStep(1); // Move to structure step
+                } else {
+                    alert('生成失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error generating draft:', error);
+                alert('生成初稿时出错');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="ai-action-icon">📝</span><span>生成初稿</span>';
+            }
+        }
+
+        async function improveStructure() {
+            const editor = document.getElementById('draftEditor');
+            const content = editor.value;
+
+            if (!content || content.length < 100) {
+                alert('请先写一些内容再进行结构优化');
+                return;
+            }
+
+            const btn = document.getElementById('btnImproveStructure');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> 分析中...';
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/improve-structure`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({draft_content: content})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Display A/B versions
+                    displayStructureVersions(data.data);
+                    openModal('structureModal');
+                } else {
+                    alert('分析失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error improving structure:', error);
+                alert('结构分析时出错');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="ai-action-icon">🔧</span><span>优化结构 (A/B)</span>';
+            }
+        }
+
+        function displayStructureVersions(versions) {
+            const versionA = versions.version_a || {title: 'Version A', structure: '', changes: []};
+            const versionB = versions.version_b || {title: 'Version B', structure: '', changes: []};
+
+            document.getElementById('versionAContent').textContent = versionA.structure || versionA.structure || '加载中...';
+            document.getElementById('versionBContent').textContent = versionB.structure || versionB.structure || '加载中...';
+
+            const changesA = document.getElementById('versionAChanges');
+            changesA.innerHTML = (versionA.changes || []).map(c => `<li>${c}</li>`).join('');
+
+            const changesB = document.getElementById('versionBChanges');
+            changesB.innerHTML = (versionB.changes || []).map(c => `<li>${c}</li>`).join('');
+        }
+
+        function selectVersion(version) {
+            selectedVersion = version;
+            document.querySelectorAll('.version-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function applyStructure() {
+            if (!selectedVersion) {
+                alert('请选择一个版本');
+                return;
+            }
+
+            // In real implementation, would apply the structure changes
+            alert(`已应用 ${selectedVersion.toUpperCase()} 版本的结构优化`);
+
+            closeModal('structureModal');
+            goToStep(2); // Move to title step
+        }
+
+        async function generateTitles() {
+            const editor = document.getElementById('draftEditor');
+            const content = editor.value;
+
+            if (!content || content.length < 100) {
+                alert('请先完成内容再生成标题');
+                return;
+            }
+
+            const btn = document.getElementById('btnGenerateTitles');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> 生成中...';
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/generate-titles`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({content: content, num_titles: 5})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayTitleSuggestions(data.data.titles || []);
+                    openModal('titleModal');
+                } else {
+                    alert('生成失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error generating titles:', error);
+                alert('生成标题时出错');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="ai-action-icon">✏️</span><span>生成标题</span>';
+            }
+        }
+
+        function displayTitleSuggestions(titles) {
+            const container = document.getElementById('titleSuggestions');
+            container.innerHTML = titles.map((t, i) => `
+                <div class="title-option" onclick="selectTitle(${i})" data-index="${i}">
+                    <div class="title-type">${t.type || '常规'}</div>
+                    <div class="title-text">${t.title || '无标题'}</div>
+                    <div class="title-reason">${t.reason || ''}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectTitle(index) {
+            selectedTitle = index;
+            document.querySelectorAll('.title-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector(`.title-option[data-index="${index}"]`).classList.add('selected');
+        }
+
+        function applyTitle() {
+            if (selectedTitle === null) {
+                alert('请选择一个标题');
+                return;
+            }
+
+            // Get selected title and update editor
+            const titleOption = document.querySelector(`.title-option[data-index="${selectedTitle}"]`);
+            const title = titleOption.querySelector('.title-text').textContent;
+
+            // Update title input
+            document.querySelector('.editor-title-input').value = title;
+
+            closeModal('titleModal');
+        }
+
+        function showPlatformFormat() {
+            const editor = document.getElementById('draftEditor');
+            const content = editor.value;
+
+            if (!content || content.length < 50) {
+                alert('请先完成内容再转换格式');
+                return;
+            }
+
+            currentPlatform = 'x';
+            updatePlatformTabs();
+            openModal('platformModal');
+        }
+
+        function selectPlatform(platform) {
+            currentPlatform = platform;
+            updatePlatformTabs();
+
+            // Auto convert when platform changes
+            convertPlatform();
+        }
+
+        function updatePlatformTabs() {
+            document.querySelectorAll('.platform-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event?.target?.classList.add('active');
+        }
+
+        async function convertPlatform() {
+            const editor = document.getElementById('draftEditor');
+            const content = editor.value;
+
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '转换中...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/platform-format`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({content: content, platform: currentPlatform})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('platformContent').textContent = data.data.content;
+                    document.getElementById('platformNotes').textContent = data.data.format_notes || '';
+                } else {
+                    alert('转换失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error converting platform:', error);
+                alert('转换格式时出错');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function copyPlatformContent() {
+            const content = document.getElementById('platformContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('内容已复制到剪贴板！');
+            });
+        }
+
+        function goToStep(step) {
+            // Update workflow progress UI
+            document.querySelectorAll('.workflow-step').forEach((el, i) => {
+                el.classList.remove('active', 'completed');
+                if (i < step) {
+                    el.classList.add('completed');
+                } else if (i === step) {
+                    el.classList.add('active');
+                }
+            });
+
+            // Scroll to editor
+            document.querySelector('.editor-area').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function updateWordCount(count) {
+            const statsBar = document.querySelector('.stats-bar');
+            if (statsBar) {
+                const wordStat = statsBar.querySelector('.stat-item:first-child .stat-value');
+                if (wordStat) {
+                    wordStat.textContent = count;
+                }
+            }
+        }
+
+        // ============== Existing Functions ==============
 
         function generateOutline() {
             console.log('Generating AI outline...');
@@ -817,8 +1453,32 @@ AI agents represent a paradigm shift in how we interact with artificial intellig
         }
 
         function saveDraft() {
-            console.log('Saving draft...');
-            // TODO: Save to database
+            const editor = document.getElementById('draftEditor');
+            const content = editor.value;
+            const wordCount = content.split(/\s+/).filter(w => w.length > 0).length;
+            saveDraftToProject(content, wordCount);
+        }
+
+        async function saveDraftToProject(content, wordCount) {
+            if (!currentProjectId) return;
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        draft_content: content,
+                        word_count_actual: wordCount
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    console.log('Draft saved successfully');
+                }
+            } catch (error) {
+                console.error('Error saving draft:', error);
+            }
         }
 
         // Toggle outline item status
@@ -833,6 +1493,173 @@ AI agents represent a paradigm shift in how we interact with artificial intellig
             if (event.target.classList.contains('modal')) {
                 event.target.classList.remove('active');
             }
+        }
+
+        // Initialize - set first step as active
+        goToStep(0);
+
+        // Load project data if project exists
+        if (currentProjectId) {
+            loadProjectData();
+        }
+
+        // Load contents for material selection
+        loadContentsForMaterials();
+
+        // Material search
+        document.getElementById('materialSearchInput').addEventListener('input', function(e) {
+            filterMaterials(e.target.value);
+        });
+
+        async function loadProjectData() {
+            if (!currentProjectId) return;
+
+            try {
+                // Get project details
+                const response = await fetch(`/api/creations/${currentProjectId}`);
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    const project = data.data;
+
+                    // Set title
+                    document.querySelector('.editor-title-input').value = project.title || '';
+
+                    // Set draft content
+                    if (project.draft_content) {
+                        document.getElementById('draftEditor').value = project.draft_content;
+                        updateWordCount(project.word_count_actual || 0);
+                    }
+
+                    // Load materials
+                    loadProjectMaterials(project.source_materials || []);
+                }
+            } catch (error) {
+                console.error('Error loading project:', error);
+            }
+        }
+
+        async function loadProjectMaterials(materialIds) {
+            if (!materialIds || materialIds.length === 0) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/contents');
+                const data = await response.json();
+
+                if (data.success) {
+                    const materials = data.data.filter(c => materialIds.includes(c.id));
+                    displayMaterials(materials);
+                }
+            } catch (error) {
+                console.error('Error loading materials:', error);
+            }
+        }
+
+        function displayMaterials(materials) {
+            const container = document.getElementById('materialList');
+            if (!materials || materials.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-tertiary); text-align: center; padding: 1rem; font-size: 0.85rem;">暂无素材<br><span style="font-size: 0.75rem;">点击"+ 添加"从内容库选择</span></p>';
+                return;
+            }
+
+            container.innerHTML = materials.map(m => `
+                <div style="padding: 0.5rem; margin-bottom: 0.5rem; background: var(--bg-tertiary); border-radius: 0.5rem; cursor: pointer;" onclick="viewContent('${m.id}')">
+                    <div style="font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${m.title || '无标题'}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-tertiary);">${m.source_type || 'webpage'}</div>
+                </div>
+            `).join('');
+
+            // Update counts
+            document.querySelector('.stat-value').textContent = materials.length;
+        }
+
+        async function openMaterialModal() {
+            if (!currentProjectId) {
+                alert('请先创建项目');
+                return;
+            }
+            openModal('materialModal');
+        }
+
+        let allContents = [];
+
+        async function loadContentsForMaterials() {
+            try {
+                const response = await fetch('/api/contents');
+                const data = await response.json();
+
+                if (data.success) {
+                    allContents = data.data || [];
+                    displayMaterialOptions(allContents);
+                }
+            } catch (error) {
+                console.error('Error loading contents:', error);
+                document.getElementById('materialOptions').innerHTML = '<p style="text-align: center; color: var(--text-muted);">加载失败</p>';
+            }
+        }
+
+        function displayMaterialOptions(contents) {
+            const container = document.getElementById('materialOptions');
+            if (!contents || contents.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">暂无内容</p>';
+                return;
+            }
+
+            container.innerHTML = contents.map(c => {
+                var title = (c.title || '无标题').replace(/'/g, "\\'");
+                return '<div style="padding: 0.75rem; margin-bottom: 0.5rem; background: var(--bg-tertiary); border-radius: 0.5rem; cursor: pointer;" onclick="addMaterial(\'' + c.id + '\', \'' + title + '\')">' +
+                    '<div style="font-size: 0.9rem; font-weight: 500;">' + (c.title || '无标题') + '</div>' +
+                    '<div style="font-size: 0.75rem; color: var(--text-tertiary);">' + (c.source_type || 'webpage') + '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function filterMaterials(query) {
+            if (!query) {
+                displayMaterialOptions(allContents);
+                return;
+            }
+
+            const filtered = allContents.filter(c =>
+                (c.title && c.title.toLowerCase().includes(query.toLowerCase())) ||
+                (c.summary && c.summary.toLowerCase().includes(query.toLowerCase()))
+            );
+            displayMaterialOptions(filtered);
+        }
+
+        async function addMaterial(contentId, contentTitle) {
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/materials`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({content_id: contentId})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('素材添加成功！');
+                    closeModal('materialModal');
+
+                    // Reload project materials
+                    const projectResponse = await fetch(`/api/creations/${currentProjectId}`);
+                    const projectData = await projectResponse.json();
+                    if (projectData.success) {
+                        loadProjectMaterials(projectData.data.source_materials || []);
+                    }
+                } else {
+                    alert('添加失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error adding material:', error);
+                alert('添加素材时出错');
+            }
+        }
+
+        function viewContent(contentId) {
+            window.open('/content/' + contentId, '_blank');
         }
     </script>
 </body>

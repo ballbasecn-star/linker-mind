@@ -7,6 +7,7 @@ This module provides AI assistance for creative projects:
 - Section expansion
 - Connection suggestions
 - Citation management
+- AI Writing Workflow (based on LawrenceW_Zen's 最小可闭环的AI写作工作流)
 
 Features:
 - Generate outlines from materials
@@ -14,16 +15,39 @@ Features:
 - Suggest connections
 - Expand sections
 - Generate citation lists
+- Generate draft from materials
+- Suggest structural improvements (A/B versions)
+- Generate titles
+- Convert to platform format
 """
+import os
 from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from database.db_interface import get_connection
 from database import json_dumps, json_list, json_dict
 
 logger = logging.getLogger(__name__)
+
+
+def get_llm_client():
+    """Get LLM client for AI generation"""
+    try:
+        from openai import OpenAI
+        api_key = os.environ.get('OPENAI_API_KEY') or os.environ.get('DEEPSEEK_API_KEY')
+        base_url = os.environ.get('OPENAI_BASE_URL', 'https://api.deepseek.com')
+
+        if api_key:
+            return OpenAI(api_key=api_key, base_url=base_url)
+    except Exception as e:
+        logger.warning(f"Failed to initialize LLM client: {e}")
+    return None
 
 
 @dataclass
@@ -350,13 +374,13 @@ class AICreationAssistantService:
         # Generate content from source materials
         content_parts = []
 
-        for content_id in source_ids[:5]:  # Limit to 5 sources
-            content = self.db.fetchone(
-                "SELECT title, summary, main_content FROM contents WHERE id = ?",
-                (content_id,)
-            )
+        # Use a single query with IN clause instead of multiple queries
+        if source_ids[:5]:
+            placeholders = ','.join(['%s'] * len(source_ids[:5]))
+            query = f"SELECT title, summary, main_content FROM contents WHERE id IN ({placeholders})"
+            rows = self.db.fetchall(query, tuple(source_ids[:5]))
 
-            if content:
+            for content in rows:
                 if content['summary']:
                     content_parts.append(f"According to \"{content['title']}\", {content['summary']}")
                 elif content['main_content']:
@@ -534,6 +558,413 @@ class AICreationAssistantService:
 
         base = base_words.get(project_type, 1500)
         return base + (section_count * 200)
+
+    # ============== AI Writing Workflow Methods ==============
+
+    def generate_draft(
+        self,
+        project_id: str,
+        target_words: int = 1000
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Generate initial draft from source materials
+        Based on the "写草稿" step of AI writing workflow
+
+        Args:
+            project_id: Creation project ID
+            target_words: Target word count for the draft
+
+        Returns:
+            Dictionary with generated draft content
+        """
+        from services.creation_service import CreationWorkshopService
+
+        creation_service = CreationWorkshopService(self.db_path)
+
+        project = creation_service.get_by_id(project_id)
+        if not project:
+            return None
+
+        # Get source materials - use direct DB query instead of repository
+        materials_data = []
+        if project.source_materials:
+            # Build a single query with IN clause to avoid multiple DB calls
+            placeholders = ','.join(['%s'] * len(project.source_materials[:10]))
+            query = f"SELECT id, title, summary, ai_analysis FROM contents WHERE id IN ({placeholders})"
+            params = tuple(project.source_materials[:10])
+
+            rows = self.db.fetchall(query, params)
+
+            for row in rows:
+                # Parse AI analysis for topics
+                topics = []
+                try:
+                    import json
+                    ai_analysis = row.get('ai_analysis')
+                    if ai_analysis:
+                        if isinstance(ai_analysis, str):
+                            ai_data = json.loads(ai_analysis)
+                        else:
+                            ai_data = ai_analysis
+                        topics = ai_data.get('topics', [])
+                except:
+                    pass
+
+                materials_data.append({
+                    'title': row.get('title', ''),
+                    'summary': row.get('summary', '') or '',
+                    'topics': topics,
+                    'main_content': ''
+                })
+
+        if not materials_data:
+            # 无素材时返回提示信息，让用户手动撰写
+            return {
+                'draft': '',
+                'word_count': 0,
+                'source_count': 0,
+                'message': '暂无素材，请先添加素材或手动撰写初稿',
+                'need_manual': True
+            }
+
+        # Build prompt for draft generation
+        prompt = self._build_draft_prompt(project, materials_data, target_words)
+
+        # Call LLM
+        draft_content = self._call_llm(prompt)
+
+        if draft_content:
+            return {
+                'draft': draft_content,
+                'word_count': len(draft_content.split()),
+                'source_count': len(materials_data)
+            }
+
+        return {'error': 'Failed to generate draft', 'draft': ''}
+
+    def suggest_structural_improvements(
+        self,
+        project_id: str,
+        draft_content: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Suggest A/B structural improvements for draft
+        Based on the "优化结构" step of AI writing workflow
+
+        Args:
+            project_id: Creation project ID
+            draft_content: The current draft content
+
+        Returns:
+            Dictionary with A/B version suggestions
+        """
+        from services.creation_service import CreationWorkshopService
+
+        creation_service = CreationWorkshopService(self.db_path)
+        project = creation_service.get_by_id(project_id)
+
+        if not project:
+            return None
+
+        # Build prompt for structural improvement
+        prompt = self._build_structure_prompt(project, draft_content)
+
+        # Call LLM
+        result = self._call_llm(prompt)
+
+        if result:
+            # Try to parse A/B versions
+            try:
+                versions = self._parse_structural_suggestions(result)
+                return versions
+            except Exception as e:
+                logger.warning(f"Failed to parse structural suggestions: {e}")
+
+        return {
+            'version_a': {'structure': 'Linear flow', 'changes': []},
+            'version_b': {'structure': 'Problem-Solution', 'changes': []}
+        }
+
+    def generate_titles(
+        self,
+        project_id: str,
+        content: str,
+        num_titles: int = 5
+    ) -> Optional[List[Dict[str, str]]]:
+        """
+        Generate title suggestions
+        Based on the "总结全文" step of AI writing workflow
+
+        Args:
+            project_id: Creation project ID
+            content: The full content
+            num_titles: Number of titles to generate
+
+        Returns:
+            List of title suggestions with types
+        """
+        from services.creation_service import CreationWorkshopService
+
+        creation_service = CreationWorkshopService(self.db_path)
+        project = creation_service.get_by_id(project_id)
+
+        if not project:
+            return None
+
+        # Build prompt for title generation
+        prompt = self._build_title_prompt(project, content, num_titles)
+
+        # Call LLM
+        result = self._call_llm(prompt)
+
+        if result:
+            titles = self._parse_titles(result, num_titles)
+            return titles
+
+        return []
+
+    def convert_to_platform_format(
+        self,
+        project_id: str,
+        content: str,
+        platform: str = 'x'
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Convert content to platform-specific format
+        Based on the "发布平台" step of AI writing workflow
+
+        Args:
+            project_id: Creation project ID
+            content: The final content to convert
+            platform: Target platform (x, weixin, linkedin, etc.)
+
+        Returns:
+            Dictionary with converted content
+        """
+        from services.creation_service import CreationWorkshopService
+
+        creation_service = CreationWorkshopService(self.db_path)
+        project = creation_service.get_by_id(project_id)
+
+        if not project:
+            return None
+
+        # Build prompt for platform conversion
+        prompt = self._build_platform_prompt(project, content, platform)
+
+        # Call LLM
+        result = self._call_llm(prompt)
+
+        if result:
+            return {
+                'platform': platform,
+                'content': result,
+                'format_notes': self._get_platform_notes(platform)
+            }
+
+        return {'error': 'Failed to convert format', 'content': content}
+
+    # ============== Helper Methods ==============
+
+    def _call_llm(self, prompt: str, max_tokens: int = 2000) -> Optional[str]:
+        """Call LLM with prompt"""
+        client = get_llm_client()
+        if not client:
+            logger.warning("No LLM client available")
+            return None
+
+        try:
+            # Use deepseek or openai
+            model = os.environ.get('LLM_MODEL', 'deepseek-chat')
+
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "You are a professional writing assistant. Help users with their creative writing projects. Respond in Chinese if the user's context is in Chinese."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=max_tokens,
+                temperature=0.7
+            )
+
+            return response.choices[0].message.content
+
+        except Exception as e:
+            logger.error(f"LLM call failed: {e}")
+            return None
+
+    def _build_draft_prompt(
+        self,
+        project: Any,
+        materials: List[Dict[str, Any]],
+        target_words: int
+    ) -> str:
+        """Build prompt for draft generation"""
+        materials_summary = "\n\n".join([
+            f"## {m['title']}\n- Topics: {', '.join(m['topics'])}\n- Summary: {m['summary'][:300]}"
+            for m in materials
+        ])
+
+        prompt = f"""基于以下素材，为创作项目生成初稿。
+
+项目标题: {project.title}
+项目简介: {project.brief or '无'}
+目标字数: {target_words} 字
+
+素材:
+{materials_summary}
+
+要求:
+1. 先把想法一股脑倒出来，不分结构
+2. 保留素材中的关键信息和引用
+3. 使用自然、对话式的风格
+4. 直接开始写作，不需要标题
+
+初稿内容:"""
+
+        return prompt
+
+    def _build_structure_prompt(
+        self,
+        project: Any,
+        draft_content: str
+    ) -> str:
+        """Build prompt for structural improvement"""
+        prompt = f"""分析以下草稿，提供A/B两种结构优化方案。
+
+项目标题: {project.title}
+当前状态: {project.status}
+
+草稿内容:
+{draft_content[:3000]}
+
+请提供两种结构优化方案:
+
+## Version A (线性结构)
+- 主要特点
+- 需要调整的部分
+- 具体修改建议
+
+## Version B (问题-解决方案结构)
+- 主要特点
+- 需要调整的部分
+- 具体修改建议
+
+请用JSON格式回复:
+{{
+  "version_a": {{"title": "方案A标题", "structure": "主要特点", "changes": ["修改1", "修改2"]}},
+  "version_b": {{"title": "方案B标题", "structure": "主要特点", "changes": ["修改1", "修改2"]}}
+}}"""
+
+        return prompt
+
+    def _build_title_prompt(
+        self,
+        project: Any,
+        content: str,
+        num_titles: int
+    ) -> str:
+        """Build prompt for title generation"""
+        prompt = f"""基于以下内容，生成{num_titles}个标题建议。
+
+项目类型: {project.project_type}
+
+内容摘要:
+{content[:2000]}
+
+请生成以下类型的标题:
+1. 常规标题 (中性、描述性)
+2. 钩子型标题 (引起好奇)
+3. 标题党风格 (有争议/夸张)
+4. 问答型标题 (提问引发思考)
+5. 数字型标题 (使用数据和列表)
+
+请用JSON格式回复:
+[{{"type": "常规", "title": "标题内容", "reason": "为什么好"}}, ...]"""
+
+        return prompt
+
+    def _build_platform_prompt(
+        self,
+        project: Any,
+        content: str,
+        platform: str
+    ) -> str:
+        """Build prompt for platform conversion"""
+        platform_info = {
+            'x': 'X/Twitter: 最多280字符，支持hashtag和@提及，使用简洁有力的表达',
+            'weixin': '微信公众号: 支持富文本，可添加图片和链接，标题吸引人',
+            'linkedin': 'LinkedIn: 专业风格，可添加话题标签，注重个人品牌',
+            'xiaohongshu': '小红书: Emoji丰富，段落短，图文结合'
+        }
+
+        platform_desc = platform_info.get(platform, '通用格式')
+
+        prompt = f"""将以下内容转换为{platform}格式。
+
+平台特点: {platform_desc}
+
+原始内容:
+{content[:3000]}
+
+请转换为适合{platform}平台的格式，保留核心内容但调整表达方式。"""
+
+        return prompt
+
+    def _parse_structural_suggestions(self, result: str) -> Dict[str, Any]:
+        """Parse structural suggestions from LLM response"""
+        import json
+        import re
+
+        # Try to extract JSON
+        json_match = re.search(r'\{[\s\S]*\}', result)
+        if json_match:
+            try:
+                return json.loads(json_match.group())
+            except:
+                pass
+
+        # Fallback: return raw text as description
+        return {
+            'version_a': {'title': 'Version A', 'structure': result[:500], 'changes': []},
+            'version_b': {'title': 'Version B', 'structure': 'Alternative structure', 'changes': []}
+        }
+
+    def _parse_titles(self, result: str, num_titles: int) -> List[Dict[str, str]]:
+        """Parse titles from LLM response"""
+        import json
+        import re
+
+        # Try to extract JSON array
+        json_match = re.search(r'\[[\s\S]*\]', result)
+        if json_match:
+            try:
+                titles = json.loads(json_match.group())
+                return titles[:num_titles]
+            except:
+                pass
+
+        # Fallback: parse line by line
+        titles = []
+        for line in result.split('\n'):
+            if line.strip() and not line.startswith('#'):
+                titles.append({
+                    'type': '常规',
+                    'title': line.strip().lstrip('0123456789. '),
+                    'reason': 'From AI suggestion'
+                })
+
+        return titles[:num_titles]
+
+    def _get_platform_notes(self, platform: str) -> str:
+        """Get formatting notes for platform"""
+        notes = {
+            'x': '✓ 最少280字符\n✓ 使用hashtag增加曝光\n✓ 可添加1-4张图片',
+            'weixin': '✓ 标题越吸引越好\n✓ 摘要要有吸引力\n✓ 可添加原文链接',
+            'linkedin': '✓ 添加专业话题标签\n✓ 首行要有吸引力\n✓ 建议添加图片',
+            'xiaohongsho': '✓ Emoji要丰富\n✓ 段落要短\n✓ 结尾要有互动引导'
+        }
+        return notes.get(platform, '请根据平台特点调整')
 
 
 if __name__ == "__main__":
