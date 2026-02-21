@@ -367,12 +367,16 @@ CREATE TABLE IF NOT EXISTS creation_projects (
     -- Structure
     outline TEXT,                             -- JSON: outline structure
     sections TEXT,                            -- JSON: sections with content
+    images TEXT,                              -- JSON: array of images
     draft_content TEXT,                       -- Draft text content
 
     -- Output tracking
     published_url TEXT,
     published_at TEXT,
     engagement_stats TEXT,                    -- JSON: views, likes, shares, etc.
+
+    -- Cover image
+    cover_image TEXT,                         -- URL of cover image
 
     -- Status
     status TEXT DEFAULT 'RESEARCH',            -- RESEARCH, OUTLINING, DRAFTING, EDITING, PUBLISHED

@@ -131,6 +131,8 @@ class CreationProject:
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     published_at: Optional[str] = None
+    cover_image: Optional[str] = None
+    images: Optional[List[Dict[str, Any]]] = None
 
     def __post_init__(self):
         """Initialize defaults"""
@@ -144,6 +146,8 @@ class CreationProject:
             self.outline = []
         if self.sections is None:
             self.sections = []
+        if self.images is None:
+            self.images = []
         if self.created_at is None:
             self.created_at = datetime.now().isoformat()
         if self.updated_at is None:
@@ -153,7 +157,7 @@ class CreationProject:
         """Convert to dictionary"""
         data = asdict(self)
         # Handle list serialization
-        for field in ['source_materials', 'quotes', 'inspirations', 'outline', 'sections']:
+        for field in ['source_materials', 'quotes', 'inspirations', 'outline', 'sections', 'images']:
             if getattr(self, field):
                 data[field] = json_dumps(getattr(self, field))
         return data
@@ -230,7 +234,9 @@ class CreationWorkshopService:
             'word_count_goal': project.word_count_goal,
             'word_count_actual': project.word_count_actual,
             'created_at': project.created_at,
-            'updated_at': project.updated_at
+            'updated_at': project.updated_at,
+            'cover_image': project.cover_image,
+            'images': json_dumps(project.images)
         })
 
         logger.info(f"Created creation project: {id} - {title}")
@@ -300,7 +306,9 @@ class CreationWorkshopService:
         progress: Optional[float] = None,
         target_date: Optional[str] = None,
         word_count_goal: Optional[int] = None,
-        word_count_actual: Optional[int] = None
+        word_count_actual: Optional[int] = None,
+        cover_image: Optional[str] = None,
+        images: Optional[List[Dict[str, Any]]] = None
     ) -> Optional[CreationProject]:
         """Update a creation project"""
         project = self.get_by_id(project_id)
@@ -327,6 +335,10 @@ class CreationWorkshopService:
             updates['word_count_goal'] = word_count_goal
         if word_count_actual is not None:
             updates['word_count_actual'] = word_count_actual
+        if cover_image is not None:
+            updates['cover_image'] = cover_image
+        if images is not None:
+            updates['images'] = json_dumps(images)
 
         if updates:
             updates['updated_at'] = datetime.now().isoformat()
@@ -696,7 +708,9 @@ class CreationWorkshopService:
             word_count_actual=row['word_count_actual'],
             created_at=row['created_at'],
             updated_at=row['updated_at'],
-            published_at=row['published_at']
+            published_at=row['published_at'],
+            cover_image=row.get('cover_image'),
+            images=json_list(row.get('images'))
         )
 
     def _generate_id(self) -> str:

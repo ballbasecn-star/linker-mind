@@ -804,3 +804,246 @@ def get_workflow(project_id: str):
     except Exception as e:
         logger.error(f"Error getting workflow: {e}")
         return json_error_response(str(e), status_code=500)
+
+
+# ============== Image Generation API Endpoints ==============
+
+@creation_bp.route('/api/creations/<project_id>/analyze-images', methods=['POST'])
+def analyze_images(project_id: str):
+    """Analyze content and identify sections needing images"""
+    try:
+        data = request.get_json() or {}
+        content = data.get('content')
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        assistant = AICreationAssistantService()
+        suggestions = assistant.analyze_content_for_images(project_id, content)
+
+        if suggestions is None:
+            return json_error_response('Failed to analyze content', status_code=500)
+
+        return json_success_response({
+            'suggestions': suggestions,
+            'total_sections': len(suggestions),
+            'sections_needing_images': sum(1 for s in suggestions if s.get('needs_image'))
+        })
+
+    except Exception as e:
+        logger.error(f"Error analyzing images: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/generate-cover', methods=['POST'])
+def generate_cover(project_id: str):
+    """Generate cover images for the article"""
+    try:
+        data = request.get_json() or {}
+        title = data.get('title')
+        description = data.get('description')
+        num_images = data.get('num_images', 3)
+        style = data.get('style', 'modern')
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        assistant = AICreationAssistantService()
+        images = assistant.generate_cover_image(
+            project_id=project_id,
+            title=title,
+            description=description,
+            num_images=num_images,
+            style=style
+        )
+
+        if images is None:
+            return json_error_response('Failed to generate cover images', status_code=500)
+
+        return json_success_response({
+            'images': images,
+            'type': 'cover'
+        })
+
+    except Exception as e:
+        logger.error(f"Error generating cover: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/generate-section-images', methods=['POST'])
+def generate_section_images(project_id: str):
+    """Generate images for a specific section"""
+    try:
+        data = request.get_json() or {}
+        section_index = data.get('section_index', 0)
+        section_title = data.get('section_title', '')
+        section_content = data.get('section_content', '')
+        num_images = data.get('num_images', 2)
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        assistant = AICreationAssistantService()
+        images = assistant.generate_section_images(
+            project_id=project_id,
+            section_index=section_index,
+            section_title=section_title,
+            section_content=section_content,
+            num_images=num_images
+        )
+
+        if images is None:
+            return json_error_response('Failed to generate section images', status_code=500)
+
+        return json_success_response({
+            'images': images,
+            'type': 'section',
+            'section_index': section_index,
+            'section_title': section_title
+        })
+
+    except Exception as e:
+        logger.error(f"Error generating section images: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/suggest-images', methods=['GET'])
+def suggest_library_images(project_id: str):
+    """Suggest images from content library"""
+    try:
+        keywords = request.args.get('keywords', '').split(',')
+        keywords = [k.strip() for k in keywords if k.strip()]
+        limit = int(request.args.get('limit', 10))
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        assistant = AICreationAssistantService()
+        suggestions = assistant.suggest_from_library(
+            project_id=project_id,
+            keywords=keywords if keywords else None,
+            limit=limit
+        )
+
+        return json_success_response({
+            'suggestions': suggestions,
+            'total': len(suggestions)
+        })
+
+    except Exception as e:
+        logger.error(f"Error suggesting images: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/generate-social-image', methods=['POST'])
+def generate_social_image(project_id: str):
+    """Generate images for social media platforms"""
+    try:
+        data = request.get_json() or {}
+        content = data.get('content', '')
+        platform = data.get('platform', 'x')
+        num_images = data.get('num_images', 3)
+
+        if not content:
+            return json_error_response('Content is required', status_code=400)
+
+        assistant = AICreationAssistantService()
+        images = assistant.generate_social_image(
+            content=content,
+            platform=platform,
+            num_images=num_images
+        )
+
+        return json_success_response({
+            'images': images,
+            'platform': platform,
+            'type': 'social'
+        })
+
+    except Exception as e:
+        logger.error(f"Error generating social image: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/save-images', methods=['POST'])
+def save_project_images(project_id: str):
+    """Save generated/selected images to project"""
+    try:
+        data = request.get_json() or {}
+        images = data.get('images', [])
+        image_type = data.get('type', 'section')
+        section_index = data.get('section_index')
+
+        if not images:
+            return json_error_response('No images to save', status_code=400)
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        assistant = AICreationAssistantService()
+        success = assistant.save_project_images(
+            project_id=project_id,
+            images=images,
+            image_type=image_type,
+            section_index=section_index
+        )
+
+        if not success:
+            return json_error_response('Failed to save images', status_code=500)
+
+        return json_success_response({
+            'success': True,
+            'saved_count': len(images)
+        })
+
+    except Exception as e:
+        logger.error(f"Error saving images: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/set-cover-image', methods=['PUT'])
+def set_cover_image(project_id: str):
+    """Set the cover image for the project"""
+    try:
+        data = request.get_json() or {}
+        image_url = data.get('image_url')
+
+        if not image_url:
+            return json_error_response('Image URL is required', status_code=400)
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        # Update project with cover image
+        service.update(project_id, cover_image=image_url)
+
+        return json_success_response({
+            'success': True,
+            'cover_image': image_url
+        })
+
+    except Exception as e:
+        logger.error(f"Error setting cover image: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+# Import AICreationAssistantService
+from services.creation_assistant import AICreationAssistantService

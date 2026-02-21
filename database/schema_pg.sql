@@ -272,9 +272,13 @@ CREATE TABLE IF NOT EXISTS creation_projects (
     inspirations JSONB DEFAULT '[]'::jsonb,
     outline JSONB DEFAULT '[]'::jsonb,
     sections JSONB DEFAULT '[]'::jsonb,
+    images JSONB DEFAULT '[]'::jsonb,
 
     draft_content TEXT,
     published_url TEXT,
+
+    -- Cover image
+    cover_image TEXT,
 
     -- Status and progress
     status VARCHAR(20) DEFAULT 'research',

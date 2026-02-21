@@ -891,6 +891,11 @@
                             <span class="ai-action-icon">📤</span>
                             <span>平台格式转换</span>
                         </button>
+
+                        <button class="ai-action-btn" id="btnGenerateImages" onclick="showImageModal()">
+                            <span class="ai-action-icon">🖼️</span>
+                            <span>智能配图</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1052,6 +1057,91 @@
                 <button type="button" class="toolbar-btn" onclick="closeModal('platformModal')">关闭</button>
                 <button type="button" class="toolbar-btn primary" onclick="convertPlatform()">转换</button>
                 <button type="button" class="toolbar-btn" onclick="copyPlatformContent()">复制内容</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Generation Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <h3 style="margin-bottom: 1rem;">🖼️ 智能配图</h3>
+
+            <!-- Image Analysis Section -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h4 style="font-size: 0.95rem;">📋 配图分析</h4>
+                    <button type="button" class="toolbar-btn" onclick="analyzeImages()">🔍 分析内容</button>
+                </div>
+                <div id="imageAnalysisResult" style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; font-size: 0.85rem; max-height: 200px; overflow-y: auto;">
+                    点击"分析内容"按钮，AI将自动识别文章中需要配图的位置...
+                </div>
+            </div>
+
+            <!-- Cover Image Section -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h4 style="font-size: 0.95rem;">🎨 封面图生成</h4>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <select id="coverStyle" style="padding: 0.3rem; border-radius: 4px; border: 1px solid var(--border);">
+                            <option value="modern">现代简约</option>
+                            <option value="professional">专业商务</option>
+                            <option value="creative">创意艺术</option>
+                            <option value="tech">科技感</option>
+                        </select>
+                        <button type="button" class="toolbar-btn primary" onclick="generateCoverImages()">生成封面</button>
+                    </div>
+                </div>
+                <div id="coverImages" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; min-height: 100px;">
+                    <!-- Cover images will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Section Images Section -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h4 style="font-size: 0.95rem;">📷 章节插图</h4>
+                    <select id="sectionSelect" style="padding: 0.3rem; border-radius: 4px; border: 1px solid var(--border);">
+                        <!-- Section options will be populated by analyzeImages() -->
+                    </select>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <button type="button" class="toolbar-btn" onclick="generateSectionImages()">生成章节配图</button>
+                    <button type="button" class="toolbar-btn" onclick="suggestLibraryImages()">📚 素材库推荐</button>
+                </div>
+                <div id="sectionImages" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; min-height: 80px;">
+                    <!-- Section images will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Social Media Images -->
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h4 style="font-size: 0.95rem;">📱 社媒配图</h4>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <select id="socialPlatform" style="padding: 0.3rem; border-radius: 4px; border: 1px solid var(--border);">
+                            <option value="x">X/Twitter</option>
+                            <option value="weixin">微信</option>
+                            <option value="xiaohongshu">小红书</option>
+                            <option value="linkedin">LinkedIn</option>
+                        </select>
+                        <button type="button" class="toolbar-btn" onclick="generateSocialImages()">生成社媒图</button>
+                    </div>
+                </div>
+                <div id="socialImages" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; min-height: 80px;">
+                    <!-- Social images will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Saved Images -->
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">💾 已保存配图</h4>
+                <div id="savedImages" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; min-height: 60px;">
+                    <!-- Saved images will be loaded on open -->
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" class="toolbar-btn" onclick="closeModal('imageModal')">关闭</button>
             </div>
         </div>
     </div>
@@ -1378,6 +1468,400 @@
             navigator.clipboard.writeText(content).then(() => {
                 alert('内容已复制到剪贴板！');
             });
+        }
+
+        // ============== Image Generation Functions ==============
+
+        // Store generated images for selection
+        let currentCoverImages = [];
+        let currentSectionImages = [];
+        let currentSocialImages = [];
+        let currentImageSuggestions = [];
+
+        function showImageModal() {
+            const editor = document.getElementById('draftEditor');
+            const content = editor.value;
+
+            if (!content || content.length < 50) {
+                alert('请先完成内容再添加配图');
+                return;
+            }
+
+            openModal('imageModal');
+            loadSavedImages();
+        }
+
+        async function analyzeImages() {
+            const editor = document.getElementById('draftEditor');
+            const content = editor.value;
+
+            const resultDiv = document.getElementById('imageAnalysisResult');
+            resultDiv.innerHTML = '<span style="color: var(--primary);">🔄 分析中...</span>';
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/analyze-images`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({content: content})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const suggestions = data.data.suggestions;
+                    currentImageSuggestions = suggestions;
+
+                    // Populate section select
+                    const sectionSelect = document.getElementById('sectionSelect');
+                    sectionSelect.innerHTML = '';
+                    suggestions.forEach((s, i) => {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.textContent = s.section_title || `段落 ${i + 1}`;
+                        if (s.needs_image) {
+                            option.textContent += ' (需配图)';
+                        }
+                        sectionSelect.appendChild(option);
+                    });
+
+                    // Display analysis results
+                    let html = `<div style="margin-bottom: 0.5rem;"><strong>分析结果：</strong>共${suggestions.length}个段落，其中 <strong>${data.data.sections_needing_images}</strong> 处需要配图</div>`;
+                    html += '<div style="display: flex; flex-direction: column; gap: 0.5rem;">';
+
+                    suggestions.forEach((s, i) => {
+                        const icon = s.needs_image ? '✅' : '➖';
+                        const style = s.needs_image ? 'color: var(--primary);' : 'color: var(--text-tertiary);';
+                        html += `<div style="${style} padding: 0.5rem; background: var(--bg-primary); border-radius: 4px;">
+                            <strong>${icon} ${s.section_title}</strong>
+                            <div style="font-size: 0.75rem; margin-top: 0.25rem;">${s.reason}</div>
+                            ${s.needs_image && s.suggested_prompt ? `<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem;">建议提示词: ${s.suggested_prompt.substring(0, 50)}...</div>` : ''}
+                        </div>`;
+                    });
+
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<span style="color: red;">分析失败: ' + (data.message || '未知错误') + '</span>';
+                }
+            } catch (error) {
+                console.error('Error analyzing images:', error);
+                resultDiv.innerHTML = '<span style="color: red;">分析时出错</span>';
+            }
+        }
+
+        async function generateCoverImages() {
+            const style = document.getElementById('coverStyle').value;
+            const container = document.getElementById('coverImages');
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">🎨 封面图生成中...</div>';
+
+            try {
+                const editor = document.getElementById('draftEditor');
+                const content = editor.value;
+
+                const response = await fetch(`/api/creations/${currentProjectId}/generate-cover`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        title: document.querySelector('.editor-title-input')?.value || '',
+                        description: content.substring(0, 200),
+                        num_images: 3,
+                        style: style
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentCoverImages = data.data.images || [];
+                    displayImages(currentCoverImages, container, 'cover');
+                } else {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">生成失败</div>';
+                }
+            } catch (error) {
+                console.error('Error generating cover:', error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">生成出错</div>';
+            }
+        }
+
+        async function generateSectionImages() {
+            const sectionIndex = parseInt(document.getElementById('sectionSelect').value) || 0;
+            const container = document.getElementById('sectionImages');
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">📷 章节配图生成中...</div>';
+
+            // Get section content
+            const suggestions = currentImageSuggestions;
+            if (!suggestions || suggestions.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">请先点击"分析内容"</div>';
+                return;
+            }
+
+            const section = suggestions[sectionIndex];
+            if (!section) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">未找到对应段落</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/generate-section-images`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        section_index: sectionIndex,
+                        section_title: section.section_title,
+                        section_content: section.suggested_prompt || '',
+                        num_images: 2
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentSectionImages = data.data.images || [];
+                    displayImages(currentSectionImages, container, 'section', sectionIndex);
+                } else {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">生成失败</div>';
+                }
+            } catch (error) {
+                console.error('Error generating section images:', error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">生成出错</div>';
+            }
+        }
+
+        async function suggestLibraryImages() {
+            const container = document.getElementById('sectionImages');
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">📚 素材库推荐中...</div>';
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/suggest-images?limit=10`, {
+                    method: 'GET'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const suggestions = data.data.suggestions || [];
+                    if (suggestions.length === 0) {
+                        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">暂无相关素材推荐</div>';
+                    } else {
+                        displayLibraryImages(suggestions, container);
+                    }
+                } else {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">推荐失败</div>';
+                }
+            } catch (error) {
+                console.error('Error suggesting library images:', error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">推荐出错</div>';
+            }
+        }
+
+        async function generateSocialImages() {
+            const platform = document.getElementById('socialPlatform').value;
+            const container = document.getElementById('socialImages');
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">📱 社媒配图生成中...</div>';
+
+            try {
+                const editor = document.getElementById('draftEditor');
+                const content = editor.value;
+
+                const response = await fetch(`/api/creations/${currentProjectId}/generate-social-image`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        content: content.substring(0, 500),
+                        platform: platform,
+                        num_images: 2
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentSocialImages = data.data.images || [];
+                    displayImages(currentSocialImages, container, 'social');
+                } else {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">生成失败</div>';
+                }
+            } catch (error) {
+                console.error('Error generating social images:', error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: red;">生成出错</div>';
+            }
+        }
+
+        function displayImages(images, container, type, sectionIndex = null) {
+            if (!images || images.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">暂无图片</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            images.forEach((img, i) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'position: relative; border-radius: 8px; overflow: hidden; cursor: pointer;';
+
+                const imgEl = document.createElement('img');
+                imgEl.src = img.url;
+                imgEl.style.cssText = 'width: 100%; height: 150px; object-fit: cover;';
+                imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x300?text=Image+Error'; };
+
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 0.5rem; display: flex; justify-content: space-between; align-items: center;';
+
+                const selectBtn = document.createElement('button');
+                selectBtn.textContent = '保存';
+                selectBtn.style.cssText = 'background: var(--primary); color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;';
+                selectBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    saveImage(img, type, sectionIndex);
+                };
+
+                const setCoverBtn = document.createElement('button');
+                setCoverBtn.textContent = '设为封面';
+                setCoverBtn.style.cssText = 'background: var(--success); color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-left: 0.25rem;';
+                setCoverBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    setAsCover(img);
+                };
+                if (type !== 'cover') {
+                    setCoverBtn.style.display = 'none';
+                }
+
+                overlay.appendChild(selectBtn);
+                overlay.appendChild(setCoverBtn);
+
+                div.appendChild(imgEl);
+                div.appendChild(overlay);
+                container.appendChild(div);
+            });
+        }
+
+        function displayLibraryImages(suggestions, container) {
+            container.innerHTML = '';
+            suggestions.forEach((item, i) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'position: relative; border-radius: 8px; overflow: hidden; cursor: pointer;';
+
+                const imgEl = document.createElement('img');
+                imgEl.src = item.url;
+                imgEl.style.cssText = 'width: 100%; height: 150px; object-fit: cover;';
+                imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x300?text=Image+Not+Found'; };
+
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 0.5rem;';
+
+                const title = document.createElement('div');
+                title.textContent = item.title || '素材图片';
+                title.style.cssText = 'color: white; font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
+
+                const selectBtn = document.createElement('button');
+                selectBtn.textContent = '使用';
+                selectBtn.style.cssText = 'background: var(--primary); color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.7rem; margin-top: 0.25rem;';
+                selectBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    saveImage(item, 'library');
+                };
+
+                overlay.appendChild(title);
+                overlay.appendChild(selectBtn);
+
+                div.appendChild(imgEl);
+                div.appendChild(overlay);
+                container.appendChild(div);
+            });
+        }
+
+        async function saveImage(img, type, sectionIndex = null) {
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/save-images`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        images: [img],
+                        type: type,
+                        section_index: sectionIndex
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('图片已保存到项目');
+                    loadSavedImages();
+                } else {
+                    alert('保存失败: ' + (data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('Error saving image:', error);
+                alert('保存出错');
+            }
+        }
+
+        async function setAsCover(img) {
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/set-cover-image`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({image_url: img.url})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('封面图已设置');
+                } else {
+                    alert('设置失败');
+                }
+            } catch (error) {
+                console.error('Error setting cover:', error);
+                alert('设置出错');
+            }
+        }
+
+        async function loadSavedImages() {
+            const container = document.getElementById('savedImages');
+
+            if (!currentProjectId) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 1rem; color: var(--text-muted);">请先保存项目</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const project = data.data;
+                    const images = project.images || [];
+                    const coverImage = project.cover_image;
+
+                    let html = '';
+
+                    // Show cover image first
+                    if (coverImage) {
+                        html += `<div style="position: relative; border-radius: 8px; overflow: hidden;">
+                            <img src="${coverImage}" style="width: 100%; height: 80px; object-fit: cover;">
+                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 0.6rem; padding: 0.25rem; text-align: center;">封面</div>
+                        </div>`;
+                    }
+
+                    // Show other images
+                    images.slice(0, 7).forEach((img, i) => {
+                        if (img.url !== coverImage) {
+                            html += `<div style="position: relative; border-radius: 8px; overflow: hidden;">
+                                <img src="${img.url}" style="width: 100%; height: 80px; object-fit: cover;" onerror="this.src='https://placehold.co/100x80?text=Error'">
+                            </div>`;
+                        }
+                    });
+
+                    if (!html) {
+                        html = '<div style="grid-column: 1/-1; text-align: center; padding: 1rem; color: var(--text-muted);">暂无已保存图片</div>';
+                    }
+
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading saved images:', error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 1rem; color: var(--text-muted);">加载失败</div>';
+            }
         }
 
         function goToStep(step) {

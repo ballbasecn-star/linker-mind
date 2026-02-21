@@ -962,9 +962,718 @@ class AICreationAssistantService:
             'x': '✓ 最少280字符\n✓ 使用hashtag增加曝光\n✓ 可添加1-4张图片',
             'weixin': '✓ 标题越吸引越好\n✓ 摘要要有吸引力\n✓ 可添加原文链接',
             'linkedin': '✓ 添加专业话题标签\n✓ 首行要有吸引力\n✓ 建议添加图片',
-            'xiaohongsho': '✓ Emoji要丰富\n✓ 段落要短\n✓ 结尾要有互动引导'
+            'xiaohongshu': '✓ Emoji要丰富\n✓ 段落要短\n✓ 结尾要有互动引导'
         }
         return notes.get(platform, '请根据平台特点调整')
+
+    # ============== Image Generation & Analysis Methods ==============
+
+    def analyze_content_for_images(
+        self,
+        project_id: str,
+        content: str = None
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        Analyze content and identify sections that need images
+        基于"配图"步骤，智能识别文章中需要配图的位置
+
+        Args:
+            project_id: Creation project ID
+            content: The article content (if not provided, will use draft from project)
+
+        Returns:
+            List of image placement suggestions with reasons
+        """
+        from services.creation_service import CreationWorkshopService
+
+        creation_service = CreationWorkshopService(self.db_path)
+        project = creation_service.get_by_id(project_id)
+
+        if not project:
+            return None
+
+        # Use provided content or get from project
+        if not content:
+            content = project.draft or ""
+
+        if not content:
+            return []
+
+        # Split content into sections/paragraphs
+        sections = self._split_content_into_sections(content)
+
+        # Analyze each section for image needs
+        image_suggestions = []
+
+        for idx, section in enumerate(sections):
+            analysis = self._analyze_section_for_image(section, idx, len(sections))
+            if analysis['needs_image']:
+                image_suggestions.append(analysis)
+
+        return image_suggestions
+
+    def _split_content_into_sections(self, content: str) -> List[Dict[str, Any]]:
+        """Split content into analyzable sections"""
+        import re
+
+        sections = []
+        # Split by headers or double newlines
+        parts = re.split(r'\n(?=#|\n\n)', content)
+
+        current_section = {
+            'title': '引言',
+            'content': '',
+            'type': 'intro'
+        }
+
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+
+            # Check if it's a header
+            if part.startswith('#'):
+                # Save previous section
+                if current_section['content']:
+                    sections.append(current_section)
+
+                # Extract header
+                header_match = re.match(r'^(#{1,6})\s+(.+?)(?:\n|$)', part)
+                if header_match:
+                    header_text = header_match.group(2).strip()
+                    content_after_header = part[header_match.end():].strip()
+
+                    # Determine section type based on header
+                    section_type = self._classify_section_type(header_text)
+
+                    current_section = {
+                        'title': header_text,
+                        'content': content_after_header,
+                        'type': section_type
+                    }
+                else:
+                    current_section['content'] += '\n' + part
+            else:
+                current_section['content'] += '\n' + part
+
+        # Add last section
+        if current_section['content']:
+            sections.append(current_section)
+
+        # If no sections were created, treat whole content as one
+        if not sections:
+            sections = [{
+                'title': '全文',
+                'content': content,
+                'type': 'body'
+            }]
+
+        return sections
+
+    def _classify_section_type(self, title: str) -> str:
+        """Classify section type based on title keywords"""
+        title_lower = title.lower()
+
+        if any(kw in title_lower for kw in ['引言', '前言', '介绍', '开场']):
+            return 'intro'
+        elif any(kw in title_lower for kw in ['总结', '结论', '结语', '收尾']):
+            return 'conclusion'
+        elif any(kw in title_lower for kw in ['问题', '背景', '现状']):
+            return 'background'
+        elif any(kw in title_lower for kw in ['方法', '方案', '步骤', '如何']):
+            return 'howto'
+        elif any(kw in title_lower for kw in ['例子', '案例', '示例']):
+            return 'example'
+        elif any(kw in title_lower for kw in ['对比', '比较', '优缺点']):
+            return 'comparison'
+        elif any(kw in title_lower for kw in ['数据', '统计', '研究']):
+            return 'data'
+        else:
+            return 'body'
+
+    def _analyze_section_for_image(
+        self,
+        section: Dict[str, Any],
+        index: int,
+        total_sections: int
+    ) -> Dict[str, Any]:
+        """Analyze if a section needs an image and generate prompt"""
+        title = section.get('title', '')
+        content = section.get('content', '')
+        section_type = section.get('type', 'body')
+
+        # Determine if image is needed based on section type and content
+        needs_image = False
+        reason = ""
+        image_type = "general"
+        suggested_prompt = ""
+
+        # High priority for intro, conclusion, examples, comparisons
+        high_priority_types = ['intro', 'conclusion', 'example', 'comparison', 'data']
+
+        if section_type in high_priority_types:
+            needs_image = True
+            reason = f"章节类型「{section_type}」适合添加配图增强表现力"
+        elif len(content) > 300:
+            # Longer sections benefit from images
+            needs_image = True
+            reason = "较长内容，配图可以缓解阅读疲劳"
+        elif any(kw in content.lower() for kw in ['例如', '比如', '如下', '如图']):
+            needs_image = True
+            reason = "内容提到具体示例或图表"
+
+        if needs_image:
+            # Generate image prompt based on section content
+            image_prompt = self._generate_image_prompt(title, content, section_type)
+            suggested_prompt = image_prompt['prompt']
+            image_type = image_prompt['type']
+
+        return {
+            'section_index': index,
+            'section_title': title,
+            'section_type': section_type,
+            'needs_image': needs_image,
+            'reason': reason if needs_image else "该段落文字较少或为过渡内容，暂不需要配图",
+            'image_type': image_type,
+            'suggested_prompt': suggested_prompt,
+            'position': 'above' if section_type == 'intro' else 'inline'
+        }
+
+    def _generate_image_prompt(
+        self,
+        title: str,
+        content: str,
+        section_type: str
+    ) -> Dict[str, Any]:
+        """Generate image generation prompt based on section content"""
+        # Use LLM to generate a good image prompt
+        prompt = f"""为以下文章章节生成一个适合AI绘图的中文提示词:
+
+标题: {title}
+内容摘要: {content[:200]}
+类型: {section_type}
+
+要求:
+1. 简洁明确，15-30个词
+2. 适合配图表现
+3. 包含视觉风格描述
+4. 输出JSON格式: {{"prompt": "提示词", "type": "类型"}}"""
+
+        result = self._call_llm(prompt, max_tokens=200)
+
+        if result:
+            import json
+            import re
+            json_match = re.search(r'\{[\s\S]*\}', result)
+            if json_match:
+                try:
+                    data = json.loads(json_match.group())
+                    return {
+                        'prompt': data.get('prompt', f'{title}相关配图'),
+                        'type': data.get('type', 'general')
+                    }
+                except:
+                    pass
+
+        # Fallback: generate basic prompt
+        return {
+            'prompt': f'{title}，{section_type}类型配图，简洁现代风格',
+            'type': 'general'
+        }
+
+    def generate_images(
+        self,
+        prompt: str,
+        num_images: int = 3,
+        size: str = "1024x1024",
+        style: str = "modern",
+        project_id: str = "default"
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate images using OpenRouter (Google Gemini 2.5 Flash Image)
+        and save to local file system
+
+        Args:
+            prompt: Image generation prompt (in Chinese)
+            num_images: Number of images to generate
+            size: Image size (1024x1024, 1792x1024, 1024x1792)
+            style: Image style preference
+            project_id: Project ID for organizing images in folder
+
+        Returns:
+            List of generated image data
+        """
+        import requests
+        import uuid
+
+        # Use OpenRouter API with chat/completions endpoint
+        api_key = os.environ.get('OPENROUTER_API_KEY')
+        api_url = 'https://openrouter.ai/api/v1/chat/completions'
+
+        if not api_key:
+            # Fallback to placeholder
+            logger.warning("OPENROUTER_API_KEY not set, using placeholder images")
+            return self._get_placeholder_images(prompt, num_images)
+
+        images = []
+
+        try:
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://linker-mind.local',
+                'X-Title': 'Linker Mind'
+            }
+
+            # Use Google Gemini 2.5 Flash Image model via OpenRouter
+            model = 'google/gemini-2.5-flash-image'
+
+            # Build enhanced prompt for better results
+            enhanced_prompt = f"{prompt}. High quality, detailed, beautiful composition."
+
+            # Generate images one by one
+            for i in range(num_images):
+                payload = {
+                    'model': model,
+                    'messages': [
+                        {'role': 'user', 'content': enhanced_prompt}
+                    ],
+                    'max_tokens': 4096
+                }
+
+                response = requests.post(
+                    api_url,
+                    headers=headers,
+                    json=payload,
+                    timeout=180
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    # Parse response to get base64 image
+                    base64_data = self._parse_image_response(data)
+                    if base64_data and base64_data.startswith('data:'):
+                        # Save to local file
+                        saved_url = self._save_image_to_file(base64_data, project_id)
+                        if saved_url:
+                            images.append({
+                                'id': str(uuid.uuid4()),
+                                'url': saved_url,
+                                'prompt': prompt,
+                                'size': size,
+                                'style': style,
+                                'index': i
+                            })
+                    elif base64_data:
+                        # External URL
+                        images.append({
+                            'id': str(uuid.uuid4()),
+                            'url': base64_data,
+                            'prompt': prompt,
+                            'size': size,
+                            'style': style,
+                            'index': i
+                        })
+                else:
+                    logger.warning(f"Image generation failed: {response.status_code} - {response.text[:200]}")
+
+        except Exception as e:
+            logger.error(f"Error generating images: {e}")
+
+        # If API failed, return placeholder
+        if not images:
+            return self._get_placeholder_images(prompt, num_images)
+
+        return images
+
+    def _parse_image_response(self, data: dict) -> Optional[str]:
+        """Parse image from OpenRouter response (base64 or URL)"""
+        try:
+            if 'choices' in data and len(data['choices']) > 0:
+                msg = data['choices'][0].get('message', {})
+                images = msg.get('images', [])
+
+                if images and len(images) > 0:
+                    img_data = images[0]
+                    img_url = img_data.get('image_url', {}).get('url', '')
+
+                    if img_url.startswith('data:'):
+                        # Already a data URL, return as is
+                        return img_url
+                    elif img_url.startswith('http'):
+                        # Regular URL
+                        return img_url
+
+            return None
+        except Exception as e:
+            logger.error(f"Error parsing image response: {e}")
+            return None
+
+    def _save_image_to_file(self, base64_data: str, project_id: str) -> Optional[str]:
+        """Save base64 image to local file and return URL"""
+        import re
+        import os
+        import uuid
+
+        try:
+            # Extract base64 content and mime type
+            match = re.match(r'data:([^;]+);base64,(.+)', base64_data)
+            if not match:
+                logger.warning("Invalid base64 image data")
+                return None
+
+            mime_type = match.group(1)
+            b64_content = match.group(2)
+
+            # Determine file extension
+            ext_map = {
+                'image/png': 'png',
+                'image/jpeg': 'jpg',
+                'image/jpg': 'jpg',
+                'image/gif': 'gif',
+                'image/webp': 'webp'
+            }
+            ext = ext_map.get(mime_type, 'png')
+
+            # Create directory path
+            upload_dir = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                'static', 'uploads', 'images', project_id
+            )
+            os.makedirs(upload_dir, exist_ok=True)
+
+            # Generate filename
+            filename = f"{uuid.uuid4().hex}.{ext}"
+            filepath = os.path.join(upload_dir, filename)
+
+            # Decode and save
+            import base64
+            image_data = base64.b64decode(b64_content)
+            with open(filepath, 'wb') as f:
+                f.write(image_data)
+
+            # Return relative URL
+            return f"/uploads/images/{project_id}/{filename}"
+
+        except Exception as e:
+            logger.error(f"Error saving image to file: {e}")
+            return None
+
+    def _get_placeholder_images(
+        self,
+        prompt: str,
+        num_images: int
+    ) -> List[Dict[str, Any]]:
+        """Get placeholder images when API is not available"""
+        images = []
+        # Use a placeholder service
+        for i in range(num_images):
+            images.append({
+                'id': f'placeholder_{i}',
+                'url': f'https://placehold.co/1024x1024/4A90E2/FFFFFF?text=AI+Generated+Image+{i+1}',
+                'prompt': prompt,
+                'size': '1024x1024',
+                'style': 'placeholder',
+                'index': i,
+                'is_placeholder': True
+            })
+        return images
+
+    def generate_cover_image(
+        self,
+        project_id: str,
+        title: str = None,
+        description: str = None,
+        num_images: int = 3,
+        style: str = "modern"
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        Generate cover images for the article
+
+        Args:
+            project_id: Creation project ID
+            title: Article title (if not provided, will use from project)
+            description: Article description/brief
+            num_images: Number of cover options to generate
+            style: Visual style preference
+
+        Returns:
+            List of generated cover images
+        """
+        from services.creation_service import CreationWorkshopService
+
+        creation_service = CreationWorkshopService(self.db_path)
+        project = creation_service.get_by_id(project_id)
+
+        if not project:
+            return None
+
+        # Use provided title or get from project
+        if not title:
+            title = project.title or "文章封面"
+
+        if not description:
+            description = project.brief or ""
+
+        # Build prompt for cover image
+        cover_prompt = f"""为文章「{title}」生成封面图
+
+文章简介: {description[:100]}
+风格: {style}简约现代风格，适合社交媒体分享"""
+
+        # Generate images
+        images = self.generate_images(
+            prompt=cover_prompt,
+            num_images=num_images,
+            size="1792x1024",  # 16:9 ratio for covers
+            style=style,
+            project_id=project_id
+        )
+
+        # Mark as cover images
+        for img in images:
+            img['type'] = 'cover'
+
+        return images
+
+    def generate_section_images(
+        self,
+        project_id: str,
+        section_index: int,
+        section_title: str,
+        section_content: str,
+        num_images: int = 2
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        Generate images for a specific section
+
+        Args:
+            project_id: Creation project ID
+            section_index: Section index in the article
+            section_title: Section title
+            section_content: Section content
+            num_images: Number of images to generate
+
+        Returns:
+            List of generated images for the section
+        """
+        # Generate prompt based on section content
+        image_prompt = self._generate_image_prompt(
+            section_title,
+            section_content,
+            'body'
+        )
+
+        # Generate images
+        images = self.generate_images(
+            prompt=image_prompt['prompt'],
+            num_images=num_images,
+            size="1024x1024",
+            project_id=project_id
+        )
+
+        # Add section info
+        for img in images:
+            img['type'] = 'section'
+            img['section_index'] = section_index
+            img['section_title'] = section_title
+
+        return images
+
+    def suggest_from_library(
+        self,
+        project_id: str,
+        keywords: List[str] = None,
+        limit: int = 10
+    ) -> List[Dict[str, Any]]:
+        """
+        Suggest images from the content library
+
+        Args:
+            project_id: Creation project ID
+            keywords: Keywords to search for
+            limit: Maximum number of suggestions
+
+        Returns:
+            List of suggested images from library
+        """
+        from services.creation_service import CreationWorkshopService
+        from repositories.content_repository import ContentRepository
+
+        creation_service = CreationWorkshopService(self.db_path)
+        content_repo = ContentRepository(self.db_path)
+
+        project = creation_service.get_by_id(project_id)
+        if not project:
+            return []
+
+        # Get keywords from project if not provided
+        if not keywords:
+            # Extract from source materials
+            keywords = self.suggest_keywords(project_id)
+
+        # Search for images in content library
+        suggestions = []
+
+        # Get all source materials
+        if project.source_materials:
+            placeholders = ','.join(['%s'] * len(project.source_materials))
+            query = f"""
+                SELECT c.id, c.title, c.cover_image, c.metadata
+                FROM contents c
+                WHERE c.id IN ({placeholders})
+                AND (c.cover_image IS NOT NULL OR c.metadata::text LIKE '%image%')
+            """
+
+            rows = self.db.fetchall(query, tuple(project.source_materials))
+
+            for row in rows:
+                cover = row.get('cover_image')
+                metadata = row.get('metadata', {})
+
+                if cover:
+                    suggestions.append({
+                        'id': row.get('id'),
+                        'type': 'cover',
+                        'url': cover,
+                        'title': row.get('title'),
+                        'source': 'content_cover'
+                    })
+                elif metadata:
+                    # Check for images in metadata
+                    images = metadata.get('images', [])
+                    for img in images[:2]:
+                        suggestions.append({
+                            'id': f"{row.get('id')}_{img.get('id', '')}",
+                            'type': 'content_image',
+                            'url': img.get('url', ''),
+                            'title': row.get('title'),
+                            'source': 'content_metadata'
+                        })
+
+        # Also search by keywords in all content
+        if keywords and len(suggestions) < limit:
+            search_terms = ' OR '.join([f"%{kw}%" for kw in keywords[:5]])
+            query = f"""
+                SELECT id, title, cover_image, metadata
+                FROM contents
+                WHERE (title ILIKE ANY(ARRAY[{search_terms}])
+                       OR summary ILIKE ANY(ARRAY[{search_terms}]))
+                AND cover_image IS NOT NULL
+                LIMIT {limit - len(suggestions)}
+            """
+
+            rows = self.db.fetchall(query)
+
+            existing_ids = {s['id'] for s in suggestions}
+            for row in rows:
+                if row.get('id') not in existing_ids:
+                    suggestions.append({
+                        'id': row.get('id'),
+                        'type': 'cover',
+                        'url': row.get('cover_image'),
+                        'title': row.get('title'),
+                        'source': 'keyword_search'
+                    })
+
+        return suggestions[:limit]
+
+    def generate_social_image(
+        self,
+        content: str,
+        platform: str,
+        num_images: int = 3,
+        project_id: str = "default"
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate images optimized for social media platforms
+
+        Args:
+            content: Content to generate image for
+            platform: Target platform (x, weixin, xiaohongshu, linkedin)
+            num_images: Number of images to generate
+            project_id: Project ID for organizing images
+
+        Returns:
+            List of generated social media images
+        """
+        # Determine size based on platform
+        platform_sizes = {
+            'x': '1600x900',      # Twitter card
+            'weixin': '1200x630', # WeChat article
+            'xiaohongshu': '1242x1660', # Xiaohongshu portrait
+            'linkedin': '1200x627' # LinkedIn share
+        }
+
+        size = platform_sizes.get(platform, '1200x630')
+
+        # Extract key content for prompt
+        title_match = content.split('\n')[0][:50] if content else "社交媒体配图"
+
+        prompt = f"""生成社交媒体配图
+
+平台: {platform}
+内容主题: {title_match}
+风格: 视觉吸引、专业简洁"""
+
+        return self.generate_images(
+            prompt=prompt,
+            num_images=num_images,
+            size=size,
+            style='social',
+            project_id=project_id
+        )
+
+    def save_project_images(
+        self,
+        project_id: str,
+        images: List[Dict[str, Any]],
+        image_type: str = 'section',
+        section_index: int = None
+    ) -> bool:
+        """
+        Save generated images to project
+
+        Args:
+            project_id: Creation project ID
+            images: List of image data to save
+            image_type: Type of images (cover, section, social)
+            section_index: Section index for section images
+
+        Returns:
+            Success status
+        """
+        from services.creation_service import CreationWorkshopService
+
+        creation_service = CreationWorkshopService(self.db_path)
+        project = creation_service.get_by_id(project_id)
+
+        if not project:
+            return False
+
+        # Get existing images
+        existing_images = project.images or []
+
+        # Add new images
+        for img in images:
+            img['saved_at'] = datetime.now().isoformat()
+            img['project_id'] = project_id
+
+            if image_type == 'cover':
+                img['type'] = 'cover'
+            elif image_type == 'section' and section_index is not None:
+                img['section_index'] = section_index
+                img['type'] = 'section'
+
+            existing_images.append(img)
+
+        # Update project
+        creation_service.update(
+            project_id,
+            images=existing_images
+        )
+
+        return True
 
 
 if __name__ == "__main__":
