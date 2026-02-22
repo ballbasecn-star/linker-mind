@@ -768,14 +768,29 @@ class AICreationAssistantService:
             # ===== Step 0: Simple cleanup - strip and add proper line breaks =====
             lines = content.split('\n')
             cleaned_lines = []
+            prev_was_table_row = False
+
             for line in lines:
                 # Remove all leading/trailing whitespace including tabs, multiple spaces
                 line = line.strip()
                 # Also remove multiple consecutive spaces within the line
                 line = re.sub(r' {2,}', ' ', line)
                 if line:
-                    cleaned_lines.append(line)
-            # Join with double newlines for markdown paragraph detection
+                    # Check if this is a table row (starts with |)
+                    is_table_row = line.startswith('|') or line.endswith('|')
+
+                    # If previous was a table row and this is also a table row, join without blank line
+                    if prev_was_table_row and is_table_row:
+                        # Join directly without double newline
+                        cleaned_lines[-1] = cleaned_lines[-1] + '\n' + line
+                    else:
+                        cleaned_lines.append(line)
+
+                    prev_was_table_row = is_table_row
+                else:
+                    prev_was_table_row = False
+
+            # Join with double newlines for markdown paragraph detection (tables handled above)
             content = '\n\n'.join(cleaned_lines)
 
             # ===== Step 1: Convert numbered sections to h2 (before first line conversion) =====
@@ -807,20 +822,23 @@ class AICreationAssistantService:
             content = re.sub(r'(#+.+)\n([^#\n])', r'\1\n\n\2', content)
 
             # 1. Check if content contains Markdown syntax
-            has_markdown = bool(re.search(r'^#{1,6}\s+', content, re.MULTILINE)) or '**' in content or '*' in content or '- ' in content or '> ' in content or '```' in content
+            has_markdown = bool(re.search(r'^#{1,6}\s+', content, re.MULTILINE)) or '**' in content or '*' in content or '- ' in content or '> ' in content or '```' in content or '|' in content
 
             if has_markdown:
                 # Parse Markdown to HTML
                 html = self.parse_markdown(content)
             else:
                 # Plain text - convert newlines to paragraphs
+                # Split on double newlines but preserve single line breaks within content
                 paragraphs = content.split('\n\n')
                 html_parts = []
                 for p in paragraphs:
                     p = p.strip()
                     if p:
-                        html_parts.append(f'<p>{p}</p>')
-                html = '\n'.join(html_parts)
+                        # Don't wrap in <p> - let _format_weixin_html handle it
+                        # This avoids double-wrapping issues
+                        html_parts.append(p)
+                html = '<p>' + '</p><p>'.join(html_parts) + '</p>'
 
             # 2. Add warm beige theme styles
             html = self._format_weixin_html(html)
@@ -1168,11 +1186,7 @@ LinkedIn格式要求：
         import re
 
         # Clean up HTML content before processing
-        # First normalize the content - add blank lines before section markers
-        html_content = re.sub(r'^(一、二、三、四、五、六、七、八、九、十、零)([、.])\s*', r'\n\n## \1\2 ', html_content, flags=re.MULTILINE)
-        html_content = re.sub(r'^(前言|概述|简介|摘要|总结|安装|配置|使用|常见问题|FAQ|下一步)([\s：:]|$)', r'\n\n## \1\2', html_content, flags=re.MULTILINE)
-
-        # Remove excessive leading/trailing whitespace on each line
+        # NOTE: Don't apply markdown transformations to HTML content - it breaks the structure!
         lines = html_content.split('\n')
         cleaned_lines = []
         for line in lines:
@@ -1187,44 +1201,8 @@ LinkedIn格式要求：
         html_content = '\n'.join(cleaned_lines)
         html_content = re.sub(r'\n{3,}', '\n\n', html_content)
 
-        # Post-process: Convert standalone text that looks like headings to actual headings
-        # Pattern: Lines ending with "：" or "?" or "！" that are on their own and look like titles
-
-        # First, split paragraphs that contain multiple lines separated by newlines
-        # This handles cases where the markdown parser didn't properly separate paragraphs
-        html_content = re.sub(r'(<p[^>]*>)(.*?)(\n)(.*?)(</p>)', r'\1\2</p>\1\4</p>', html_content)
-
-        # Convert numbered sections like "一、xxx" to h2
-        html_content = re.sub(
-            r'<p[^>]*>([一二三四五六七八九十\d]+[、.]\s*[^<>]+?)</p>',
-            r'<h2>\1</h2>',
-            html_content,
-            flags=re.IGNORECASE
-        )
-
-        # Convert lines that end with "：" and look like section titles (standalone)
-        def convert_title_to_heading(match):
-            text = match.group(1).strip()
-            # Skip if it looks like a sentence (has multiple periods or commas)
-            if text.count('。') > 1 or text.count(',') > 2:
-                return match.group(0)
-            # Convert to h3
-            return f'<h3>{text}</h3>'
-
-        html_content = re.sub(
-            r'<p[^>]*>([^<>]{2,40}：[^<>]*)</p>',
-            convert_title_to_heading,
-            html_content,
-            flags=re.IGNORECASE
-        )
-
-        # Convert FAQ questions (Q1:, Q2:, etc.) to h3
-        html_content = re.sub(
-            r'<p[^>]*>(Q\d+[：:]?\s*.*?)</p>',
-            r'<h3>\1</h3>',
-            html_content,
-            flags=re.IGNORECASE
-        )
+        # NOTE: Post-processing of HTML content to convert titles to headings
+        # has been disabled as it incorrectly matches content like "A:" and "Q:"
 
         # Color palette - warm beige theme with premium accents
         colors = {
@@ -1261,6 +1239,12 @@ LinkedIn格式要求：
         result = html_content
 
         # ========== 1. Headers - Enhanced visual hierarchy ==========
+        result = html_content
+
+        # FIX: First clean up any malformed nested p tags that might exist
+        # This fixes issues with double-wrapped paragraphs
+        result = re.sub(r'<p[^>]*>\s*<p', '<p', result)
+        result = re.sub(r'</p>\s*</p>', '</p>', result)
         for i in range(6, 0, -1):
             if i == 1:
                 # h1 - Main title with gradient underline and left accent
@@ -1299,8 +1283,7 @@ LinkedIn格式要求：
 
         # 2. Paragraphs - clean and readable (skip if already has style)
         # Also clean up duplicate/malformed p tags first
-        result = re.sub(r'</p>\s*<p', '</p><p', result)
-        result = re.sub(r'<p>\s*</p>', '', result)
+        import sys
 
         # Remove p tags inside li (they create invalid nested blocks)
         result = re.sub(r'<li([^>]*)>(.*?)<p(.*?)>(.*?)</p>(.*?)</li>', r'<li\1>\2\4\5</li>', result, flags=re.IGNORECASE | re.DOTALL)
