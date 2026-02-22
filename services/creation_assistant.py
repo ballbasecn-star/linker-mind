@@ -1112,7 +1112,7 @@ LinkedIn格式要求：
     def _format_weixin_html(self, html_content: str) -> str:
         """
         Enhance WeChat HTML with beautiful warm beige theme styles
-        Classic black & white theme with 15px base font
+        Premium article styling with enhanced visual hierarchy
 
         Args:
             html_content: Raw HTML from Markdown conversion
@@ -1122,17 +1122,24 @@ LinkedIn格式要求：
         """
         import re
 
-        # Color palette - warm beige theme
+        # Color palette - warm beige theme with premium accents
         colors = {
-            'bg': '#FAF8F5',        # Warm beige background
-            'bg_light': '#F5F0E8', # Lighter beige
-            'text': '#2D2D2D',      # Near black for text
-            'text_light': '#5A5A5A', # Lighter text
-            'accent': '#1A1A1A',    # Black accent
-            'border': '#E8E4DE',    # Subtle border
-            'code_bg': '#F0EDE8',   # Code background
-            'quote_border': '#C9C4BC', # Quote border
-            'link': '#3B5998',      # Classic blue link
+            'bg': '#FAF8F5',              # Warm beige background
+            'bg_light': '#F5F0E8',       # Lighter beige
+            'text': '#2D2D2D',           # Near black for text
+            'text_light': '#6B6B6B',     # Lighter text
+            'accent': '#8B7355',         # Deep warm brown accent
+            'accent_light': '#A69070',   # Light warm brown
+            'border': '#E8E4DE',         # Subtle border
+            'code_bg': '#F5F0E8',        # Light beige code background
+            'code_text': '#2D2D2D',      # Code text color (dark)
+            'code_keyword': '#D73A49',   # Code keyword (red)
+            'code_string': '#22863A',    # Code string (green)
+            'code_comment': '#6A737D',   # Code comment (gray)
+            'code_number': '#005CC5',    # Code number (blue)
+            'quote_border': '#8B7355',   # Quote border accent
+            'link': '#3B5998',           # Classic blue link
+            'h1_accent': '#D4C4B0',     # H1 accent color
         }
 
         # If no HTML tags, wrap in paragraphs
@@ -1149,68 +1156,89 @@ LinkedIn格式要求：
 
         result = html_content
 
-        # 1. Handle headers - elegant and clear
+        # ========== 1. Headers - Enhanced visual hierarchy ==========
         for i in range(6, 0, -1):
             if i == 1:
-                # h1 - Main title
+                # h1 - Main title with gradient underline and left accent
                 result = re.sub(
-                    rf'<h{i}([^>]*)>',
-                    rf'<h{i}\1 style="font-size:24px;font-weight:700;color:{colors["text"]};margin:24px 0 16px;line-height:1.4;border-bottom:2px solid {colors["accent"]};padding-bottom:10px;">',
+                    rf'<h{i}([^>]*)>(.*?)</h{i}>',
+                    rf'''<h{i}\1 style="font-size:26px;font-weight:700;color:{colors["text"]};margin:28px 0 20px;line-height:1.3;position:relative;padding-left:16px;border-left:4px solid {colors["accent"]};">
+                    <span style="display:block;margin-top:12px;border-bottom:2px solid transparent;background:linear-gradient(90deg,{colors["accent"]} 0%,{colors["h1_accent"]} 100%);height:2px;"></span>
+                    \2</h{i}>''',
                     result,
-                    flags=re.IGNORECASE
+                    flags=re.IGNORECASE | re.DOTALL
                 )
             elif i == 2:
-                # h2 - Section title
+                # h2 - Section title with left bar and background
                 result = re.sub(
-                    rf'<h{i}([^>]*)>',
-                    rf'<h{i}\1 style="font-size:20px;font-weight:600;color:{colors["text"]};margin:24px 0 12px;line-height:1.4;">',
+                    rf'<h{i}([^>]*)>(.*?)</h{i}>',
+                    rf'''<h{i}\1 style="font-size:20px;font-weight:600;color:{colors["text"]};margin:24px 0 14px;line-height:1.4;position:relative;padding:10px 0 10px 14px;border-left:3px solid {colors["accent_light"]};background:linear-gradient(90deg,{colors["bg_light"]} 0%,transparent 100%);">
+                    \2</h{i}>''',
                     result,
-                    flags=re.IGNORECASE
+                    flags=re.IGNORECASE | re.DOTALL
                 )
             elif i == 3:
-                # h3 - Subsection
+                # h3 - Subsection with left dot
                 result = re.sub(
-                    rf'<h{i}([^>]*)>',
-                    rf'<h{i}\1 style="font-size:17px;font-weight:600;color:{colors["text"]};margin:20px 0 10px;line-height:1.4;">',
+                    rf'<h{i}([^>]*)>(.*?)</h{i}>',
+                    rf'''<h{i}\1 style="font-size:17px;font-weight:600;color:{colors["text"]};margin:20px 0 10px;line-height:1.4;padding-left:12px;position:relative;">
+                    <span style="position:absolute;left:0;top:8px;width:6px;height:6px;background:{colors["accent"]};border-radius:50%;"></span>
+                    \2</h{i}>''',
                     result,
-                    flags=re.IGNORECASE
+                    flags=re.IGNORECASE | re.DOTALL
                 )
             else:
                 # h4-h6
                 result = re.sub(
-                    rf'<h{i}([^>]*)>',
-                    rf'<h{i}\1 style="font-size:16px;font-weight:600;color:{colors["text"]};margin:16px 0 8px;">',
+                    rf'<h{i}([^>]*)>(.*?)</h{i}>',
+                    rf'<h{i}\1 style="font-size:16px;font-weight:600;color:{colors["text"]};margin:16px 0 8px;">\2</h{i}>',
                     result,
-                    flags=re.IGNORECASE
+                    flags=re.IGNORECASE | re.DOTALL
                 )
 
-        # 2. Paragraphs - clean and readable
+        # 2. Paragraphs - clean and readable (skip if already has style)
         result = re.sub(
-            r'<p([^>]*)(?<!style=")(?<!style=\')>',
-            rf'<p\1 style="margin:12px 0;line-height:1.8;font-size:15px;color:{colors["text"]};">',
+            r'<p([^>]*)>',
+            lambda m: f'<p{m.group(1)} style="margin:12px 0;line-height:1.8;font-size:15px;color:{colors["text"]};">' if 'style=' not in m.group(1) else m.group(0),
             result,
             flags=re.IGNORECASE
         )
 
-        # 3. Blockquotes - elegant quote style
+        # 3. Blockquotes - premium quote style with gradient and icon
         result = re.sub(
             r'<blockquote([^>]*)>',
-            rf'''<blockquote\1 style="border-left:3px solid {colors["quote_border"]};background:{colors["bg_light"]};padding:14px 18px;margin:16px 0;color:{colors["text_light"]};line-height:1.7;font-size:14px;border-radius:0 6px 6px 0;">''',
+            rf'''<blockquote\1 style="border-left:4px solid {colors["quote_border"]};background:linear-gradient(135deg,{colors["bg_light"]} 0%,#EDE8E0 100%);padding:16px 20px;margin:16px 0;color:{colors["text_light"]};line-height:1.8;font-size:14px;border-radius:0 8px 8px 0;position:relative;">
+            <span style="position:absolute;top:8px;left:12px;font-size:24px;color:{colors["accent"]};opacity:0.3;font-family:Georgia,serif;">"</span>
+            <span style="display:block;padding-left:16px;">''',
+            result,
+            flags=re.IGNORECASE
+        )
+        # Close the span tag before closing blockquote
+        result = re.sub(
+            r'</blockquote>',
+            '</span></blockquote>',
             result,
             flags=re.IGNORECASE
         )
 
-        # 4. Lists - clear structure
+        # 4. Lists - enhanced with custom bullets
         result = re.sub(
-            r'<(ul|ol)([^>]*)>',
-            rf'<\1\2 style="margin:12px 0;padding-left:22px;">',
+            r'<ul([^>]*)>',
+            r'<ul\1 style="margin:12px 0;padding-left:24px;list-style:none;">',
+            result,
+            flags=re.IGNORECASE
+        )
+        result = re.sub(
+            r'<ol([^>]*)>',
+            r'<ol\1 style="margin:12px 0;padding-left:24px;">',
             result,
             flags=re.IGNORECASE
         )
 
         result = re.sub(
             r'<li([^>]*)>',
-            rf'<li\1 style="margin:8px 0;line-height:1.7;font-size:15px;color:{colors["text"]};">',
+            rf'''<li\1 style="margin:10px 0;line-height:1.7;font-size:15px;color:{colors["text"]};position:relative;padding-left:8px;">
+            <span style="position:absolute;left:-16px;top:8px;width:6px;height:6px;background:{colors["accent"]};border-radius:50%;"></span>''',
             result,
             flags=re.IGNORECASE
         )
@@ -1237,59 +1265,134 @@ LinkedIn格式要求：
             flags=re.IGNORECASE
         )
 
-        # 7. Images - clean and responsive
+        # 7. Images - clean and responsive with elegant styling
         result = re.sub(
             r'<img([^>]*)>',
-            r'<img\1 style="max-width:100%;height:auto;margin:16px 0;border-radius:6px;display:block;">',
+            r'<img\1 style="max-width:100%;height:auto;margin:20px 0;border-radius:8px;display:block;box-shadow:0 2px 8px rgba(0,0,0,0.1);">',
             result,
             flags=re.IGNORECASE
         )
 
-        # 8. Code - inline and blocks
+        # 8. Code - light theme (elegant and readable)
+        # Inline code - warm background
         result = re.sub(
-            r'<code([^>]*)>',
-            r'<code\1 style="background:#F0EDE8;padding:2px 6px;border-radius:4px;font-family:SF Mono,Monaco,Menlo,monospace;font-size:13px;color:#1A1A1A;">',
+            r'<code([^>]*?)>(.*?)</code>',
+            lambda m: f'<code{m.group(1)} style="background:{colors["bg_light"]};padding:3px 8px;border-radius:4px;font-family:SF Mono,Monaco,Menlo,monospace;font-size:13px;color:{colors["accent"]};border:1px solid {colors["border"]};">{m.group(2)}</code>' if '1E1E1E' not in m.group(1) and '#1E1E1E' not in m.group(1) else m.group(0),
             result,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE | re.DOTALL
         )
+        # Code blocks with light theme - clean and elegant
+        def replace_pre(m):
+            attrs = m.group(1)
+            code_content = m.group(2)
+
+            # Extract language from inner <code class="language-xxx"> if present
+            lang = 'code'
+            code_lang_match = re.search(r'<code[^>]*class="[^"]*language-(\w+)', code_content, re.IGNORECASE)
+            if code_lang_match:
+                lang = code_lang_match.group(1)
+
+            # Remove existing class and style attributes from pre
+            attrs = re.sub(r'\s*class="[^"]*"', '', attrs)
+            attrs = re.sub(r"\s*class='[^']*'", '', attrs)
+            attrs = re.sub(r'\s*style="[^"]*"', '', attrs)
+            attrs = re.sub(r"\s*style='[^']*'", '', attrs)
+
+            # Remove language class from inner code (we'll re-add styling anyway)
+            code_content = re.sub(r'class="[^"]*language-(\w+)[^"]*"', '', code_content)
+
+            # Get language display name (map common names)
+            lang_display = {
+                'bash': 'bash',
+                'python': 'python',
+                'js': 'javascript',
+                'javascript': 'javascript',
+                'html': 'html',
+                'css': 'css',
+                'json': 'json',
+                'sql': 'sql',
+                'yaml': 'yaml',
+                'go': 'go',
+                'rust': 'rust',
+                'java': 'java',
+            }.get(lang.lower(), lang)
+
+            return f'''<pre{attrs} style="background:{colors["code_bg"]};padding:0;border-radius:10px;margin:16px 0;overflow-x:auto;font-size:13px;line-height:1.7;border:1px solid {colors["border"]};position:relative;">
+            <div style="background:{colors["accent_light"]};padding:8px 16px;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:6px;">
+            <span style="width:10px;height:10px;border-radius:50%;background:#FF5F56;"></span>
+            <span style="width:10px;height:10px;border-radius:50%;background:#FFBD2E;"></span>
+            <span style="width:10px;height:10px;border-radius:50%;background:#27CA40;"></span>
+            <span style="margin-left:auto;color:#fff;font-size:11px;font-family:monospace;text-transform:uppercase;">{lang_display}</span>
+            </div>
+            <div style="padding:16px;color:{colors["code_text"]};overflow-x:auto;font-family:SF Mono,Monaco,Menlo,monospace;">{code_content}</div></pre>'''
+
         result = re.sub(
-            r'<pre([^>]*)>',
-            rf'''<pre\1 style="background:{colors["code_bg"]};padding:16px;border-radius:8px;margin:16px 0;overflow-x:auto;font-size:13px;line-height:1.6;border:1px solid {colors["border"]};">''',
+            r'<pre([^>]*)>(.*?)</pre>',
+            replace_pre,
             result,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE | re.DOTALL
         )
 
-        # 9. Horizontal rules (hr)
+        # 9. Horizontal rules (hr) - enhanced
         result = re.sub(
             r'<hr([^>]*)>',
-            rf'<hr\1 style="border:none;border-top:1px solid {colors["border"]};margin:24px 0;">',
+            rf'''<hr\1 style="border:none;height:1px;background:linear-gradient(90deg,transparent 0%,{colors["border"]} 20%,{colors["border"]} 80%,transparent 100%);margin:28px 0;">''',
             result,
             flags=re.IGNORECASE
         )
 
-        # 10. Tables
+        # 10. Tables - premium styling
         result = re.sub(
             r'<table([^>]*)>',
-            rf'''<table\1 style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">''',
+            rf'''<table\1 style="width:100%;border-collapse:separate;border-spacing:0;margin:16px 0;font-size:14px;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">''',
             result,
             flags=re.IGNORECASE
+        )
+        # Remove thead style and add it to th instead
+        result = re.sub(
+            r'<thead([^>]*)>.*?<tr>',
+            r'<thead><tr>',
+            result,
+            flags=re.IGNORECASE | re.DOTALL
         )
         result = re.sub(
             r'<th([^>]*)>',
-            rf'<th\1 style="background:{colors["bg_light"]};padding:10px;border:1px solid {colors["border"]};text-align:left;font-weight:600;">',
+            rf'<th\1 style="background:{colors["accent"]};color:#fff;padding:12px 14px;border:none;text-align:left;font-weight:600;font-size:14px;">',
             result,
             flags=re.IGNORECASE
         )
         result = re.sub(
             r'<td([^>]*)>',
-            rf'<td\1 style="padding:10px;border:1px solid {colors["border"]};">',
+            rf'<td\1 style="padding:12px 14px;border:none;border-bottom:1px solid {colors["border"]};">',
             result,
             flags=re.IGNORECASE
         )
+        # Add zebra striping - alternate row backgrounds
+        # Find tbody and alternate row backgrounds
+        def zebra_stripe(match):
+            content = match.group(2)
+            rows = content.split('</tr>')
+            new_rows = []
+            for i, row in enumerate(rows):
+                if row.strip():
+                    bg = '#FAFAFA' if i % 2 == 0 else '#FFFFFF'
+                    row = re.sub(r'<tr([^>]*)>', rf'<tr\1 style="background:{bg};">', row)
+                    new_rows.append(row)
+            return match.group(1) + '</tr>'.join(new_rows) + match.group(3)
 
-        # 11. Clean up empty style attributes
+        result = re.sub(
+            r'(<tbody>)(.*?)(</tbody>)',
+            zebra_stripe,
+            result,
+            flags=re.IGNORECASE | re.DOTALL
+        )
+
+        # 11. Clean up empty and duplicate style attributes
         result = re.sub(r'style=""', '', result)
         result = re.sub(r'style=\'\'', '', result)
+        # Remove duplicate style="..." patterns
+        result = re.sub(r'\s*style="[^"]*"', lambda m: m.group(0).split('"')[-2] and m.group(0), result)
+        result = re.sub(r'\sstyle="[^"]*"\s*style="([^"]*)"', r' style="\1"', result)
 
         # 12. Wrap in container with warm beige background
         result = f'''<div style="width:100%;max-width:677px;margin:0 auto;padding:20px;background:{colors["bg"]};font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue',sans-serif;font-size:15px;line-height:1.8;color:{colors["text"]};">
