@@ -761,6 +761,51 @@ class AICreationAssistantService:
             Dictionary with converted content
         """
         if platform == 'weixin':
+            # Preprocess: Convert Chinese section markers to markdown headings
+            # This handles content like "一、xxx" -> "## 一、xxx"
+            import re
+
+            # ===== Step 0: Simple cleanup - strip and add proper line breaks =====
+            lines = content.split('\n')
+            cleaned_lines = []
+            for line in lines:
+                # Remove all leading/trailing whitespace including tabs, multiple spaces
+                line = line.strip()
+                # Also remove multiple consecutive spaces within the line
+                line = re.sub(r' {2,}', ' ', line)
+                if line:
+                    cleaned_lines.append(line)
+            # Join with double newlines for markdown paragraph detection
+            content = '\n\n'.join(cleaned_lines)
+
+            # ===== Step 1: Convert numbered sections to h2 (before first line conversion) =====
+            # Note: \s* allows for optional whitespace after the delimiter
+            content = re.sub(r'^((一|二|三|四|五|六|七|八|九|十|零)[、.]\s*)', r'## \1', content, flags=re.MULTILINE)
+
+            # ===== Step 2: Convert common section titles to h2 =====
+            section_titles = '前言|概述|简介|摘要|总结|安装|配置|使用|常见问题|FAQ|下一步|典型使用场景|推荐配置|实战场景演示|总结'
+            content = re.sub(rf'^({section_titles})$', r'## \1', content, flags=re.MULTILINE)
+
+            # ===== Step 3: First line should be h1 (if not already a heading) =====
+            lines = content.split('\n')
+            if lines and lines[0] and not lines[0].startswith('#'):
+                lines[0] = '# ' + lines[0]
+            content = '\n'.join(lines)
+
+            # ===== Step 4: Add blank lines after numbered/section headings =====
+            # After h2/h3 headings followed by content, add blank line
+            content = re.sub(r'(## .+？)\n([^#])', r'\1\n\n\2', content)
+
+            # ===== Step 5: Handle code fence markers =====
+            content = re.sub(r'^CODE$', '```', content, flags=re.MULTILINE)
+            content = re.sub(r'^BASH$', '```bash', content, flags=re.MULTILINE)
+            content = re.sub(r'^PYTHON$', '```python', content, flags=re.MULTILINE)
+            content = re.sub(r'^SHELL$', '```bash', content, flags=re.MULTILINE)
+
+            # ===== Step 6: Add blank lines after headings to separate from content =====
+            # Match headings followed by non-blank content and add blank line
+            content = re.sub(r'(#+.+)\n([^#\n])', r'\1\n\n\2', content)
+
             # 1. Check if content contains Markdown syntax
             has_markdown = bool(re.search(r'^#{1,6}\s+', content, re.MULTILINE)) or '**' in content or '*' in content or '- ' in content or '> ' in content or '```' in content
 
@@ -1122,6 +1167,65 @@ LinkedIn格式要求：
         """
         import re
 
+        # Clean up HTML content before processing
+        # First normalize the content - add blank lines before section markers
+        html_content = re.sub(r'^(一、二、三、四、五、六、七、八、九、十、零)([、.])\s*', r'\n\n## \1\2 ', html_content, flags=re.MULTILINE)
+        html_content = re.sub(r'^(前言|概述|简介|摘要|总结|安装|配置|使用|常见问题|FAQ|下一步)([\s：:]|$)', r'\n\n## \1\2', html_content, flags=re.MULTILINE)
+
+        # Remove excessive leading/trailing whitespace on each line
+        lines = html_content.split('\n')
+        cleaned_lines = []
+        for line in lines:
+            # Strip leading whitespace
+            line = line.lstrip()
+            # Strip trailing whitespace
+            line = line.rstrip()
+            # Skip lines that are only whitespace
+            if line.strip():
+                cleaned_lines.append(line)
+        # Join back and remove multiple consecutive blank lines
+        html_content = '\n'.join(cleaned_lines)
+        html_content = re.sub(r'\n{3,}', '\n\n', html_content)
+
+        # Post-process: Convert standalone text that looks like headings to actual headings
+        # Pattern: Lines ending with "：" or "?" or "！" that are on their own and look like titles
+
+        # First, split paragraphs that contain multiple lines separated by newlines
+        # This handles cases where the markdown parser didn't properly separate paragraphs
+        html_content = re.sub(r'(<p[^>]*>)(.*?)(\n)(.*?)(</p>)', r'\1\2</p>\1\4</p>', html_content)
+
+        # Convert numbered sections like "一、xxx" to h2
+        html_content = re.sub(
+            r'<p[^>]*>([一二三四五六七八九十\d]+[、.]\s*[^<>]+?)</p>',
+            r'<h2>\1</h2>',
+            html_content,
+            flags=re.IGNORECASE
+        )
+
+        # Convert lines that end with "：" and look like section titles (standalone)
+        def convert_title_to_heading(match):
+            text = match.group(1).strip()
+            # Skip if it looks like a sentence (has multiple periods or commas)
+            if text.count('。') > 1 or text.count(',') > 2:
+                return match.group(0)
+            # Convert to h3
+            return f'<h3>{text}</h3>'
+
+        html_content = re.sub(
+            r'<p[^>]*>([^<>]{2,40}：[^<>]*)</p>',
+            convert_title_to_heading,
+            html_content,
+            flags=re.IGNORECASE
+        )
+
+        # Convert FAQ questions (Q1:, Q2:, etc.) to h3
+        html_content = re.sub(
+            r'<p[^>]*>(Q\d+[：:]?\s*.*?)</p>',
+            r'<h3>\1</h3>',
+            html_content,
+            flags=re.IGNORECASE
+        )
+
         # Color palette - warm beige theme with premium accents
         colors = {
             'bg': '#FAF8F5',              # Warm beige background
@@ -1163,8 +1267,7 @@ LinkedIn格式要求：
                 result = re.sub(
                     rf'<h{i}([^>]*)>(.*?)</h{i}>',
                     rf'''<h{i}\1 style="font-size:26px;font-weight:700;color:{colors["text"]};margin:28px 0 20px;line-height:1.3;position:relative;padding-left:16px;border-left:4px solid {colors["accent"]};">
-                    <span style="display:block;margin-top:12px;border-bottom:2px solid transparent;background:linear-gradient(90deg,{colors["accent"]} 0%,{colors["h1_accent"]} 100%);height:2px;"></span>
-                    \2</h{i}>''',
+<span style="display:block;margin-top:12px;border-bottom:2px solid transparent;background:linear-gradient(90deg,{colors["accent"]} 0%,{colors["h1_accent"]} 100%);height:2px;"></span>\2</h{i}>''',
                     result,
                     flags=re.IGNORECASE | re.DOTALL
                 )
@@ -1172,8 +1275,7 @@ LinkedIn格式要求：
                 # h2 - Section title with left bar and background
                 result = re.sub(
                     rf'<h{i}([^>]*)>(.*?)</h{i}>',
-                    rf'''<h{i}\1 style="font-size:20px;font-weight:600;color:{colors["text"]};margin:24px 0 14px;line-height:1.4;position:relative;padding:10px 0 10px 14px;border-left:3px solid {colors["accent_light"]};background:linear-gradient(90deg,{colors["bg_light"]} 0%,transparent 100%);">
-                    \2</h{i}>''',
+                    rf'''<h{i}\1 style="font-size:20px;font-weight:600;color:{colors["text"]};margin:24px 0 14px;line-height:1.4;position:relative;padding:10px 0 10px 14px;border-left:3px solid {colors["accent_light"]};background:linear-gradient(90deg,{colors["bg_light"]} 0%,transparent 100%);">\2</h{i}>''',
                     result,
                     flags=re.IGNORECASE | re.DOTALL
                 )
@@ -1182,8 +1284,7 @@ LinkedIn格式要求：
                 result = re.sub(
                     rf'<h{i}([^>]*)>(.*?)</h{i}>',
                     rf'''<h{i}\1 style="font-size:17px;font-weight:600;color:{colors["text"]};margin:20px 0 10px;line-height:1.4;padding-left:12px;position:relative;">
-                    <span style="position:absolute;left:0;top:8px;width:6px;height:6px;background:{colors["accent"]};border-radius:50%;"></span>
-                    \2</h{i}>''',
+<span style="position:absolute;left:0;top:8px;width:6px;height:6px;background:{colors["accent"]};border-radius:50%;"></span>\2</h{i}>''',
                     result,
                     flags=re.IGNORECASE | re.DOTALL
                 )
@@ -1197,11 +1298,22 @@ LinkedIn格式要求：
                 )
 
         # 2. Paragraphs - clean and readable (skip if already has style)
+        # Also clean up duplicate/malformed p tags first
+        result = re.sub(r'</p>\s*<p', '</p><p', result)
+        result = re.sub(r'<p>\s*</p>', '', result)
+
+        # Remove p tags inside li (they create invalid nested blocks)
+        result = re.sub(r'<li([^>]*)>(.*?)<p(.*?)>(.*?)</p>(.*?)</li>', r'<li\1>\2\4\5</li>', result, flags=re.IGNORECASE | re.DOTALL)
+
+        # Clean up whitespace in list items
+        result = re.sub(r'<li([^>]*)>\s+', r'<li\1>', result)
+        result = re.sub(r'\s+</li>', r'</li>', result)
+
         result = re.sub(
-            r'<p([^>]*)>',
-            lambda m: f'<p{m.group(1)} style="margin:12px 0;line-height:1.8;font-size:15px;color:{colors["text"]};">' if 'style=' not in m.group(1) else m.group(0),
+            r'<p([^>]*)>(.*?)</p>',
+            lambda m: f'<p{m.group(1)} style="margin:12px 0;line-height:1.8;font-size:15px;color:{colors["text"]};">{m.group(2)}</p>' if 'style=' not in m.group(1) else m.group(0),
             result,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE | re.DOTALL
         )
 
         # 3. Blockquotes - premium quote style with gradient and icon
@@ -1301,6 +1413,9 @@ LinkedIn格式要求：
             # Remove language class from inner code (we'll re-add styling anyway)
             code_content = re.sub(r'class="[^"]*language-(\w+)[^"]*"', '', code_content)
 
+            # Strip ALL whitespace from code content (including newlines within)
+            code_content = code_content.strip()
+
             # Get language display name (map common names)
             lang_display = {
                 'bash': 'bash',
@@ -1394,7 +1509,12 @@ LinkedIn格式要求：
         result = re.sub(r'\s*style="[^"]*"', lambda m: m.group(0).split('"')[-2] and m.group(0), result)
         result = re.sub(r'\sstyle="[^"]*"\s*style="([^"]*)"', r' style="\1"', result)
 
-        # 12. Wrap in container with warm beige background
+        # 12. Final cleanup - remove extra whitespace
+        result = re.sub(r'\n\s*\n\s*\n', '\n\n', result)  # Reduce multiple blank lines
+        result = re.sub(r'>\s+<', '><', result)  # Remove whitespace between tags
+        result = result.strip()  # Remove leading/trailing whitespace
+
+        # 13. Wrap in container with warm beige background
         result = f'''<div style="width:100%;max-width:677px;margin:0 auto;padding:20px;background:{colors["bg"]};font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue',sans-serif;font-size:15px;line-height:1.8;color:{colors["text"]};">
 {result}
 </div>'''
