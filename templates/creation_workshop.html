@@ -728,6 +728,8 @@
             border-radius: 0.5rem;
             padding: 1rem;
             margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .platform-header {
@@ -762,6 +764,64 @@
             font-size: 0.9rem;
             line-height: 1.6;
             white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        /* WeChat HTML Preview Styles */
+        .platform-content h2,
+        .platform-content h3,
+        .platform-content h4 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-top: 10px;
+        }
+
+        .platform-content p {
+            margin: 15px 0;
+        }
+
+        .platform-content blockquote {
+            border-left: 3px solid #e8e8e8;
+            background: #f9f9f9;
+            padding: 12px 15px;
+            margin: 15px 0;
+            color: #666666;
+            font-style: italic;
+        }
+
+        .platform-content ul,
+        .platform-content ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .platform-content li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .platform-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .platform-content a {
+            color: #1a73e8;
+            text-decoration: underline;
+        }
+
+        /* WeChat-specific preview container */
+        .wechat-preview {
+            max-width: 677px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
         }
 
         /* Loading State */
@@ -828,7 +888,8 @@
                 <!-- Editor Header -->
                 <div class="editor-header">
                     <div style="flex: 1;">
-                        <input type="text" class="editor-title-input" value="" placeholder="输入文章标题...">
+                        {% set proj_title = project.get('title', '') if project is mapping else (project.title if project else '') %}
+                        <input type="text" class="editor-title-input" value="{{ proj_title }}" placeholder="输入文章标题...">
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
                         <button class="toolbar-btn" onclick="saveDraft()">💾 保存</button>
@@ -1037,7 +1098,7 @@
 
     <!-- Platform Format Modal -->
     <div class="modal" id="platformModal">
-        <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-content" style="max-width: 800px; max-height: 85vh; overflow-y: auto;">
             <h3 style="margin-bottom: 1rem;">📤 平台格式转换</h3>
             <div class="platform-preview">
                 <div class="platform-header">
@@ -1048,15 +1109,30 @@
                         <button class="platform-tab" onclick="selectPlatform('xiaohongshu')">小红书</button>
                     </div>
                 </div>
-                <div class="platform-content" id="platformContent">
+                <!-- WeChat preview container (for HTML rendering) -->
+                <div class="platform-content" id="platformContent" style="display:none;">
+                    点击"转换"按钮生成平台格式内容...
+                </div>
+                <!-- Text preview container -->
+                <div class="platform-content" id="platformContentText" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">
                     点击"转换"按钮生成平台格式内容...
                 </div>
                 <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);" id="platformNotes"></div>
+                <!-- Image stats container for WeChat -->
+                <div id="imageStats" style="margin-top: 1rem; display: none;">
+                    <div style="background: var(--bg-tertiary); padding: 0.75rem; border-radius: 8px; font-size: 0.85rem;">
+                        <div style="font-weight: 500; margin-bottom: 0.5rem;">🖼️ 图片生成统计</div>
+                        <div id="imageStatsContent"></div>
+                        <button type="button" class="toolbar-btn" style="margin-top: 0.5rem; font-size: 0.8rem;" onclick="uploadImagesToWechat()">☁️ 上传图片到微信素材库</button>
+                        <div id="uploadStatus" style="margin-top: 0.5rem; color: var(--text-muted);"></div>
+                    </div>
+                </div>
             </div>
             <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                 <button type="button" class="toolbar-btn" onclick="closeModal('platformModal')">关闭</button>
                 <button type="button" class="toolbar-btn primary" onclick="convertPlatform()">转换</button>
-                <button type="button" class="toolbar-btn" onclick="copyPlatformContent()">复制内容</button>
+                <button type="button" class="toolbar-btn" onclick="copyPlatformContent()">复制文本</button>
+                <button type="button" class="toolbar-btn primary" id="copyHtmlBtn" style="display:none;" onclick="copyPlatformHtml()">📋 复制富文本</button>
             </div>
         </div>
     </div>
@@ -1147,8 +1223,9 @@
     </div>
 
     <script>
-        // Current project ID
-        var currentProjectId = '{{ project.id if project else "" }}';
+        // Current project ID - handle dict (project['id']) or object (project.id)
+        {% set proj_id = project.get('id') if project is mapping else (project.id if project else None) %}
+        var currentProjectId = {{ proj_id|tojson }};
 
         // State for workflow
         let selectedVersion = null;
@@ -1333,6 +1410,13 @@
             const editor = document.getElementById('draftEditor');
             const content = editor.value;
 
+            // Check if project exists
+            if (!currentProjectId) {
+                alert('请先创建项目后再生成标题');
+                openModal('newProjectModal');
+                return;
+            }
+
             if (!content || content.length < 100) {
                 alert('请先完成内容再生成标题');
                 return;
@@ -1449,8 +1533,30 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    document.getElementById('platformContent').textContent = data.data.content;
-                    document.getElementById('platformNotes').textContent = data.data.format_notes || '';
+                    const platformContent = data.data.content;
+                    const platformNotes = data.data.format_notes || '';
+
+                    // Update notes
+                    document.getElementById('platformNotes').textContent = platformNotes;
+
+                    // Handle display based on platform
+                    const htmlContainer = document.getElementById('platformContent');
+                    const textContainer = document.getElementById('platformContentText');
+                    const copyHtmlBtn = document.getElementById('copyHtmlBtn');
+
+                    if (currentPlatform === 'weixin') {
+                        // For WeChat: render HTML and show both options
+                        htmlContainer.style.display = 'block';
+                        textContainer.style.display = 'none';
+                        htmlContainer.innerHTML = platformContent;
+                        copyHtmlBtn.style.display = 'inline-block';
+                    } else {
+                        // For other platforms: show plain text
+                        htmlContainer.style.display = 'none';
+                        textContainer.style.display = 'block';
+                        textContainer.textContent = platformContent;
+                        copyHtmlBtn.style.display = 'none';
+                    }
                 } else {
                     alert('转换失败: ' + (data.message || '未知错误'));
                 }
@@ -1464,10 +1570,93 @@
         }
 
         function copyPlatformContent() {
-            const content = document.getElementById('platformContent').textContent;
+            // Always copy as plain text
+            let content;
+            if (currentPlatform === 'weixin') {
+                // Get plain text from HTML
+                const htmlContainer = document.getElementById('platformContent');
+                content = htmlContainer.innerText || htmlContainer.textContent;
+            } else {
+                content = document.getElementById('platformContentText').textContent;
+            }
             navigator.clipboard.writeText(content).then(() => {
-                alert('内容已复制到剪贴板！');
+                alert('文本内容已复制到剪贴板！');
             });
+        }
+
+        function copyPlatformHtml() {
+            // Copy rich text with styles for WeChat
+            const htmlContainer = document.getElementById('platformContent');
+
+            // Get the HTML content
+            const htmlContent = htmlContainer.innerHTML;
+
+            // Get plain text version
+            const textContent = htmlContainer.innerText || htmlContainer.textContent;
+
+            // Use Clipboard API with both text/html and text/plain
+            // This allows rich text to be pasted into WeChat editor
+            const richTextItem = new ClipboardItem({
+                'text/html': new Blob([htmlContent], { type: 'text/html' }),
+                'text/plain': new Blob([textContent], { type: 'text/plain' })
+            });
+
+            navigator.clipboard.write([richTextItem]).then(() => {
+                alert('富文本已复制到剪贴板！直接粘贴到微信编辑器即可');
+            }).catch(err => {
+                // Fallback to plain text copy if rich text fails
+                console.warn('Rich text copy failed, falling back to plain text:', err);
+                navigator.clipboard.writeText(htmlContent).then(() => {
+                    alert('HTML代码已复制！粘贴到微信编辑器后，需手动设置格式');
+                });
+            });
+        }
+
+        async function uploadImagesToWechat() {
+            const imageUrls = window.generatedImageUrls || [];
+
+            if (!imageUrls || imageUrls.length === 0) {
+                alert('没有可上传的图片');
+                return;
+            }
+
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = '正在上传图片到微信素材库...';
+
+            try {
+                const response = await fetch(`/api/creations/${currentProjectId}/upload-wechat-images`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({image_urls: imageUrls})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const results = data.data;
+                    let msg = `上传完成！成功: ${results.success}/${results.total}`;
+                    if (results.success > 0) {
+                        // Replace image URLs in the HTML
+                        const htmlContainer = document.getElementById('platformContent');
+                        let htmlContent = htmlContainer.innerHTML;
+
+                        results.images.forEach(img => {
+                            if (img.wechat_url) {
+                                htmlContent = htmlContent.replace(img.original_url, img.wechat_url);
+                            }
+                        });
+
+                        htmlContainer.innerHTML = htmlContent;
+                        msg += '\n图片URL已替换为微信永久链接！';
+                    }
+                    statusDiv.textContent = msg;
+                } else {
+                    statusDiv.textContent = '上传失败: ' + (data.message || '未知错误');
+                }
+            } catch (error) {
+                console.error('Error uploading to WeChat:', error);
+                statusDiv.textContent = '上传失败: ' + error.message;
+            }
         }
 
         // ============== Image Generation Functions ==============
@@ -1946,11 +2135,16 @@
         async function saveDraftToProject(content, wordCount) {
             if (!currentProjectId) return;
 
+            // Get title from input
+            const titleInput = document.querySelector('.editor-title-input');
+            const title = titleInput ? titleInput.value : '';
+
             try {
                 const response = await fetch(`/api/creations/${currentProjectId}`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
+                        title: title,
                         draft_content: content,
                         word_count_actual: wordCount
                     })

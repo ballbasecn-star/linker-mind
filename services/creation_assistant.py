@@ -8,6 +8,8 @@ This module provides AI assistance for creative projects:
 - Connection suggestions
 - Citation management
 - AI Writing Workflow (based on LawrenceW_Zen's 最小可闭环的AI写作工作流)
+- Markdown parsing with inline image generation
+- WeChat HTML formatting
 
 Features:
 - Generate outlines from materials
@@ -19,13 +21,25 @@ Features:
 - Suggest structural improvements (A/B versions)
 - Generate titles
 - Convert to platform format
+- Markdown to HTML conversion
+- Inline AI image generation (using generate: syntax)
+- WeChat HTML export with inline styles
 """
 import os
+import re
 from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 import logging
 from dotenv import load_dotenv
+
+# Markdown support
+try:
+    import markdown
+    MARKDOWN_AVAILABLE = True
+except ImportError:
+    MARKDOWN_AVAILABLE = False
+    logging.warning("markdown library not installed, Markdown parsing will be limited")
 
 # Load environment variables
 load_dotenv()
@@ -709,18 +723,23 @@ class AICreationAssistantService:
         project = creation_service.get_by_id(project_id)
 
         if not project:
+            logger.warning(f"Project not found: {project_id}")
             return None
 
         # Build prompt for title generation
         prompt = self._build_title_prompt(project, content, num_titles)
+        logger.info(f"Generating titles for project {project_id}, content length: {len(content)}")
 
         # Call LLM
         result = self._call_llm(prompt)
+        logger.info(f"LLM result length: {len(result) if result else 0}")
 
         if result:
             titles = self._parse_titles(result, num_titles)
+            logger.info(f"Parsed {len(titles)} titles")
             return titles
 
+        logger.warning(f"Failed to generate titles for project {project_id}")
         return []
 
     def convert_to_platform_format(
@@ -741,6 +760,33 @@ class AICreationAssistantService:
         Returns:
             Dictionary with converted content
         """
+        if platform == 'weixin':
+            # 1. Check if content contains Markdown syntax
+            has_markdown = bool(re.search(r'^#{1,6}\s+', content, re.MULTILINE)) or '**' in content or '*' in content or '- ' in content or '> ' in content or '```' in content
+
+            if has_markdown:
+                # Parse Markdown to HTML
+                html = self.parse_markdown(content)
+            else:
+                # Plain text - convert newlines to paragraphs
+                paragraphs = content.split('\n\n')
+                html_parts = []
+                for p in paragraphs:
+                    p = p.strip()
+                    if p:
+                        html_parts.append(f'<p>{p}</p>')
+                html = '\n'.join(html_parts)
+
+            # 2. Add warm beige theme styles
+            html = self._format_weixin_html(html)
+
+            return {
+                'platform': 'weixin',
+                'content': html,
+                'format_notes': '✓ 直接复制富文本粘贴到微信编辑器'
+            }
+
+        # For other platforms: use LLM conversion
         from services.creation_service import CreationWorkshopService
 
         creation_service = CreationWorkshopService(self.db_path)
@@ -770,12 +816,13 @@ class AICreationAssistantService:
         """Call LLM with prompt"""
         client = get_llm_client()
         if not client:
-            logger.warning("No LLM client available")
+            logger.error("No LLM client available - check API key configuration")
             return None
 
         try:
             # Use deepseek or openai
             model = os.environ.get('LLM_MODEL', 'deepseek-chat')
+            logger.info(f"Calling LLM with model: {model}")
 
             response = client.chat.completions.create(
                 model=model,
@@ -787,10 +834,12 @@ class AICreationAssistantService:
                 temperature=0.7
             )
 
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            logger.info(f"LLM response received, length: {len(content) if content else 0}")
+            return content
 
         except Exception as e:
-            logger.error(f"LLM call failed: {e}")
+            logger.error(f"LLM call failed: {e}", exc_info=True)
             return None
 
     def _build_draft_prompt(
@@ -865,21 +914,24 @@ class AICreationAssistantService:
         num_titles: int
     ) -> str:
         """Build prompt for title generation"""
+        project_type = project.project_type or "通用内容"
+        content_snippet = content[:3000] if content else ""
+
         prompt = f"""基于以下内容，生成{num_titles}个标题建议。
 
-项目类型: {project.project_type}
+项目类型: {project_type}
 
 内容摘要:
-{content[:2000]}
+{content_snippet}
 
 请生成以下类型的标题:
 1. 常规标题 (中性、描述性)
 2. 钩子型标题 (引起好奇)
-3. 标题党风格 (有争议/夸张)
-4. 问答型标题 (提问引发思考)
-5. 数字型标题 (使用数据和列表)
+3. 问答型标题 (提问引发思考)
+4. 数字型标题 (使用数据和列表)
+5. 情感型标题 (引发情感共鸣)
 
-请用JSON格式回复:
+请用JSON数组格式回复，每项包含 type, title, reason:
 [{{"type": "常规", "title": "标题内容", "reason": "为什么好"}}, ...]"""
 
         return prompt
@@ -890,24 +942,83 @@ class AICreationAssistantService:
         content: str,
         platform: str
     ) -> str:
-        """Build prompt for platform conversion"""
-        platform_info = {
-            'x': 'X/Twitter: 最多280字符，支持hashtag和@提及，使用简洁有力的表达',
-            'weixin': '微信公众号: 支持富文本，可添加图片和链接，标题吸引人',
-            'linkedin': 'LinkedIn: 专业风格，可添加话题标签，注重个人品牌',
-            'xiaohongshu': '小红书: Emoji丰富，段落短，图文结合'
-        }
+        """Build prompt for platform conversion with detailed format guidelines"""
+        import re
 
-        platform_desc = platform_info.get(platform, '通用格式')
+        # Get first 2000 chars of content for the prompt
+        content_snippet = content[:2000] if content else ""
 
-        prompt = f"""将以下内容转换为{platform}格式。
+        if platform == 'weixin':
+            # WeChat detailed format guide
+            platform_guide = """
+微信公众号格式要求（必须严格遵循）:
+1. 使用HTML标签：p, h2, h3, h4, img, blockquote, ul, ol, li, a, span, strong, em
+2. 所有样式必须内联（微信不支持外部样式表），格式如：style="margin:15px 0;line-height:2;font-size:16px;color:#333333"
+3. 内容宽度不超过677px（自动居中）
+4. 标题使用h2或h3，加粗，颜色#222222
+5. 引用使用blockquote，左边框3px solid #e8e8e8，背景#f9f9f9，padding:10px
+6. 列表使用ul/ol，缩进
+7. 段落样式：font-size:16px;color:#333333;line-height:1.8;margin:15px 0
+8. 图片使用img标签，建议添加说明文字
+9. 使用中文标点符号
+10. 输出完整的HTML代码，不要包含```html代码块标记
 
-平台特点: {platform_desc}
+示例输出格式：
+<h2 style="font-size:20px;font-weight:bold;color:#222222;margin:20px 0 10px;">标题</h2>
+<p style="font-size:16px;color:#333333;line-height:1.8;margin:15px 0;">正文内容...</p>
+<blockquote style="border-left:3px solid #e8e8e8;background:#f9f9f9;padding:10px;margin:15px 0;">引用内容</blockquote>"""
+            platform_desc = platform_guide
+        elif platform == 'x':
+            # X/Twitter detailed format guide
+            platform_guide = """
+X/Twitter格式要求（必须严格遵循）:
+1. 最多280字符（中文140字符），精确计算
+2. 开头hook必须吸引眼球，引发好奇
+3. 使用2-4个相关hashtag（#标签）
+4. 简洁有力的短句，避免冗长
+5. 如有相关账号可@提及
+6. 结尾可添加行动号召(CTA)
+7. 提取最核心的观点和信息
+8. 输出纯文本，不需要任何格式标签
+
+输出格式：纯文本内容，长度严格控制在280字符以内"""
+            platform_desc = platform_guide
+        elif platform == 'linkedin':
+            platform_guide = """
+LinkedIn格式要求：
+1. 专业风格，适合职场阅读
+2. 首行要有吸引力（hook）
+3. 添加2-5个专业话题标签（#话题）
+4. 段落分明，每段不要太长
+5. 可添加emoji增加可读性
+6. 结尾添加行动号召或讨论引导
+7. 输出纯文本格式"""
+            platform_desc = platform_guide
+        elif platform == 'xiaohongshu':
+            platform_guide = """
+小红书格式要求：
+1. Emoji丰富，活泼有趣
+2. 段落要短，每行不要太长
+3. 添加话题标签（#标签）
+4. 开头吸引人，有视觉感
+5. 结尾要有互动引导（收藏、点赞等）
+6. 输出纯文本格式"""
+            platform_desc = platform_guide
+        else:
+            platform_desc = "通用格式"
+
+        # Build the final prompt
+        prompt = f"""将以下内容转换为适合{platform}平台发布的内容。
+
+项目标题: {project.title or '无标题'}
+项目类型: {project.project_type or '通用'}
+
+{platform_desc}
 
 原始内容:
-{content[:3000]}
+{content_snippet}
 
-请转换为适合{platform}平台的格式，保留核心内容但调整表达方式。"""
+请根据上述平台要求进行转换，输出转换后的内容："""
 
         return prompt
 
@@ -935,36 +1046,257 @@ class AICreationAssistantService:
         import json
         import re
 
+        if not result:
+            logger.warning("Empty result passed to _parse_titles")
+            return []
+
         # Try to extract JSON array
         json_match = re.search(r'\[[\s\S]*\]', result)
         if json_match:
             try:
                 titles = json.loads(json_match.group())
+                logger.info(f"Successfully parsed {len(titles)} titles from JSON")
                 return titles[:num_titles]
-            except:
-                pass
+            except json.JSONDecodeError as e:
+                logger.warning(f"JSON parse failed: {e}")
+
+        # Try to parse as any JSON structure
+        try:
+            # Try to find JSON objects in the text
+            obj_matches = re.findall(r'\{[^{}]*\}', result)
+            titles = []
+            for match in obj_matches:
+                try:
+                    obj = json.loads(match)
+                    if 'title' in obj:
+                        titles.append({
+                            'type': obj.get('type', '常规'),
+                            'title': obj.get('title', ''),
+                            'reason': obj.get('reason', obj.get('reason', 'From AI suggestion'))
+                        })
+                except:
+                    pass
+            if titles:
+                logger.info(f"Parsed {len(titles)} titles from objects")
+                return titles[:num_titles]
+        except Exception as e:
+            logger.warning(f"Object extraction failed: {e}")
 
         # Fallback: parse line by line
+        logger.info("Using line-by-line fallback parsing")
         titles = []
         for line in result.split('\n'):
-            if line.strip() and not line.startswith('#'):
-                titles.append({
-                    'type': '常规',
-                    'title': line.strip().lstrip('0123456789. '),
-                    'reason': 'From AI suggestion'
-                })
+            line = line.strip()
+            if line and not line.startswith('#') and not line.startswith('```'):
+                # Try to extract title from various formats
+                title = line.lstrip('0123456789.)-: ')
+                if len(title) > 3:  # Minimum title length
+                    titles.append({
+                        'type': '常规',
+                        'title': title,
+                        'reason': 'From AI suggestion'
+                    })
 
         return titles[:num_titles]
 
     def _get_platform_notes(self, platform: str) -> str:
         """Get formatting notes for platform"""
         notes = {
-            'x': '✓ 最少280字符\n✓ 使用hashtag增加曝光\n✓ 可添加1-4张图片',
-            'weixin': '✓ 标题越吸引越好\n✓ 摘要要有吸引力\n✓ 可添加原文链接',
+            'x': '✓ 最多280字符\n✓ 使用hashtag增加曝光\n✓ 简洁有力的开头hook\n✓ 可添加1-4张图片',
+            'weixin': '✓ 标题使用h2/h3加粗\n✓ 段落添加行距和间距\n✓ 引用使用blockquote样式\n✓ 复制HTML可直接粘贴到微信编辑器',
             'linkedin': '✓ 添加专业话题标签\n✓ 首行要有吸引力\n✓ 建议添加图片',
             'xiaohongshu': '✓ Emoji要丰富\n✓ 段落要短\n✓ 结尾要有互动引导'
         }
         return notes.get(platform, '请根据平台特点调整')
+
+    def _format_weixin_html(self, html_content: str) -> str:
+        """
+        Enhance WeChat HTML with beautiful warm beige theme styles
+        Classic black & white theme with 15px base font
+
+        Args:
+            html_content: Raw HTML from Markdown conversion
+
+        Returns:
+            HTML with beautiful warm beige theme
+        """
+        import re
+
+        # Color palette - warm beige theme
+        colors = {
+            'bg': '#FAF8F5',        # Warm beige background
+            'bg_light': '#F5F0E8', # Lighter beige
+            'text': '#2D2D2D',      # Near black for text
+            'text_light': '#5A5A5A', # Lighter text
+            'accent': '#1A1A1A',    # Black accent
+            'border': '#E8E4DE',    # Subtle border
+            'code_bg': '#F0EDE8',   # Code background
+            'quote_border': '#C9C4BC', # Quote border
+            'link': '#3B5998',      # Classic blue link
+        }
+
+        # If no HTML tags, wrap in paragraphs
+        if '<' not in html_content:
+            paragraphs = html_content.split('\n\n')
+            styled_parts = []
+            for p in paragraphs:
+                p = p.strip()
+                if p:
+                    styled_parts.append(
+                        f'<p style="margin:12px 0;line-height:1.8;font-size:15px;color:{colors["text"]};">{p}</p>'
+                    )
+            return '\n'.join(styled_parts)
+
+        result = html_content
+
+        # 1. Handle headers - elegant and clear
+        for i in range(6, 0, -1):
+            if i == 1:
+                # h1 - Main title
+                result = re.sub(
+                    rf'<h{i}([^>]*)>',
+                    rf'<h{i}\1 style="font-size:24px;font-weight:700;color:{colors["text"]};margin:24px 0 16px;line-height:1.4;border-bottom:2px solid {colors["accent"]};padding-bottom:10px;">',
+                    result,
+                    flags=re.IGNORECASE
+                )
+            elif i == 2:
+                # h2 - Section title
+                result = re.sub(
+                    rf'<h{i}([^>]*)>',
+                    rf'<h{i}\1 style="font-size:20px;font-weight:600;color:{colors["text"]};margin:24px 0 12px;line-height:1.4;">',
+                    result,
+                    flags=re.IGNORECASE
+                )
+            elif i == 3:
+                # h3 - Subsection
+                result = re.sub(
+                    rf'<h{i}([^>]*)>',
+                    rf'<h{i}\1 style="font-size:17px;font-weight:600;color:{colors["text"]};margin:20px 0 10px;line-height:1.4;">',
+                    result,
+                    flags=re.IGNORECASE
+                )
+            else:
+                # h4-h6
+                result = re.sub(
+                    rf'<h{i}([^>]*)>',
+                    rf'<h{i}\1 style="font-size:16px;font-weight:600;color:{colors["text"]};margin:16px 0 8px;">',
+                    result,
+                    flags=re.IGNORECASE
+                )
+
+        # 2. Paragraphs - clean and readable
+        result = re.sub(
+            r'<p([^>]*)(?<!style=")(?<!style=\')>',
+            rf'<p\1 style="margin:12px 0;line-height:1.8;font-size:15px;color:{colors["text"]};">',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 3. Blockquotes - elegant quote style
+        result = re.sub(
+            r'<blockquote([^>]*)>',
+            rf'''<blockquote\1 style="border-left:3px solid {colors["quote_border"]};background:{colors["bg_light"]};padding:14px 18px;margin:16px 0;color:{colors["text_light"]};line-height:1.7;font-size:14px;border-radius:0 6px 6px 0;">''',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 4. Lists - clear structure
+        result = re.sub(
+            r'<(ul|ol)([^>]*)>',
+            rf'<\1\2 style="margin:12px 0;padding-left:22px;">',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        result = re.sub(
+            r'<li([^>]*)>',
+            rf'<li\1 style="margin:8px 0;line-height:1.7;font-size:15px;color:{colors["text"]};">',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 5. Strong and emphasis
+        result = re.sub(
+            r'<strong([^>]*)>',
+            rf'<strong\1 style="font-weight:600;color:{colors["accent"]};">',
+            result,
+            flags=re.IGNORECASE
+        )
+        result = re.sub(
+            r'<em([^>]*)>',
+            rf'<em\1 style="font-style:italic;color:{colors["text_light"]};">',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 6. Links
+        result = re.sub(
+            r'<a([^>]*)>',
+            rf'<a\1 style="color:{colors["link"]};text-decoration:underline;text-decoration-color:{colors["link"]}40;">',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 7. Images - clean and responsive
+        result = re.sub(
+            r'<img([^>]*)>',
+            r'<img\1 style="max-width:100%;height:auto;margin:16px 0;border-radius:6px;display:block;">',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 8. Code - inline and blocks
+        result = re.sub(
+            r'<code([^>]*)>',
+            r'<code\1 style="background:#F0EDE8;padding:2px 6px;border-radius:4px;font-family:SF Mono,Monaco,Menlo,monospace;font-size:13px;color:#1A1A1A;">',
+            result,
+            flags=re.IGNORECASE
+        )
+        result = re.sub(
+            r'<pre([^>]*)>',
+            rf'''<pre\1 style="background:{colors["code_bg"]};padding:16px;border-radius:8px;margin:16px 0;overflow-x:auto;font-size:13px;line-height:1.6;border:1px solid {colors["border"]};">''',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 9. Horizontal rules (hr)
+        result = re.sub(
+            r'<hr([^>]*)>',
+            rf'<hr\1 style="border:none;border-top:1px solid {colors["border"]};margin:24px 0;">',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 10. Tables
+        result = re.sub(
+            r'<table([^>]*)>',
+            rf'''<table\1 style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">''',
+            result,
+            flags=re.IGNORECASE
+        )
+        result = re.sub(
+            r'<th([^>]*)>',
+            rf'<th\1 style="background:{colors["bg_light"]};padding:10px;border:1px solid {colors["border"]};text-align:left;font-weight:600;">',
+            result,
+            flags=re.IGNORECASE
+        )
+        result = re.sub(
+            r'<td([^>]*)>',
+            rf'<td\1 style="padding:10px;border:1px solid {colors["border"]};">',
+            result,
+            flags=re.IGNORECASE
+        )
+
+        # 11. Clean up empty style attributes
+        result = re.sub(r'style=""', '', result)
+        result = re.sub(r'style=\'\'', '', result)
+
+        # 12. Wrap in container with warm beige background
+        result = f'''<div style="width:100%;max-width:677px;margin:0 auto;padding:20px;background:{colors["bg"]};font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue',sans-serif;font-size:15px;line-height:1.8;color:{colors["text"]};">
+{result}
+</div>'''
+
+        return result
 
     # ============== Image Generation & Analysis Methods ==============
 
@@ -1674,6 +2006,77 @@ class AICreationAssistantService:
         )
 
         return True
+
+    # ============== Markdown & Inline Image Generation Methods ==============
+
+    def parse_markdown(self, content: str) -> str:
+        """
+        Parse Markdown content and convert to HTML
+
+        Args:
+            content: Markdown content
+
+        Returns:
+            HTML string
+        """
+        if not content:
+            return ""
+
+        if not MARKDOWN_AVAILABLE:
+            # Fallback: simple regex-based parsing
+            return self._parse_markdown_fallback(content)
+
+        try:
+            md = markdown.Markdown(extensions=['extra', 'codehilite', 'tables', 'fenced_code'])
+            html = md.convert(content)
+            return html
+        except Exception as e:
+            logger.error(f"Error parsing markdown: {e}")
+            return self._parse_markdown_fallback(content)
+
+    def _parse_markdown_fallback(self, content: str) -> str:
+        """Simple fallback markdown parser without the markdown library"""
+        html = content
+
+        # Headers
+        for i in range(6, 0, -1):
+            header_prefix = '#' * i + ' '
+            html = html.replace(f'\n{header_prefix}', f'\n<h{i}>', 1)
+            html = html.replace(f'\n{header_prefix}', f'\n<h{i}>')
+
+        # Bold
+        html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', html)
+        html = re.sub(r'__(.+?)__', r'<strong>\1</strong>', html)
+
+        # Italic
+        html = re.sub(r'\*(.+?)\*', r'<em>\1</em>', html)
+        html = re.sub(r'_(.+?)_', r'<em>\1</em>', html)
+
+        # Code blocks
+        html = re.sub(r'```(\w+)?\n([\s\S]*?)```', r'<pre><code class="language-\1">\2</code></pre>', html)
+        html = re.sub(r'`(.+?)`', r'<code>\1</code>', html)
+
+        # Links
+        html = re.sub(r'\[(.+?)\]\((.+?)\)', r'<a href="\2">\1</a>', html)
+
+        # Images - preserve for later processing
+        # Note: Images with generate: syntax will be processed separately
+
+        # Blockquotes
+        html = re.sub(r'^&gt;\s*(.+)$', r'<blockquote>\1</blockquote>', html, flags=re.MULTILINE)
+
+        # Unordered lists
+        html = re.sub(r'^\s*-\s+(.+)$', r'<li>\1</li>', html, flags=re.MULTILINE)
+        html = re.sub(r'(<li>.*</li>\n?)+', r'<ul>\g<0></ul>', html)
+
+        # Ordered lists
+        html = re.sub(r'^\s*\d+\.\s+(.+)$', r'<li>\1</li>', html, flags=re.MULTILINE)
+
+        # Paragraphs
+        html = re.sub(r'\n\n+', '</p><p>', html)
+        html = '<p>' + html + '</p>'
+
+        return html
 
 
 if __name__ == "__main__":

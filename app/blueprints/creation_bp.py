@@ -697,25 +697,33 @@ def generate_titles(project_id: str):
     try:
         from services.creation_assistant import AICreationAssistantService
 
+        # Validate project_id
+        if not project_id or project_id == 'None' or project_id == 'null':
+            return json_error_response('请先创建项目后再生成标题', status_code=400)
+
         assistant = AICreationAssistantService()
         data = request.get_json() or {}
 
         content = data.get('content', '')
-        if not content:
-            return json_error_response('content is required', status_code=400)
+        if not content or len(content) < 50:
+            return json_error_response('内容至少需要50个字符', status_code=400)
 
         num_titles = data.get('num_titles', 5)
+
+        logger.info(f"Generating titles for project {project_id}, content length: {len(content)}")
 
         result = assistant.generate_titles(project_id, content, num_titles)
 
         if not result:
-            return json_error_response('Failed to generate titles', status_code=500)
+            logger.warning(f"No titles generated for project {project_id}")
+            return json_error_response('生成标题失败，请确保项目已保存且内容有效', status_code=500)
 
+        logger.info(f"Successfully generated {len(result)} titles for project {project_id}")
         return json_success_response({'titles': result})
 
     except Exception as e:
-        logger.error(f"Error generating titles: {e}")
-        return json_error_response(str(e), status_code=500)
+        logger.error(f"Error generating titles: {e}", exc_info=True)
+        return json_error_response(f'错误: {str(e)}', status_code=500)
 
 
 @creation_bp.route('/api/creations/<project_id>/platform-format', methods=['POST'])
@@ -1042,6 +1050,168 @@ def set_cover_image(project_id: str):
 
     except Exception as e:
         logger.error(f"Error setting cover image: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+# ============== Markdown & WeChat Integration Endpoints ==============
+
+@creation_bp.route('/api/creations/<project_id>/markdown-preview', methods=['POST'])
+def markdown_preview(project_id: str):
+    """Preview Markdown rendering without generating images"""
+    try:
+        data = request.get_json() or {}
+        content = data.get('content', '')
+
+        if not content:
+            return json_error_response('content is required', status_code=400)
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        assistant = AICreationAssistantService()
+
+        # Extract generate: prompts but don't generate images
+        prompts = assistant.extract_generate_images(content)
+
+        # Parse markdown
+        html = assistant.parse_markdown(content)
+
+        return json_success_response({
+            'html': html,
+            'prompts': prompts,
+            'stats': {
+                'total_images': len(prompts),
+                'markdown_length': len(content)
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"Error previewing markdown: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/generate-image-inline', methods=['POST'])
+def generate_inline_image(project_id: str):
+    """Generate an inline image from selected text/prompt"""
+    try:
+        data = request.get_json() or {}
+        prompt = data.get('prompt', '')
+
+        if not prompt:
+            return json_error_response('prompt is required', status_code=400)
+
+        size = data.get('size', '1024x1024')
+
+        assistant = AICreationAssistantService()
+        result = assistant.generate_inline_image(
+            prompt=prompt,
+            project_id=project_id,
+            size=size
+        )
+
+        if not result or result.get('status') != 'success':
+            return json_error_response(result.get('error', 'Failed to generate image'), status_code=500)
+
+        return json_success_response(result)
+
+    except Exception as e:
+        logger.error(f"Error generating inline image: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/process-markdown', methods=['POST'])
+def process_markdown(project_id: str):
+    """Process complete Markdown with inline image generation"""
+    try:
+        data = request.get_json() or {}
+        content = data.get('content', '')
+        generate_images = data.get('generate_images', True)
+
+        if not content:
+            return json_error_response('content is required', status_code=400)
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        assistant = AICreationAssistantService()
+        result = assistant.process_markdown_with_images(
+            content=content,
+            project_id=project_id,
+            generate_images=generate_images,
+            platform='weixin'
+        )
+
+        return json_success_response(result)
+
+    except Exception as e:
+        logger.error(f"Error processing markdown: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/convert-wechat', methods=['POST'])
+def convert_wechat(project_id: str):
+    """Convert Markdown to WeChat HTML format"""
+    try:
+        data = request.get_json() or {}
+        content = data.get('content', '')
+        generate_images = data.get('generate_images', True)
+
+        if not content:
+            return json_error_response('content is required', status_code=400)
+
+        service = get_creation_service()
+        project = service.get_by_id(project_id)
+
+        if not project:
+            return json_error_response('Creation not found', 'NOT_FOUND', status_code=404)
+
+        assistant = AICreationAssistantService()
+        result = assistant.convert_to_wechat_html(
+            markdown_content=content,
+            project_id=project_id,
+            generate_images=generate_images
+        )
+
+        return json_success_response(result)
+
+    except Exception as e:
+        logger.error(f"Error converting to WeChat: {e}")
+        return json_error_response(str(e), status_code=500)
+
+
+@creation_bp.route('/api/creations/<project_id>/upload-wechat-images', methods=['POST'])
+def upload_wechat_images(project_id: str):
+    """Upload generated images to WeChat material library"""
+    try:
+        from services.wechat_uploader import WeChatUploader
+
+        data = request.get_json() or {}
+        image_urls = data.get('image_urls', [])
+
+        if not image_urls:
+            return json_error_response('image_urls is required', status_code=400)
+
+        uploader = WeChatUploader()
+
+        # Check if WeChat is configured
+        if not uploader.app_id or not uploader.app_secret:
+            return json_error_response(
+                'WeChat not configured. Please set WECHAT_APP_ID and WECHAT_APP_SECRET in .env',
+                status_code=400
+            )
+
+        results = uploader.upload_images_batch(image_urls, project_id)
+
+        return json_success_response(results)
+
+    except Exception as e:
+        logger.error(f"Error uploading to WeChat: {e}")
         return json_error_response(str(e), status_code=500)
 
 

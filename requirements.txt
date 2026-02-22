@@ -24,6 +24,9 @@ psycopg2-binary>=2.9.0
 # Content Processing (Optional)
 # ===================================================================
 
+# Markdown parsing for WeChat article formatting
+markdown>=3.5.0
+
 # Web scraping
 beautifulsoup4>=4.12.0
 lxml>=5.0.0
