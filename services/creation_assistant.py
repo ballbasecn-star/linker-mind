@@ -765,23 +765,38 @@ class AICreationAssistantService:
             # This handles content like "一、xxx" -> "## 一、xxx"
             import re
 
-            # ===== Step 0: Simple cleanup - strip and add proper line breaks =====
+            # ===== Step 0: Simple cleanup =====
+            # Detect if content uses proper markdown list syntax (markers at line start)
+            # vs indented text (markers after whitespace)
             lines = content.split('\n')
             cleaned_lines = []
             prev_was_table_row = False
 
             for line in lines:
-                # Remove all leading/trailing whitespace including tabs, multiple spaces
-                line = line.strip()
-                # Also remove multiple consecutive spaces within the line
-                line = re.sub(r' {2,}', ' ', line)
+                # Check original line: does it start with "- " or "* " at position 0?
+                original_starts_with_marker = line.lstrip().startswith(('- ', '* '))
+                # Was there whitespace before the marker?
+                had_leading_whitespace = line and line[0] in ' \t'
+
+                # Strip trailing whitespace only
+                line = line.rstrip()
+
                 if line:
-                    # Check if this is a table row (starts with |)
+                    # Check if this is a table row
                     is_table_row = line.startswith('|') or line.endswith('|')
+
+                    # If it had leading whitespace before the marker, it's NOT a markdown list
+                    # Keep it as plain text (remove the marker entirely)
+                    if had_leading_whitespace and original_starts_with_marker:
+                        line = line.lstrip()
+                        # Remove the marker: "- " or "* " at the start
+                        if line.startswith('- ') or line.startswith('* '):
+                            line = line[2:]
+                        elif line.startswith('-') or line.startswith('*'):
+                            line = line[1:].lstrip()
 
                     # If previous was a table row and this is also a table row, join without blank line
                     if prev_was_table_row and is_table_row:
-                        # Join directly without double newline
                         cleaned_lines[-1] = cleaned_lines[-1] + '\n' + line
                     else:
                         cleaned_lines.append(line)
@@ -790,7 +805,7 @@ class AICreationAssistantService:
                 else:
                     prev_was_table_row = False
 
-            # Join with double newlines for markdown paragraph detection (tables handled above)
+            # Join with double newlines for markdown paragraph detection
             content = '\n\n'.join(cleaned_lines)
 
             # ===== Step 1: Convert numbered sections to h2 (before first line conversion) =====
@@ -1317,25 +1332,27 @@ LinkedIn格式要求：
         )
 
         # 4. Lists - enhanced with custom bullets
+        # Only style actual list elements, don't add bullets to paragraphs
         result = re.sub(
             r'<ul([^>]*)>',
-            r'<ul\1 style="margin:12px 0;padding-left:24px;list-style:none;">',
+            rf'<ul\1 style="margin:12px 0;padding-left:20px;list-style:none;color:{colors["text"]};">',
             result,
             flags=re.IGNORECASE
         )
         result = re.sub(
             r'<ol([^>]*)>',
-            r'<ol\1 style="margin:12px 0;padding-left:24px;">',
+            rf'<ol\1 style="margin:12px 0;padding-left:20px;color:{colors["text"]};">',
             result,
             flags=re.IGNORECASE
         )
 
+        # Style existing list items - use smaller bullet
+        # Only apply to <li> elements that don't already have custom styling
         result = re.sub(
-            r'<li([^>]*)>',
-            rf'''<li\1 style="margin:10px 0;line-height:1.7;font-size:15px;color:{colors["text"]};position:relative;padding-left:8px;">
-            <span style="position:absolute;left:-16px;top:8px;width:6px;height:6px;background:{colors["accent"]};border-radius:50%;"></span>''',
+            r'<li([^>]*)>(.*?)</li>',
+            rf'<li\1 style="margin:6px 0;line-height:1.8;font-size:15px;color:{colors["text"]};list-style:none;">\2</li>',
             result,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE | re.DOTALL
         )
 
         # 5. Strong and emphasis

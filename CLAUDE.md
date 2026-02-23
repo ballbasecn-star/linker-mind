@@ -1096,5 +1096,75 @@ from processors.media.video_processor import VideoInfoProcessor
 
 ---
 
-*文档版本: v1.6*
-*最后更新: 2026-02-20*
+### 9.7 微信公众号 Markdown 排版美化
+
+**功能**：将 Markdown 内容转换为微信公众号富文本格式，支持美观排版
+
+**实现文件**：
+- `services/creation_assistant.py` - `_format_weixin_html()` 方法
+- `app/blueprints/creation_bp.py` - API 端点 `/api/creations/test/platform-format`
+
+**API 端点**：
+```bash
+POST /api/creations/test/platform-format
+Content-Type: application/json
+{"content": "# 标题\n\n正文内容", "platform": "weixin"}
+```
+
+**支持的 Markdown 元素**：
+
+| 元素 | 渲染效果 |
+|------|----------|
+| `# 标题` | h1 - 左侧强调色块 + 底部渐变装饰线 |
+| `## 标题` | h2 - 左侧竖线 + 浅色背景 |
+| `- 列表项` | ul/li - 纯文本，无额外符号 |
+| ```` ``` ```` | 代码块 - 浅色背景 + 圆角 + 语言标签 |
+| `> 引用` | blockquote - 渐变背景 + 左侧边框 |
+| `\| 表格 \|` | table - 表头深色背景 + 斑马纹 |
+
+**配色方案**（暖米色主题）：
+```python
+colors = {
+    'bg': '#FAF8F5',           # 主背景
+    'bg_light': '#F5F0E8',     # 浅背景
+    'text': '#2D2D2D',         # 主文字
+    'accent': '#8B7355',       # 主题强调色
+    'border': '#E8E4DE',       # 边框色
+}
+```
+
+**排版处理规则**：
+
+1. **标题转换**
+   - 第一行自动转为 h1
+   - 中文数字序号（一、二、三、）转为 h2
+   - 常见章节标题（前言、概述、安装等）转为 h2
+
+2. **列表处理**
+   - 标准 Markdown 列表（`- item`）渲染为 ul/li
+   - 缩进文本（` - item`，有前导空格）保持为纯段落，不添加任何符号
+
+3. **代码块**
+   - 检测语言标签显示
+   - 浅色背景 (#F5F0E8)
+   - 圆角边框
+
+4. **表格**
+   - 表头深色背景
+   - 斑马纹行背景
+   - 响应式宽度
+
+5. **预处理清理**
+   - 移除多余空格
+   - 表格行连续拼接（避免 markdown 解析错误）
+   - 保留缩进文本的纯文本性质
+
+**注意事项**：
+- 使用内联 CSS 样式，兼容微信公众号编辑器
+- 避免使用 `position:absolute`，会被微信过滤
+- 不添加特殊字符（避免被过滤）
+
+---
+
+*文档版本: v1.7*
+*最后更新: 2026-02-22*
